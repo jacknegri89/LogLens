@@ -70,7 +70,7 @@ cd server
 npm install
 cp .env.example .env
 # Edit .env: paste your Supabase (or any PostgreSQL) DATABASE_URL
-npm run prisma:migrate      # create the tables + seed example data
+npm run prisma:migrate      # push schema to DB + seed example data
 npm run dev                 # starts http://localhost:3001 with auto-reload
 ```
 
