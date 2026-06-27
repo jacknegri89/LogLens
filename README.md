@@ -23,13 +23,13 @@ GitHub Issue you can copy in one click.
 - **AI analysis** — the relevant lines are sent to an AI model that returns a structured report
 - **Severity & category** — every issue is classified (low / medium / high) and tagged
 - **Actionable report** — main problem, key log lines, probable causes, debug steps
-- **Markdown export** — download the report or copy a ready-to-paste **GitHub Issue**
+- **Copy-ready GitHub Issue** — one click to copy a formatted bug report
 - **History** — every analysis is saved; revisit it from a detail page
 - **Pluggable AI** — works with **OpenAI** or a **free local Ollama** model
 
 ## Screenshots
 
-> Added in Phase 9 — see [`docs/screenshots/`](./docs/screenshots/).
+> Coming in Phase 9.
 
 ## Tech stack
 
@@ -63,9 +63,6 @@ git clone https://github.com/jacknegri89/LogLens.git
 cd LogLens
 ```
 
-Each app (backend, and later the frontend) has its own `.env` and dependencies —
-see below.
-
 ### Run the backend
 
 ```bash
@@ -83,17 +80,25 @@ curl http://localhost:3001/api/health
 # { "status": "ok", "service": "loglens-server", "timestamp": "..." }
 ```
 
-> The frontend run commands are added in Phase 6.
+### Run the frontend
+
+```bash
+cd client
+npm install
+npm run dev                 # starts http://localhost:5173
+```
+
+Open the app at `http://localhost:5173`. The frontend expects the backend running at `http://localhost:3001`.
 
 ## Project structure
 
 ```text
-loglens/
-├── client/     # React + TS + Tailwind frontend
-├── server/     # Express + TS backend (parser, AI provider, routes)
-├── prisma/     # schema.prisma + migrations
-├── docs/       # architecture, prompt design, screenshots
-├── examples/   # sample logs to try the app with
+LogLens/
+├── client/     # React + TypeScript + Vite + Tailwind CSS frontend
+├── server/     # Node.js + Express + TypeScript backend
+│   └── prisma/ # schema.prisma, migrations, seed
+├── docs/       # architecture notes, AI prompt design
+├── examples/   # sample log files to try the app with
 └── .github/    # CI workflow
 ```
 
@@ -108,12 +113,12 @@ Try LogLens with the sample logs in [`examples/`](./examples/):
 ## Roadmap
 
 - [x] **Phase 0** — Project structure, CI skeleton, docs & examples
-- [ ] **Phase 1** — Express + TypeScript backend
-- [ ] **Phase 2** — Prisma schema & migrations
-- [ ] **Phase 3** — Log parser
-- [ ] **Phase 4** — AI analysis service (OpenAI / Ollama)
-- [ ] **Phase 5** — Analysis API endpoints
-- [ ] **Phase 6** — React + Tailwind frontend
+- [x] **Phase 1** — Express + TypeScript backend
+- [x] **Phase 2** — Prisma schema & migrations
+- [x] **Phase 3** — Log parser
+- [x] **Phase 4** — AI analysis service (OpenAI / Ollama)
+- [x] **Phase 5** — Analysis API endpoints
+- [x] **Phase 6** — React + Tailwind frontend
 - [ ] **Phase 7** — Tests (Vitest)
 - [ ] **Phase 8** — Full CI/CD
 - [ ] **Phase 9** — Screenshots, polish & docs

@@ -38,3 +38,8 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+
+# Tool artifacts (Claude Code skills)
+.impeccable/
+.superpowers/
+docs/superpowers/
