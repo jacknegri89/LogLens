@@ -1,14 +1,14 @@
 # server
 
-The LogLens backend: **Node.js + Express + TypeScript**, with **Prisma** (SQLite)
-for data access.
+The LogLens backend: **Node.js + Express + TypeScript**, with **Prisma + PostgreSQL**
+(Supabase) for data access.
 
 ## Run
 
 ```bash
 npm install
-cp .env.example .env        # DATABASE_URL is preset for SQLite
-npm run prisma:migrate      # create the database + seed example data
+cp .env.example .env        # fill in your DATABASE_URL and DIRECT_URL
+npm run prisma:migrate      # push schema to the database + seed example data
 npm run dev                 # http://localhost:3001 with auto-reload
 ```
 
@@ -27,19 +27,21 @@ curl http://localhost:3001/api/health
 | `npm run build`           | Compile to `dist/` (tsup)                        |
 | `npm start`               | Run the compiled server from `dist/`             |
 | `npm run typecheck`       | Type-check the project without emitting          |
-| `npm run prisma:migrate`  | Create/apply migrations (dev) and run the seed   |
+| `npm run prisma:migrate`  | Push schema to the database and run the seed     |
 | `npm run prisma:generate` | Regenerate the Prisma client                     |
 | `npm run prisma:studio`   | Browse the data in the browser (like phpMyAdmin) |
 | `npm run db:seed`         | Re-run the seed script                           |
+| `npm test`                | Run the unit tests once                          |
+| `npm run test:watch`      | Run tests in watch mode                          |
 
 ## Database
 
-- **ORM:** Prisma. Schema lives in `prisma/schema.prisma`, migrations in
-  `prisma/migrations/`.
-- **Local DB:** a SQLite file at `prisma/dev.db` (git-ignored).
+- **ORM:** Prisma. Schema lives in `prisma/schema.prisma`.
+- **Provider:** PostgreSQL (Supabase free tier works perfectly).
 - **Browse the data:** `npm run prisma:studio` opens a GUI in the browser.
-- **Move to PostgreSQL/Supabase later:** change the `provider` in
-  `prisma/schema.prisma` and the `DATABASE_URL` in `.env` — no code changes.
+- **Two connection URLs are needed** (see `.env.example`):
+  - `DATABASE_URL` — transaction-mode pooler (port 6543, used by the app at runtime)
+  - `DIRECT_URL` — session-mode connection (port 5432, used by `prisma db push`)
 
 ## AI provider
 
@@ -89,8 +91,7 @@ src/
 
 prisma/
 ├── schema.prisma                     # the data model (Analysis)
-├── seed.ts                           # example data for local dev
-└── migrations/                       # generated migration history
+└── seed.ts                           # example data for local dev
 ```
 
 ## API
