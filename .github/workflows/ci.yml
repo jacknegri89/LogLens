@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  build:
-    name: Lint, test & build
+  ci:
+    name: Typecheck, lint, test & build
     runs-on: ubuntu-latest
 
     steps:
@@ -27,17 +27,26 @@ jobs:
       - name: Install server dependencies
         run: npm ci --prefix server
 
+      - name: Install client dependencies
+        run: npm ci --prefix client
+
       - name: Check formatting
         run: npm run format:check
-
-      - name: Lint
-        run: npm run lint
 
       - name: Typecheck (server)
         run: npm run typecheck --prefix server
 
+      - name: Typecheck (client)
+        run: npm run typecheck --prefix client
+
+      - name: Lint (client)
+        run: npm run lint --prefix client
+
       - name: Test (server)
         run: npm test --prefix server
 
-      - name: Build
-        run: npm run build
+      - name: Build (server)
+        run: npm run build --prefix server
+
+      - name: Build (client)
+        run: npm run build --prefix client
