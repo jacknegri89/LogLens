@@ -25,8 +25,8 @@
 
   --animate-scan: scan 1.2s ease-in-out infinite;
   --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
-  --animate-reveal-up: reveal-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-reveal-fade: reveal-fade 0.5s ease-out both;
+  --animate-reveal-up: reveal-up 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-reveal-fade: reveal-fade 0.6s ease-out both;
 }
 
 @layer base {
@@ -64,7 +64,7 @@
 }
 
 @keyframes reveal-up {
-  from { opacity: 0; transform: translateY(18px); }
+  from { opacity: 0; transform: translateY(36px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 

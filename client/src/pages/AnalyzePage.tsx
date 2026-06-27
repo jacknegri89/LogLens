@@ -73,36 +73,50 @@ export function AnalyzePage() {
   return (
     <div className="space-y-8">
       {/* Hero — 2-column asymmetric */}
-      <section className="grid gap-8 pt-4 md:grid-cols-[1fr_auto]">
+      <section className="grid gap-10 pt-4 md:grid-cols-[1fr_auto]">
         <div>
-          <div className="mb-5 flex animate-reveal-fade items-center gap-3 [animation-delay:0ms]">
+          <div className="mb-6 flex items-center gap-3" style={{ animation: 'reveal-fade 0.6s ease-out both', animationDelay: '0ms' }}>
             <div className="h-px flex-1 bg-line" />
             <span className="font-head text-[9px] font-semibold tracking-[0.28em] uppercase text-signal">
               AI log analysis
             </span>
             <div className="h-px w-6 bg-line" />
           </div>
-          <h1 className="font-head text-[48px] font-extrabold uppercase leading-[0.95] tracking-[0.01em] sm:text-[60px]">
-            <span className="block animate-reveal-up text-fg-faint [animation-delay:80ms]">Find the</span>
-            <span className="block animate-reveal-up [animation-delay:180ms]">
-              <span className="text-fg">real </span><span className="text-signal">error.</span>
+          <h1 className="font-head uppercase leading-none">
+            <span
+              className="block font-normal italic text-fg-faint"
+              style={{ fontSize: 'clamp(28px, 5vw, 42px)', animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '80ms' }}
+            >
+              Find the
+            </span>
+            <span
+              className="block font-extrabold"
+              style={{ fontSize: 'clamp(52px, 9vw, 80px)', animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '200ms' }}
+            >
+              <span className="text-fg">Real </span>
+              <span className="text-signal">Error.</span>
             </span>
           </h1>
-          <p className="mt-5 max-w-[36ch] animate-reveal-fade text-sm leading-relaxed text-fg-faint [animation-delay:320ms]">
+          <p
+            className="mt-6 max-w-[38ch] text-sm leading-relaxed text-fg-faint"
+            style={{ animation: 'reveal-fade 0.6s ease-out both', animationDelay: '380ms' }}
+          >
             Paste a log or stack trace. LogLens pinpoints the root cause, rates severity, and writes a bug report ready for GitHub.
           </p>
         </div>
-        <div className="hidden flex-col justify-center gap-0 md:flex">
-          {(['Paste log', 'AI finds root cause', 'Rate severity', 'Copy issue'] as const).map((step, i) => (
+
+        {/* Step list */}
+        <div className="hidden flex-col justify-center border-l border-line pl-8 md:flex">
+          {(['Paste log', 'AI analysis', 'Rate severity', 'Copy issue'] as const).map((step, i) => (
             <div
               key={i}
-              className="flex animate-reveal-up items-baseline gap-3 border-b border-line py-2.5 last:border-0"
-              style={{ animationDelay: `${220 + i * 60}ms` }}
+              className="flex items-center gap-4 border-b border-line py-4 last:border-0"
+              style={{ animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: `${300 + i * 80}ms` }}
             >
-              <span className="font-head text-xl font-extrabold leading-none text-signal">
-                {String(i + 1).padStart(2, '0')}
+              <span className="w-10 font-head text-[40px] font-extrabold leading-none text-signal/20">
+                {i + 1}
               </span>
-              <span className="font-head text-[9px] font-semibold tracking-[0.18em] uppercase text-fg-faint">
+              <span className="font-head text-[12px] font-bold tracking-[0.1em] uppercase text-fg-muted">
                 {step}
               </span>
             </div>
@@ -125,27 +139,23 @@ export function AnalyzePage() {
         }`}
       >
         {/* Titlebar */}
-        <div className="flex items-center justify-between border-b border-line bg-surface-2 px-4 py-2">
-          <div className="flex items-center gap-2.5">
-            <div className="flex gap-1.5">
-              <span className={`h-2 w-2 rounded-full ${text ? 'bg-signal' : 'bg-line-strong'}`} />
-              <span className="h-2 w-2 rounded-full bg-line-strong" />
-              <span className="h-2 w-2 rounded-full bg-line-strong" />
-            </div>
+        <div className="flex items-center justify-between border-b border-line bg-surface-2 px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <span className={`h-1.5 w-1.5 rounded-full transition-colors ${text ? 'bg-signal' : 'bg-line-strong'}`} />
             <span className="font-mono text-[9px] tracking-[0.06em] text-fg-faint">
               {fileName
-                ? `${fileName} · ${text.length.toLocaleString()} chars`
+                ? `${fileName} · ${text.split('\n').length} lines`
                 : text.length > 0
-                  ? `${text.length.toLocaleString()} chars`
+                  ? `${text.split('\n').length} lines · ${text.length.toLocaleString()} chars`
                   : 'ready'}
             </span>
           </div>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-1.5 rounded-sm border border-line-strong px-3 py-1.5 font-head text-[11px] font-semibold tracking-[0.12em] uppercase text-fg-muted transition-colors hover:border-signal/60 hover:text-signal"
+            className="flex items-center gap-2 rounded-sm border border-signal/40 bg-signal/10 px-4 py-2 font-head text-[12px] font-bold tracking-[0.1em] uppercase text-signal transition-colors hover:border-signal/70 hover:bg-signal/20"
           >
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
               <path d="M6 8.5V1.5M3 4.5L6 1.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M1 10.5H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
