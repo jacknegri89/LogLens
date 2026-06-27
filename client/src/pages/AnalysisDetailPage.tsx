@@ -19,39 +19,40 @@ export function AnalysisDetailPage() {
   }, [id]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <Link
         to="/history"
-        className="group inline-flex items-center gap-1.5 font-mono text-xs text-fg-faint transition-colors hover:text-signal"
+        className="group inline-flex items-center gap-1.5 font-head text-[9px] font-semibold tracking-[0.15em] uppercase text-fg-faint transition-colors hover:text-signal"
       >
         <span className="transition-transform group-hover:-translate-x-0.5">{'<-'}</span>
-        back to history
+        Back to history
       </Link>
 
       {error && (
-        <div className="animate-fade-up rounded-xl border border-high/30 bg-high/10 px-4 py-3 text-sm text-high">
-          {error}
+        <div className="flex items-start gap-2.5 rounded border border-high/20 bg-high/6 px-4 py-3">
+          <span className="mt-0.5 font-mono text-[10px] text-high">!</span>
+          <p className="text-xs text-high/90">{error}</p>
         </div>
       )}
 
       {!analysis && !error && (
-        <div className="flex items-center gap-2.5 py-4">
+        <div className="flex items-center gap-2 py-4">
           <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-signal" />
-          <span className="font-mono text-sm text-fg-faint">Loading...</span>
+          <span className="font-mono text-[10px] tracking-[0.1em] text-fg-faint">Loading</span>
         </div>
       )}
 
       {analysis && (
-        <div className="animate-fade-up space-y-4">
+        <div className="space-y-3">
           <ReportView analysis={analysis} />
-          <details className="overflow-hidden rounded-2xl border border-line bg-surface/30">
-            <summary className="flex cursor-pointer select-none items-center justify-between gap-4 px-5 py-4 font-mono text-xs tracking-wider text-fg-faint uppercase transition-colors hover:text-fg-muted">
+          <details className="overflow-hidden rounded border border-line">
+            <summary className="flex cursor-pointer select-none items-center justify-between gap-4 px-5 py-3.5 font-head text-[9px] font-semibold tracking-[0.2em] uppercase text-fg-faint transition-colors hover:text-fg-muted">
               Original log
-              <span className="rounded border border-line bg-surface px-2 py-0.5 normal-case text-fg-faint">
+              <span className="rounded-sm border border-line bg-surface px-2 py-0.5 font-mono normal-case text-[9px] text-fg-faint">
                 {analysis.rawLog.split('\n').length} lines
               </span>
             </summary>
-            <pre className="overflow-x-auto border-t border-line px-5 py-5 font-mono text-xs leading-relaxed text-fg-faint">
+            <pre className="overflow-x-auto border-t border-line bg-ink-deep px-5 py-4 font-mono text-[9px] leading-relaxed text-fg-faint">
               {analysis.rawLog}
             </pre>
           </details>

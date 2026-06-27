@@ -2,9 +2,9 @@ import type { Severity } from './types';
 
 /** Visual treatment for each severity, reused by badges and accents. */
 export const severityMeta: Record<Severity, { label: string; badge: string; dot: string }> = {
-  high: { label: 'High', badge: 'text-high border-high/30 bg-high/10', dot: 'bg-high' },
-  medium: { label: 'Medium', badge: 'text-medium border-medium/30 bg-medium/10', dot: 'bg-medium' },
-  low: { label: 'Low', badge: 'text-low border-low/30 bg-low/10', dot: 'bg-low' },
+  high: { label: 'High', badge: 'text-high border-high/20 bg-high/8 rounded-sm', dot: 'bg-high' },
+  medium: { label: 'Medium', badge: 'text-medium border-medium/20 bg-medium/8 rounded-sm', dot: 'bg-medium' },
+  low: { label: 'Low', badge: 'text-low border-low/20 bg-low/8 rounded-sm', dot: 'bg-low' },
 };
 
 export function formatDate(iso: string): string {
