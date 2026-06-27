@@ -25,6 +25,9 @@ const envSchema = z
     OPENAI_API_KEY: z.string().optional(),
     OPENAI_MODEL: z.string().default('gpt-4o-mini'),
 
+    // Allowed CORS origin for the frontend. Defaults to * (all) in dev.
+    CORS_ORIGIN: z.string().default('*'),
+
     // Ollama (used when AI_PROVIDER=ollama)
     OLLAMA_BASE_URL: z.string().url().default('http://localhost:11434'),
     OLLAMA_MODEL: z.string().default('llama3.2'),

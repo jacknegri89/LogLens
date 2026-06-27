@@ -37,7 +37,7 @@ GitHub Issue you can copy in one click.
 | -------- | --------------------------------- |
 | Frontend | React, TypeScript, Vite, Tailwind |
 | Backend  | Node.js, Express, TypeScript      |
-| Database | SQLite (Prisma ORM) → PostgreSQL  |
+| Database | PostgreSQL via Supabase (Prisma)  |
 | AI       | OpenAI API **or** Ollama (local)  |
 | Tests    | Vitest                            |
 | CI/CD    | GitHub Actions                    |
@@ -68,8 +68,9 @@ cd LogLens
 ```bash
 cd server
 npm install
-cp .env.example .env        # DATABASE_URL is preset for SQLite
-npm run prisma:migrate      # create the SQLite database + seed example data
+cp .env.example .env
+# Edit .env: paste your Supabase (or any PostgreSQL) DATABASE_URL
+npm run prisma:migrate      # create the tables + seed example data
 npm run dev                 # starts http://localhost:3001 with auto-reload
 ```
 
@@ -102,6 +103,58 @@ LogLens/
 └── .github/    # CI workflow
 ```
 
+## Deploy (free, no credit card)
+
+The stack deploys on **Render** (backend + frontend) + **Supabase** (PostgreSQL).
+All free tiers. No credit card required for either.
+
+> Note: Render's free web services spin down after 15 minutes of inactivity and
+> take ~30 seconds to wake up on the next request. This is normal for free tier.
+
+### 1 — Set up the database (Supabase)
+
+1. Go to [supabase.com](https://supabase.com) → **New project**
+2. Once the project is ready: **Settings → Database → Connection string → URI**
+3. Copy the URI (starts with `postgresql://`) — you'll need it in step 3
+
+Run the migration once from your local machine (with `DATABASE_URL` pointing to Supabase):
+
+```bash
+cd server
+# paste the Supabase URI into .env first, then:
+npm run prisma:migrate
+```
+
+This creates the `Analysis` table in your Supabase database.
+
+### 2 — Deploy to Render
+
+1. Go to [render.com](https://render.com) → **New → Blueprint**
+2. Connect your GitHub account and select the **LogLens** repo
+3. Render reads `render.yaml` and creates two services automatically:
+   - `loglens-api` — the Express backend
+   - `loglens-web` — the React static site
+
+### 3 — Set environment variables in Render
+
+For **`loglens-api`** (Settings → Environment):
+
+| Variable         | Value                                                      |
+| ---------------- | ---------------------------------------------------------- |
+| `DATABASE_URL`   | Your Supabase connection URI                               |
+| `CORS_ORIGIN`    | `https://loglens-web.onrender.com` (or your custom domain) |
+| `AI_PROVIDER`    | `mock` (or `openai` if you have a key)                     |
+| `OPENAI_API_KEY` | Your key (only if `AI_PROVIDER=openai`)                    |
+
+For **`loglens-web`** (Settings → Environment):
+
+| Variable       | Value                              |
+| -------------- | ---------------------------------- |
+| `VITE_API_URL` | `https://loglens-api.onrender.com` |
+
+Trigger a manual redeploy of `loglens-web` after setting `VITE_API_URL` so the
+frontend rebuilds with the correct backend URL baked in.
+
 ## Examples
 
 Try LogLens with the sample logs in [`examples/`](./examples/):
@@ -119,8 +172,8 @@ Try LogLens with the sample logs in [`examples/`](./examples/):
 - [x] **Phase 4** — AI analysis service (OpenAI / Ollama)
 - [x] **Phase 5** — Analysis API endpoints
 - [x] **Phase 6** — React + Tailwind frontend
-- [ ] **Phase 7** — Tests (Vitest)
-- [ ] **Phase 8** — Full CI/CD
+- [x] **Phase 7** — Tests (Vitest)
+- [x] **Phase 8** — Full CI/CD
 - [ ] **Phase 9** — Screenshots, polish & docs
 
 ## License

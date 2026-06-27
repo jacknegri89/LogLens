@@ -6,9 +6,7 @@ generator client {
 }
 
 datasource db {
-  // SQLite keeps local setup zero-config. To move to Postgres later,
-  // change provider to "postgresql" and update DATABASE_URL.
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
