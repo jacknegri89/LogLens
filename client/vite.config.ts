@@ -4,6 +4,16 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/react-dom/') || id.includes('/react/')) return 'vendor';
+          if (id.includes('/react-router')) return 'router';
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     // Proxy API calls to the backend in dev, so the client can call "/api/..."
