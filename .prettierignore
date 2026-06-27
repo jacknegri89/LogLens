@@ -3,6 +3,7 @@ dist
 build
 coverage
 package-lock.json
-prisma/migrations
+**/migrations
+*.prisma
 examples/
 *.log

@@ -59,23 +59,21 @@ Prompt design lives in [`docs/prompts.md`](./docs/prompts.md).
 ### Setup
 
 ```bash
-# 1. Clone
 git clone https://github.com/jacknegri89/LogLens.git
 cd LogLens
-
-# 2. Configure environment
-cp .env.example .env   # then edit .env with your values
-
-# 3. Install dependencies
-npm install
 ```
+
+Each app (backend, and later the frontend) has its own `.env` and dependencies —
+see below.
 
 ### Run the backend
 
 ```bash
 cd server
 npm install
-npm run dev        # starts http://localhost:3001 with auto-reload
+cp .env.example .env        # DATABASE_URL is preset for SQLite
+npm run prisma:migrate      # create the SQLite database + seed example data
+npm run dev                 # starts http://localhost:3001 with auto-reload
 ```
 
 Check it's alive:
