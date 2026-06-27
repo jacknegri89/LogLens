@@ -1,19 +1,17 @@
 @import 'tailwindcss';
 
-/* Design tokens — Tailwind v4 auto-generates utilities from these:
-   --color-signal -> bg-signal / text-signal / border-signal etc.
-   --animate-fade-up -> animate-fade-up etc. */
 @theme {
-  --color-ink: #0a0c11;
-  --color-surface: #12151c;
-  --color-surface-2: #181d27;
-  --color-surface-raised: #1e2433;
-  --color-line: #232a37;
-  --color-line-strong: #2e3848;
+  --color-ink: #060b10;
+  --color-ink-deep: #030508;
+  --color-surface: #0a1018;
+  --color-surface-2: #0e1520;
+  --color-raised: #121d28;
+  --color-line: #172030;
+  --color-line-strong: #1e2d40;
 
-  --color-fg: #e7eaf0;
-  --color-fg-muted: #98a2b3;
-  --color-fg-faint: #5e6877;
+  --color-fg: #dde0e8;
+  --color-fg-muted: #8896aa;
+  --color-fg-faint: #4a5668;
 
   --color-signal: #c4f135;
 
@@ -21,11 +19,11 @@
   --color-medium: #f3b340;
   --color-low: #54aef5;
 
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-head: 'Barlow Condensed', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Epilogue', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 
   --animate-scan: scan 1.2s ease-in-out infinite;
-  --animate-fade-up: fade-up 0.35s ease-out both;
   --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
 }
 
@@ -36,12 +34,8 @@
 
   body {
     background-color: var(--color-ink);
-    /* Three layers: signal glow top-center, blue accent bottom-right, dotted grid. */
-    background-image:
-      radial-gradient(72rem 40rem at 50% -4%, rgba(196, 241, 53, 0.06) 0%, transparent 65%),
-      radial-gradient(45rem 28rem at 105% 105%, rgba(84, 174, 245, 0.04) 0%, transparent 60%),
-      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.022) 1px, transparent 0);
-    background-size: auto, auto, 18px 18px;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.018) 1px, transparent 0);
+    background-size: 20px 20px;
     color: var(--color-fg);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -53,44 +47,18 @@
     color: var(--color-fg);
   }
 
-  ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-line-strong);
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-fg-faint);
-  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-fg-faint); }
 
-  /* Remove default browser disclosure arrow from <details><summary>. */
-  details > summary {
-    list-style: none;
-  }
-  details > summary::-webkit-details-marker {
-    display: none;
-  }
+  details > summary { list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
 }
 
 @keyframes scan {
   0% { left: -35%; }
   100% { left: 100%; }
-}
-
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @keyframes pulse-dot {
