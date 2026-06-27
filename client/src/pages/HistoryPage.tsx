@@ -4,7 +4,13 @@ import { Link } from 'react-router-dom';
 import { SeverityBadge } from '../components/SeverityBadge';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/format';
-import type { AnalysisSummary } from '../lib/types';
+import type { AnalysisSummary, Severity } from '../lib/types';
+
+const borderLColor: Record<Severity, string> = {
+  high: 'border-l-high',
+  medium: 'border-l-medium',
+  low: 'border-l-low',
+};
 
 export function HistoryPage() {
   const [items, setItems] = useState<AnalysisSummary[] | null>(null);
@@ -18,25 +24,41 @@ export function HistoryPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <header>
-        <p className="font-mono text-xs tracking-[0.3em] text-signal uppercase">History</p>
-        <h1 className="mt-3 text-3xl font-bold text-fg">Past analyses</h1>
+    <div className="space-y-8">
+      <header className="flex items-end justify-between border-b border-line/40 pb-6">
+        <div>
+          <p className="font-mono text-xs tracking-[0.3em] text-signal uppercase">History</p>
+          <h1 className="mt-2 text-3xl font-bold text-fg">Past analyses</h1>
+        </div>
+        {items && items.length > 0 && (
+          <span className="font-mono text-sm text-fg-faint">{items.length} total</span>
+        )}
       </header>
 
       {error && (
-        <div className="rounded-xl border border-high/40 bg-high/10 px-4 py-3 text-sm text-high">
+        <div className="rounded-xl border border-high/30 bg-high/10 px-4 py-3 text-sm text-high">
           {error}
         </div>
       )}
 
-      {items === null && !error && <p className="font-mono text-sm text-fg-faint">Loading...</p>}
+      {items === null && !error && (
+        <div className="flex items-center gap-2.5 py-4">
+          <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-signal" />
+          <span className="font-mono text-sm text-fg-faint">Loading...</span>
+        </div>
+      )}
 
       {items && items.length === 0 && (
-        <div className="rounded-xl border border-line bg-surface/50 px-6 py-12 text-center">
-          <p className="text-fg-muted">No analyses yet.</p>
-          <Link to="/" className="mt-2 inline-block font-mono text-sm text-signal hover:underline">
-            Analyze your first log {'->'}
+        <div className="rounded-xl border border-line bg-surface/40 px-6 py-14 text-center">
+          <p className="font-mono text-xs tracking-[0.2em] text-fg-faint uppercase">
+            No records yet
+          </p>
+          <p className="mt-3 text-sm text-fg-muted">Run your first analysis to see it here.</p>
+          <Link
+            to="/"
+            className="mt-4 inline-flex items-center gap-1.5 font-mono text-sm text-signal hover:underline"
+          >
+            Analyze a log {'->'}
           </Link>
         </div>
       )}
@@ -47,17 +69,20 @@ export function HistoryPage() {
             <li key={item.id}>
               <Link
                 to={`/analyses/${item.id}`}
-                className="flex items-center gap-4 rounded-xl border border-line bg-surface/40 px-4 py-3.5 transition-colors hover:border-signal/40 hover:bg-surface"
+                className={`group flex items-center gap-4 rounded-xl border border-l-2 border-line bg-surface/30 px-5 py-4 transition-all hover:bg-surface hover:shadow-lg hover:shadow-black/25 hover:translate-x-0.5 ${borderLColor[item.severity]}`}
               >
                 <SeverityBadge severity={item.severity} />
-                <span className="min-w-0 flex-1 truncate text-fg">{item.title}</span>
-                <span className="hidden font-mono text-xs text-fg-muted sm:inline">
+                <span className="min-w-0 flex-1 truncate text-sm text-fg">{item.title}</span>
+                <span className="hidden font-mono text-xs text-fg-faint sm:inline">
                   {item.category}
                 </span>
                 <span className="hidden font-mono text-xs text-fg-faint md:inline">
                   {formatDate(item.createdAt)}
                 </span>
-                <span className="text-fg-faint" aria-hidden>
+                <span
+                  className="text-fg-faint transition-transform group-hover:translate-x-0.5"
+                  aria-hidden
+                >
                   {'->'}
                 </span>
               </Link>

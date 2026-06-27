@@ -6,39 +6,42 @@ import { CopyButton } from './CopyButton';
 import { SeverityBadge } from './SeverityBadge';
 
 const chipClass =
-  'rounded-md border border-line px-2.5 py-1 font-mono text-xs text-fg-muted transition-colors hover:border-signal/50 hover:text-fg';
+  'rounded-md border border-line px-2.5 py-1 font-mono text-xs text-fg-muted transition-all hover:border-signal/40 hover:bg-signal/5 hover:text-fg';
 
 export function ReportView({ analysis }: { analysis: AnalysisRecord }) {
   const { report } = analysis;
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-line bg-surface/60 p-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <SeverityBadge severity={analysis.severity} />
-          <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-fg-muted">
-            {analysis.category}
-          </span>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="rounded-2xl border border-line bg-surface/60 p-7 shadow-lg shadow-black/30">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <SeverityBadge severity={analysis.severity} />
+            <span className="rounded-full border border-line/80 bg-surface-2/60 px-3 py-0.5 font-mono text-xs text-fg-faint">
+              {analysis.category}
+            </span>
+          </div>
           <span className="font-mono text-xs text-fg-faint">{formatDate(analysis.createdAt)}</span>
         </div>
-        <h3 className="mt-4 text-2xl leading-snug font-bold text-balance text-fg">
+        <h3 className="mt-5 text-2xl leading-snug font-bold text-balance text-fg sm:text-3xl">
           {analysis.title}
         </h3>
       </div>
 
       {report.keyLines.length > 0 && (
-        <Panel title="Key log lines">
-          <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-fg-muted">
+        <Panel title="Key log lines" variant="terminal">
+          <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-signal/80">
             {report.keyLines.join('\n')}
           </pre>
         </Panel>
       )}
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <Panel title="Probable causes">
-          <ul className="space-y-2.5">
+          <ul className="space-y-3">
             {report.causes.map((cause, i) => (
-              <li key={i} className="flex gap-2.5 text-sm text-fg-muted">
+              <li key={i} className="flex gap-3 text-sm text-fg-muted">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-signal" />
                 <span>{cause}</span>
               </li>
@@ -47,11 +50,11 @@ export function ReportView({ analysis }: { analysis: AnalysisRecord }) {
         </Panel>
 
         <Panel title="Debug steps">
-          <ol className="space-y-2.5">
+          <ol className="space-y-3">
             {report.debugSteps.map((step, i) => (
-              <li key={i} className="flex gap-2.5 text-sm text-fg-muted">
-                <span className="font-mono text-xs text-signal">
-                  {String(i + 1).padStart(2, '0')}
+              <li key={i} className="flex gap-3 text-sm text-fg-muted">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-signal/10 font-mono text-xs font-semibold text-signal">
+                  {i + 1}
                 </span>
                 <span>{step}</span>
               </li>
@@ -62,6 +65,7 @@ export function ReportView({ analysis }: { analysis: AnalysisRecord }) {
 
       <Panel
         title="Bug report"
+        variant="special"
         action={
           <div className="flex items-center gap-2">
             <CopyButton
@@ -90,22 +94,32 @@ export function ReportView({ analysis }: { analysis: AnalysisRecord }) {
   );
 }
 
+type PanelVariant = 'default' | 'terminal' | 'special';
+
 function Panel({
   title,
   action,
   children,
+  variant = 'default',
 }: {
   title: string;
   action?: ReactNode;
   children: ReactNode;
+  variant?: PanelVariant;
 }) {
+  const styles: Record<PanelVariant, string> = {
+    default: 'border-line bg-surface/40',
+    terminal: 'border-line/80 bg-ink',
+    special: 'border-line bg-surface-2',
+  };
+
   return (
-    <section className="rounded-2xl border border-line bg-surface/40">
-      <header className="flex items-center justify-between border-b border-line px-5 py-3">
-        <h4 className="font-mono text-xs tracking-wider text-fg-faint uppercase">{title}</h4>
+    <section className={`overflow-hidden rounded-2xl border ${styles[variant]}`}>
+      <header className="flex items-center justify-between border-b border-line/60 px-5 py-3.5">
+        <h4 className="font-mono text-xs tracking-[0.15em] text-fg-faint uppercase">{title}</h4>
         {action}
       </header>
-      <div className="px-5 py-4">{children}</div>
+      <div className="px-5 py-5">{children}</div>
     </section>
   );
 }

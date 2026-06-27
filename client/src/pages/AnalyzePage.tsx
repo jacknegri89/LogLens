@@ -49,17 +49,25 @@ export function AnalyzePage() {
 
   return (
     <div className="space-y-10">
-      <section className="pt-4 text-center">
-        <p className="font-mono text-xs tracking-[0.3em] text-signal uppercase">AI log analysis</p>
-        <h1 className="mx-auto mt-4 max-w-2xl text-4xl leading-tight font-bold text-balance text-fg sm:text-5xl">
-          Find the real error in the noise.
+      {/* Hero */}
+      <section className="pb-2 pt-6 text-center">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-signal/20 bg-signal/5 px-4 py-1.5">
+          <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-signal" />
+          <span className="font-mono text-xs tracking-[0.2em] text-signal uppercase">
+            AI log analysis
+          </span>
+        </div>
+        <h1 className="mx-auto max-w-3xl text-5xl leading-[1.1] font-bold text-balance text-fg sm:text-6xl">
+          Find the real error{' '}
+          <span className="text-fg-muted">in the noise.</span>
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-fg-muted">
+        <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-fg-muted">
           Paste a log or stack trace. LogLens pinpoints the problem, rates its severity, and writes
           a bug report you can drop straight into a GitHub issue.
         </p>
       </section>
 
+      {/* Log input card */}
       <section
         onDragOver={(e) => {
           e.preventDefault();
@@ -72,18 +80,26 @@ export function AnalyzePage() {
           const file = e.dataTransfer.files?.[0];
           if (file) loadFile(file);
         }}
-        className={`overflow-hidden rounded-2xl border bg-surface/60 shadow-2xl shadow-black/40 transition-colors ${
-          dragging ? 'border-signal' : 'border-line'
+        className={`overflow-hidden rounded-2xl border bg-surface/60 shadow-2xl shadow-black/50 transition-all ${
+          dragging
+            ? 'border-signal shadow-[0_0_40px_rgba(196,241,53,0.12)]'
+            : 'border-line focus-within:border-signal/40'
         }`}
       >
-        <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
-          <span className="font-mono text-xs tracking-wider text-fg-faint uppercase">
-            {fileName ?? 'log input'}
-          </span>
+        {/* Chrome bar */}
+        <div className="flex items-center justify-between border-b border-line bg-surface-2/70 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-line" />
+            <span className="h-2 w-2 rounded-full bg-line" />
+            <span className="h-2 w-2 rounded-full bg-line" />
+            <span className="ml-3 font-mono text-xs text-fg-faint">
+              {fileName ?? 'stdin'}
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="font-mono text-xs text-fg-muted transition-colors hover:text-signal"
+            className="rounded border border-transparent px-2 py-0.5 font-mono text-xs text-fg-faint transition-all hover:border-line hover:text-fg-muted"
           >
             upload .txt / .log
           </button>
@@ -105,12 +121,13 @@ export function AnalyzePage() {
             setText(e.target.value);
             if (fileName) setFileName(null);
           }}
-          placeholder={'Paste your log here, or drop a .log file...'}
+          placeholder="Paste your log here, or drop a .log file..."
           spellCheck={false}
-          className="block h-72 w-full resize-y bg-transparent px-4 py-4 font-mono text-sm text-fg placeholder:text-fg-faint focus:outline-none"
+          className="block h-72 w-full resize-y bg-transparent px-5 py-4 font-mono text-sm text-fg placeholder:text-fg-faint/50 focus:outline-none"
         />
 
-        <div className="flex flex-wrap items-center gap-2.5 border-t border-line px-4 py-3">
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-surface-2/50 px-4 py-3">
           <span className="font-mono text-xs text-fg-faint">try:</span>
           {EXAMPLES.map((example) => (
             <button
@@ -120,7 +137,7 @@ export function AnalyzePage() {
                 setText(example.content);
                 setFileName(null);
               }}
-              className="rounded-md border border-line px-2.5 py-1 font-mono text-xs text-fg-muted transition-colors hover:border-signal/50 hover:text-fg"
+              className="rounded-md border border-line/80 bg-surface/40 px-3 py-1 font-mono text-xs text-fg-faint transition-all hover:border-signal/30 hover:bg-signal/5 hover:text-fg"
             >
               {example.label}
             </button>
@@ -132,7 +149,7 @@ export function AnalyzePage() {
             type="button"
             onClick={onAnalyze}
             disabled={!canSubmit}
-            className="inline-flex items-center gap-2 rounded-lg bg-signal px-4 py-2 font-semibold text-ink transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-lg bg-signal px-5 py-2 font-semibold text-ink shadow-[0_0_20px_rgba(196,241,53,0.2)] transition-all hover:brightness-110 hover:shadow-[0_0_28px_rgba(196,241,53,0.4)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
             {status === 'loading' ? 'Analyzing...' : 'Analyze'}
             <span aria-hidden>{'->'}</span>
@@ -143,15 +160,15 @@ export function AnalyzePage() {
       {status === 'loading' && <ScanningLoader />}
 
       {status === 'error' && (
-        <div className="rounded-xl border border-high/40 bg-high/10 px-4 py-3 text-sm text-high">
+        <div className="rounded-xl border border-high/30 bg-high/10 px-4 py-3 text-sm text-high">
           {error}
         </div>
       )}
 
       {result && (
-        <section className="space-y-4">
+        <section className="animate-fade-up space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-mono text-xs tracking-wider text-fg-faint uppercase">Result</h2>
+            <h2 className="font-mono text-xs tracking-[0.15em] text-fg-faint uppercase">Result</h2>
             <Link
               to={`/analyses/${result.id}`}
               className="font-mono text-xs text-fg-muted transition-colors hover:text-signal"
@@ -168,13 +185,16 @@ export function AnalyzePage() {
 
 function ScanningLoader() {
   return (
-    <div className="rounded-xl border border-line bg-surface/60 px-5 py-6">
-      <span className="font-mono text-sm text-fg-muted">Scanning the log...</span>
-      <div className="relative mt-4 h-1 overflow-hidden rounded-full bg-line">
-        <div className="absolute inset-y-0 w-1/3 animate-[scan_1.2s_ease-in-out_infinite] rounded-full bg-signal" />
+    <div className="animate-fade-up rounded-2xl border border-line/70 bg-surface/50 px-6 py-7 shadow-xl shadow-black/30">
+      <div className="mb-5 flex items-center gap-3">
+        <span className="h-2 w-2 animate-pulse-dot rounded-full bg-signal shadow-[0_0_6px_rgba(196,241,53,0.6)]" />
+        <span className="font-mono text-sm text-fg-muted">Scanning log file...</span>
       </div>
-      <p className="mt-3 font-mono text-xs text-fg-faint">
-        A local model may take a few seconds on the first run.
+      <div className="relative h-0.5 overflow-hidden rounded-full bg-line">
+        <div className="absolute inset-y-0 w-1/3 animate-scan rounded-full bg-signal shadow-[0_0_8px_rgba(196,241,53,0.8)]" />
+      </div>
+      <p className="mt-5 font-mono text-xs text-fg-faint">
+        Local models may take a few seconds on the first run.
       </p>
     </div>
   );
