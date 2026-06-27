@@ -1,0 +1,52 @@
+@import 'tailwindcss';
+
+/* Design tokens. In Tailwind v4 these generate utilities automatically:
+   --color-signal -> bg-signal / text-signal / border-signal, etc. */
+@theme {
+  --color-ink: #0a0c11;
+  --color-surface: #12151c;
+  --color-surface-2: #181d27;
+  --color-line: #232a37;
+
+  --color-fg: #e7eaf0;
+  --color-fg-muted: #98a2b3;
+  --color-fg-faint: #5e6877;
+
+  /* Brand "scan beam" accent */
+  --color-signal: #c4f135;
+
+  /* Severity = log levels */
+  --color-high: #f76d6d;
+  --color-medium: #f3b340;
+  --color-low: #54aef5;
+
+  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-ink);
+    /* Top "scan glow" + a faint dotted grid for atmosphere/depth. */
+    background-image:
+      radial-gradient(55rem 32rem at 50% -8%, rgba(196, 241, 53, 0.07), transparent 70%),
+      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.025) 1px, transparent 0);
+    background-size:
+      auto,
+      22px 22px;
+    background-attachment: fixed;
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-signal) 30%, transparent);
+    color: var(--color-fg);
+  }
+}
