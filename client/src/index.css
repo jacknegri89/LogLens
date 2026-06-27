@@ -38,7 +38,6 @@
     background-size:
       auto,
       22px 22px;
-    background-attachment: fixed;
     color: var(--color-fg);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -48,5 +47,15 @@
   ::selection {
     background-color: color-mix(in oklab, var(--color-signal) 30%, transparent);
     color: var(--color-fg);
+  }
+}
+
+/* Scanning beam used by the "Analyzing..." loader. */
+@keyframes scan {
+  0% {
+    left: -35%;
+  }
+  100% {
+    left: 100%;
   }
 }
