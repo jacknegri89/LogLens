@@ -49,10 +49,39 @@ export async function createAnalysis(input: CreateAnalysisInput): Promise<Analys
   return toRecord(row);
 }
 
-/** Most recent analyses first (for the history page). */
+/** Most recent analyses first, full records (rawLog + parsed report). */
 export async function listAnalyses(): Promise<AnalysisRecord[]> {
   const rows = await prisma.analysis.findMany({ orderBy: { createdAt: 'desc' } });
   return rows.map(toRecord);
+}
+
+/** A lightweight row for the history list: no rawLog, no full report. */
+export interface AnalysisSummary {
+  id: string;
+  createdAt: Date;
+  source: string;
+  title: string;
+  severity: Severity;
+  category: string;
+}
+
+/**
+ * Most recent first, but only the columns the history page needs. Selecting
+ * fewer columns keeps the response small and fast.
+ */
+export async function listAnalysisSummaries(): Promise<AnalysisSummary[]> {
+  const rows = await prisma.analysis.findMany({
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      createdAt: true,
+      source: true,
+      title: true,
+      severity: true,
+      category: true,
+    },
+  });
+  return rows.map((row) => ({ ...row, severity: row.severity as Severity }));
 }
 
 export async function getAnalysisById(id: string): Promise<AnalysisRecord | null> {

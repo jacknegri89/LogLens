@@ -95,8 +95,18 @@ prisma/
 
 ## API
 
-| Method | Path          | Description    |
-| ------ | ------------- | -------------- |
-| `GET`  | `/api/health` | Liveness check |
+| Method | Path                | Description                            |
+| ------ | ------------------- | -------------------------------------- |
+| `GET`  | `/api/health`       | Liveness check                         |
+| `POST` | `/api/analyses`     | Analyze a log and save the result      |
+| `GET`  | `/api/analyses`     | History (lightweight summaries)        |
+| `GET`  | `/api/analyses/:id` | A single analysis with its full report |
 
-> Analysis endpoints (create, history, detail) are added in later phases.
+`POST /api/analyses` body:
+
+```json
+{ "rawLog": "ERROR ...", "source": "paste", "fileName": "app.log" }
+```
+
+Only `rawLog` is required; `source` (`paste` | `upload`) and `fileName` are
+optional.
