@@ -74,14 +74,7 @@ export function AnalyzePage() {
     <div className="space-y-6">
       {/* Hero */}
       <section className="pt-4">
-        <div className="mb-6 flex items-center gap-3" style={{ animation: 'reveal-fade 0.6s ease-out both', animationDelay: '0ms' }}>
-          <div className="h-px flex-1 bg-line" />
-          <span className="font-head text-[9px] font-semibold tracking-[0.28em] uppercase text-signal">
-            AI log analysis
-          </span>
-          <div className="h-px w-6 bg-line" />
-        </div>
-        <h1 className="font-head uppercase leading-none">
+<h1 className="font-head uppercase leading-none">
           <span
             className="block font-normal italic text-fg-faint"
             style={{ fontSize: 'clamp(28px, 5vw, 42px)', animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '80ms' }}
