@@ -52,9 +52,7 @@ export function HistoryPage() {
           <p className="font-head text-[11px] font-bold tracking-[0.2em] uppercase text-fg-faint">
             No records yet
           </p>
-          <p className="mt-2 text-xs text-fg-faint">
-            Run your first analysis to see it here.
-          </p>
+          <p className="mt-2 text-xs text-fg-faint">Run your first analysis to see it here.</p>
           <Link
             to="/"
             className="mt-4 inline-flex items-center gap-1.5 font-head text-[10px] font-semibold tracking-[0.15em] uppercase text-signal transition-opacity hover:opacity-80"
@@ -67,8 +65,11 @@ export function HistoryPage() {
       {items && items.length > 0 && (
         <div>
           <div className="mb-1 grid grid-cols-[90px_1fr_110px_130px_16px] gap-3 px-3 py-1.5">
-            {(['Severity', 'Issue', 'Category', 'Date', '']).map((col) => (
-              <span key={col} className="font-head text-[8px] font-semibold tracking-[0.2em] uppercase text-fg-faint">
+            {['Severity', 'Issue', 'Category', 'Date', ''].map((col) => (
+              <span
+                key={col}
+                className="font-head text-[8px] font-semibold tracking-[0.2em] uppercase text-fg-faint"
+              >
                 {col}
               </span>
             ))}
@@ -81,11 +82,11 @@ export function HistoryPage() {
                   className="group grid grid-cols-[90px_1fr_110px_130px_16px] items-center gap-3 rounded-sm px-3 py-3 transition-colors hover:bg-surface"
                 >
                   <SeverityBadge severity={item.severity} />
-                  <span className="min-w-0 truncate text-xs font-medium text-fg">
-                    {item.title}
-                  </span>
+                  <span className="min-w-0 truncate text-xs font-medium text-fg">{item.title}</span>
                   <span className="font-mono text-[9px] text-fg-faint">{item.category}</span>
-                  <span className="font-mono text-[9px] text-fg-faint">{formatDate(item.createdAt)}</span>
+                  <span className="font-mono text-[9px] text-fg-faint">
+                    {formatDate(item.createdAt)}
+                  </span>
                   <span
                     className="text-right font-mono text-[10px] text-fg-faint transition-transform group-hover:translate-x-0.5"
                     aria-hidden

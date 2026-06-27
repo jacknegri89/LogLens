@@ -74,16 +74,24 @@ export function AnalyzePage() {
     <div className="space-y-6">
       {/* Hero */}
       <section className="pt-4">
-<h1 className="font-head uppercase leading-none">
+        <h1 className="font-head uppercase leading-none">
           <span
             className="block font-normal italic text-fg-faint"
-            style={{ fontSize: 'clamp(28px, 5vw, 42px)', animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '80ms' }}
+            style={{
+              fontSize: 'clamp(28px, 5vw, 42px)',
+              animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both',
+              animationDelay: '80ms',
+            }}
           >
             Find the
           </span>
           <span
             className="block font-extrabold"
-            style={{ fontSize: 'clamp(52px, 9vw, 80px)', animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '200ms' }}
+            style={{
+              fontSize: 'clamp(52px, 9vw, 80px)',
+              animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both',
+              animationDelay: '200ms',
+            }}
           >
             <span className="text-fg">Real </span>
             <span className="text-signal">Error.</span>
@@ -93,37 +101,64 @@ export function AnalyzePage() {
           className="mt-5 max-w-[38ch] text-sm leading-relaxed text-fg-faint"
           style={{ animation: 'reveal-fade 0.6s ease-out both', animationDelay: '340ms' }}
         >
-          Paste a log or stack trace. LogLens pinpoints the root cause, rates severity, and writes a bug report ready for GitHub.
+          Paste a log or stack trace. LogLens pinpoints the root cause, rates severity, and writes a
+          bug report ready for GitHub.
         </p>
       </section>
 
       {/* Live log stream */}
       {(() => {
         const lines = [
-          { ts: '14:23:01.042', level: 'INFO',  msg: 'Application starting on port 8080' },
+          { ts: '14:23:01.042', level: 'INFO', msg: 'Application starting on port 8080' },
           { ts: '14:23:01.107', level: 'DEBUG', msg: 'Loading config from /etc/app/config.yaml' },
-          { ts: '14:23:01.189', level: 'INFO',  msg: 'Database connection pool initialized (max=20)' },
-          { ts: '14:23:01.234', level: 'WARN',  msg: 'Memory usage at 78% - consider scaling' },
-          { ts: '14:23:01.301', level: 'ERROR', msg: 'Connection refused: postgres.svc.cluster:5432' },
+          {
+            ts: '14:23:01.189',
+            level: 'INFO',
+            msg: 'Database connection pool initialized (max=20)',
+          },
+          { ts: '14:23:01.234', level: 'WARN', msg: 'Memory usage at 78% - consider scaling' },
+          {
+            ts: '14:23:01.301',
+            level: 'ERROR',
+            msg: 'Connection refused: postgres.svc.cluster:5432',
+          },
           { ts: '14:23:01.312', level: 'ERROR', msg: 'Retry 1/3 failed - backoff 500ms' },
-          { ts: '14:23:01.823', level: 'WARN',  msg: 'Cache miss rate exceeding threshold (42%)' },
-          { ts: '14:23:01.956', level: 'INFO',  msg: 'Health check passed /api/health 200 OK' },
+          { ts: '14:23:01.823', level: 'WARN', msg: 'Cache miss rate exceeding threshold (42%)' },
+          { ts: '14:23:01.956', level: 'INFO', msg: 'Health check passed /api/health 200 OK' },
           { ts: '14:23:02.011', level: 'DEBUG', msg: 'GET /api/users?page=1 uid=a9f2c3d1' },
           { ts: '14:23:02.156', level: 'ERROR', msg: 'Unhandled exception in worker thread #4' },
-          { ts: '14:23:02.157', level: 'ERROR', msg: 'NullPointerException at UserService.java:247' },
-          { ts: '14:23:02.203', level: 'WARN',  msg: 'Slow query: 2341ms  SELECT * FROM sessions' },
-          { ts: '14:23:02.387', level: 'INFO',  msg: 'Restarting degraded worker thread #4' },
-          { ts: '14:23:02.501', level: 'INFO',  msg: 'Circuit breaker OPEN for payments-service' },
+          {
+            ts: '14:23:02.157',
+            level: 'ERROR',
+            msg: 'NullPointerException at UserService.java:247',
+          },
+          { ts: '14:23:02.203', level: 'WARN', msg: 'Slow query: 2341ms  SELECT * FROM sessions' },
+          { ts: '14:23:02.387', level: 'INFO', msg: 'Restarting degraded worker thread #4' },
+          { ts: '14:23:02.501', level: 'INFO', msg: 'Circuit breaker OPEN for payments-service' },
           { ts: '14:23:02.678', level: 'DEBUG', msg: 'Token refreshed: user@company.com' },
-          { ts: '14:23:02.801', level: 'WARN',  msg: 'API rate limit: 983/1000 req/hour' },
+          { ts: '14:23:02.801', level: 'WARN', msg: 'API rate limit: 983/1000 req/hour' },
           { ts: '14:23:02.934', level: 'ERROR', msg: 'Pod crash-loopbackoff: api-deploy-5cd8f' },
-          { ts: '14:23:03.021', level: 'INFO',  msg: 'Scaling deployment to 3 replicas' },
+          { ts: '14:23:03.021', level: 'INFO', msg: 'Scaling deployment to 3 replicas' },
           { ts: '14:23:03.145', level: 'DEBUG', msg: 'Metrics flushed to prometheus:9090' },
-          { ts: '14:23:03.289', level: 'WARN',  msg: 'Disk usage at 91% on /var/log partition' },
+          { ts: '14:23:03.289', level: 'WARN', msg: 'Disk usage at 91% on /var/log partition' },
         ];
-        const levelColor = (l: string) => l === 'ERROR' ? 'text-high' : l === 'WARN' ? 'text-medium' : l === 'INFO' ? 'text-low/70' : 'text-fg-faint/40';
-        const msgColor  = (l: string) => l === 'ERROR' ? 'text-high/75' : l === 'WARN' ? 'text-medium/60' : l === 'DEBUG' ? 'text-fg-faint/40' : 'text-fg-faint/70';
-        const rowBg     = (l: string) => l === 'ERROR' ? 'bg-high/[0.04]' : '';
+        const levelColor = (l: string) =>
+          l === 'ERROR'
+            ? 'text-high'
+            : l === 'WARN'
+              ? 'text-medium'
+              : l === 'INFO'
+                ? 'text-low/70'
+                : 'text-fg-faint/40';
+        const msgColor = (l: string) =>
+          l === 'ERROR'
+            ? 'text-high/75'
+            : l === 'WARN'
+              ? 'text-medium/60'
+              : l === 'DEBUG'
+                ? 'text-fg-faint/40'
+                : 'text-fg-faint/70';
+        const rowBg = (l: string) => (l === 'ERROR' ? 'bg-high/[0.04]' : '');
         return (
           <div
             className="relative h-44 overflow-hidden rounded-sm border border-line bg-ink-deep"
@@ -137,11 +172,18 @@ export function AnalyzePage() {
             />
             <div style={{ animation: 'scroll-logs 22s linear infinite' }}>
               {[...lines, ...lines].map((line, i) => (
-                <div key={i} className={`flex items-baseline gap-3 px-4 py-[3px] font-mono text-[9px] leading-5 ${rowBg(line.level)}`}>
+                <div
+                  key={i}
+                  className={`flex items-baseline gap-3 px-4 py-[3px] font-mono text-[9px] leading-5 ${rowBg(line.level)}`}
+                >
                   <span className="shrink-0 tabular-nums text-fg-faint/30">{line.ts}</span>
                   <span
                     className={`w-[38px] shrink-0 font-bold ${levelColor(line.level)}`}
-                    style={line.level === 'ERROR' ? { textShadow: '0 0 10px rgba(247,109,109,0.45)' } : undefined}
+                    style={
+                      line.level === 'ERROR'
+                        ? { textShadow: '0 0 10px rgba(247,109,109,0.45)' }
+                        : undefined
+                    }
                   >
                     {line.level}
                   </span>
@@ -153,10 +195,12 @@ export function AnalyzePage() {
         );
       })()}
 
-
       {/* Terminal input */}
       <section
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
         onDragLeave={() => setDragging(false)}
         onDrop={(e) => {
           e.preventDefault();
@@ -170,7 +214,9 @@ export function AnalyzePage() {
       >
         {/* Titlebar */}
         <div className="flex items-center gap-2 border-b border-line bg-surface-2 px-4 py-2.5">
-          <span className={`h-1.5 w-1.5 rounded-full transition-colors ${text ? 'bg-signal' : 'bg-line-strong'}`} />
+          <span
+            className={`h-1.5 w-1.5 rounded-full transition-colors ${text ? 'bg-signal' : 'bg-line-strong'}`}
+          />
           <span className="font-mono text-[9px] tracking-[0.06em] text-fg-faint">
             {fileName
               ? `${fileName} · ${text.split('\n').length} lines`
@@ -222,7 +268,10 @@ export function AnalyzePage() {
                 <button
                   key={example.label}
                   type="button"
-                  onClick={() => { setText(example.content); setFileName(null); }}
+                  onClick={() => {
+                    setText(example.content);
+                    setFileName(null);
+                  }}
                   className="rounded-sm border border-line px-2 py-0.5 font-head text-[9px] font-semibold tracking-[0.1em] uppercase text-fg-faint transition-colors hover:border-line-strong hover:text-fg-muted"
                 >
                   {example.label}
@@ -235,8 +284,19 @@ export function AnalyzePage() {
                   className="flex items-center gap-1.5 rounded-sm border border-signal/40 bg-signal/10 px-3 py-1.5 font-head text-[10px] font-bold tracking-[0.1em] uppercase text-signal transition-colors hover:border-signal/70 hover:bg-signal/20"
                 >
                   <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                    <path d="M6 8.5V1.5M3 4.5L6 1.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M1 10.5H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    <path
+                      d="M6 8.5V1.5M3 4.5L6 1.5L9 4.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M1 10.5H11"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
                   </svg>
                   Upload file
                 </button>

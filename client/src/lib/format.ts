@@ -3,7 +3,11 @@ import type { Severity } from './types';
 /** Visual treatment for each severity, reused by badges and accents. */
 export const severityMeta: Record<Severity, { label: string; badge: string; dot: string }> = {
   high: { label: 'High', badge: 'text-high border-high/20 bg-high/8 rounded-sm', dot: 'bg-high' },
-  medium: { label: 'Medium', badge: 'text-medium border-medium/20 bg-medium/8 rounded-sm', dot: 'bg-medium' },
+  medium: {
+    label: 'Medium',
+    badge: 'text-medium border-medium/20 bg-medium/8 rounded-sm',
+    dot: 'bg-medium',
+  },
   low: { label: 'Low', badge: 'text-low border-low/20 bg-low/8 rounded-sm', dot: 'bg-low' },
 };
 
