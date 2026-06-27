@@ -18,8 +18,9 @@ import { healthRouter } from './routes/health';
 export function createApp() {
   const app = express();
 
-  // Allow the frontend (a different origin in dev) to call the API.
-  app.use(cors());
+  // Allow the frontend to call the API. CORS_ORIGIN defaults to * in dev and
+  // is set to the Render frontend URL in production.
+  app.use(cors({ origin: env.CORS_ORIGIN }));
 
   // Parse JSON request bodies. Logs can be sizeable, so raise the limit.
   app.use(express.json({ limit: '2mb' }));
