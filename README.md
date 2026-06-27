@@ -70,8 +70,22 @@ cp .env.example .env   # then edit .env with your values
 npm install
 ```
 
-> Run commands for the client and server are added as those parts are built
-> (see the roadmap below). Until then, this section will grow with the project.
+### Run the backend
+
+```bash
+cd server
+npm install
+npm run dev        # starts http://localhost:3001 with auto-reload
+```
+
+Check it's alive:
+
+```bash
+curl http://localhost:3001/api/health
+# { "status": "ok", "service": "loglens-server", "timestamp": "..." }
+```
+
+> The frontend run commands are added in Phase 6.
 
 ## Project structure
 

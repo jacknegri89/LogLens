@@ -1,16 +1,49 @@
 # server
 
-The LogLens backend: **Node.js + Express + TypeScript**, with **Prisma** for
-data access and a pluggable **AI provider** (OpenAI or Ollama).
+The LogLens backend: **Node.js + Express + TypeScript**.
 
-> Scaffolded in **Phase 1** of the roadmap. For now this folder is a
-> placeholder so the repository structure is complete.
+## Run
 
-Planned API:
+```bash
+npm install
+npm run dev     # starts http://localhost:3001 with auto-reload
+```
 
-| Method | Path                | Description                                |
-| ------ | ------------------- | ------------------------------------------ |
-| `GET`  | `/api/health`       | Liveness check                             |
-| `POST` | `/api/analyses`     | Analyze a pasted log or uploaded file      |
-| `GET`  | `/api/analyses`     | List previous analyses (history)           |
-| `GET`  | `/api/analyses/:id` | Get a single analysis with its full report |
+Check it's alive:
+
+```bash
+curl http://localhost:3001/api/health
+# { "status": "ok", "service": "loglens-server", "timestamp": "..." }
+```
+
+## Scripts
+
+| Script              | What it does                            |
+| ------------------- | --------------------------------------- |
+| `npm run dev`       | Start with auto-reload (tsx)            |
+| `npm run build`     | Compile to `dist/` (tsup)               |
+| `npm start`         | Run the compiled server from `dist/`    |
+| `npm run typecheck` | Type-check the project without emitting |
+
+## Structure
+
+```text
+src/
+├── index.ts             # entry point: starts the HTTP server
+├── app.ts               # builds the Express app (middleware + routes)
+├── config/
+│   └── env.ts           # validated environment variables (Zod)
+├── routes/
+│   └── health.ts        # GET /api/health
+└── middleware/
+    ├── errorHandler.ts  # centralized error handling
+    └── notFound.ts      # 404 JSON fallback
+```
+
+## API
+
+| Method | Path          | Description    |
+| ------ | ------------- | -------------- |
+| `GET`  | `/api/health` | Liveness check |
+
+> More endpoints (analyses, history) are added in later phases.
