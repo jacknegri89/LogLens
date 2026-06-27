@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "echo \"(lint is configured per workspace in a later step)\"",
-    "test": "echo \"(tests are added in a later step)\"",
+    "test": "npm test --prefix server",
     "build": "echo \"(build is configured per workspace in a later step)\""
   },
   "devDependencies": {

@@ -21,8 +21,11 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: npm ci
+
+      - name: Install server dependencies
+        run: npm ci --prefix server
 
       - name: Check formatting
         run: npm run format:check
@@ -30,8 +33,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test
-        run: npm test
+      - name: Typecheck (server)
+        run: npm run typecheck --prefix server
+
+      - name: Test (server)
+        run: npm test --prefix server
 
       - name: Build
         run: npm run build
