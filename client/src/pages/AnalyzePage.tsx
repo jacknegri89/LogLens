@@ -167,38 +167,15 @@ export function AnalyzePage() {
         }`}
       >
         {/* Titlebar */}
-        <div className="flex items-center justify-between border-b border-line bg-surface-2 px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <span className={`h-1.5 w-1.5 rounded-full transition-colors ${text ? 'bg-signal' : 'bg-line-strong'}`} />
-            <span className="font-mono text-[9px] tracking-[0.06em] text-fg-faint">
-              {fileName
-                ? `${fileName} · ${text.split('\n').length} lines`
-                : text.length > 0
-                  ? `${text.split('\n').length} lines · ${text.length.toLocaleString()} chars`
-                  : 'ready'}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 rounded-sm border border-signal/40 bg-signal/10 px-4 py-2 font-head text-[12px] font-bold tracking-[0.1em] uppercase text-signal transition-colors hover:border-signal/70 hover:bg-signal/20"
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-              <path d="M6 8.5V1.5M3 4.5L6 1.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M1 10.5H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            Upload file
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".txt,.log,text/plain"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) loadFile(file);
-            }}
-          />
+        <div className="flex items-center gap-2 border-b border-line bg-surface-2 px-4 py-2.5">
+          <span className={`h-1.5 w-1.5 rounded-full transition-colors ${text ? 'bg-signal' : 'bg-line-strong'}`} />
+          <span className="font-mono text-[9px] tracking-[0.06em] text-fg-faint">
+            {fileName
+              ? `${fileName} · ${text.split('\n').length} lines`
+              : text.length > 0
+                ? `${text.split('\n').length} lines · ${text.length.toLocaleString()} chars`
+                : 'ready'}
+          </span>
         </div>
 
         <textarea
@@ -249,7 +226,18 @@ export function AnalyzePage() {
                   {example.label}
                 </button>
               ))}
-              <div className="ml-auto flex items-center gap-2.5">
+              <div className="ml-auto flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1.5 rounded-sm border border-signal/40 bg-signal/10 px-3 py-1.5 font-head text-[10px] font-bold tracking-[0.1em] uppercase text-signal transition-colors hover:border-signal/70 hover:bg-signal/20"
+                >
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 8.5V1.5M3 4.5L6 1.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M1 10.5H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  Upload file
+                </button>
                 <button
                   type="button"
                   onClick={onAnalyze}
@@ -262,6 +250,16 @@ export function AnalyzePage() {
             </>
           )}
         </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".txt,.log,text/plain"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) loadFile(file);
+          }}
+        />
 
         {/* Scan progress bar */}
         {status === 'loading' && (
