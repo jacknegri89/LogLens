@@ -75,7 +75,7 @@ export function AnalyzePage() {
       {/* Hero — 2-column asymmetric */}
       <section className="grid gap-8 pt-4 md:grid-cols-[1fr_auto]">
         <div>
-          <div className="mb-5 flex items-center gap-3">
+          <div className="mb-5 flex animate-reveal-fade items-center gap-3 [animation-delay:0ms]">
             <div className="h-px flex-1 bg-line" />
             <span className="font-head text-[9px] font-semibold tracking-[0.28em] uppercase text-signal">
               AI log analysis
@@ -83,16 +83,22 @@ export function AnalyzePage() {
             <div className="h-px w-6 bg-line" />
           </div>
           <h1 className="font-head text-[48px] font-extrabold uppercase leading-[0.95] tracking-[0.01em] sm:text-[60px]">
-            <span className="text-fg-faint">Find the</span><br />
-            <span className="text-fg">real </span><span className="text-signal">error.</span>
+            <span className="block animate-reveal-up text-fg-faint [animation-delay:80ms]">Find the</span>
+            <span className="block animate-reveal-up [animation-delay:180ms]">
+              <span className="text-fg">real </span><span className="text-signal">error.</span>
+            </span>
           </h1>
-          <p className="mt-5 max-w-[36ch] text-sm leading-relaxed text-fg-faint">
+          <p className="mt-5 max-w-[36ch] animate-reveal-fade text-sm leading-relaxed text-fg-faint [animation-delay:320ms]">
             Paste a log or stack trace. LogLens pinpoints the root cause, rates severity, and writes a bug report ready for GitHub.
           </p>
         </div>
         <div className="hidden flex-col justify-center gap-0 md:flex">
           {(['Paste log', 'AI finds root cause', 'Rate severity', 'Copy issue'] as const).map((step, i) => (
-            <div key={i} className="flex items-baseline gap-3 border-b border-line py-2.5 last:border-0">
+            <div
+              key={i}
+              className="flex animate-reveal-up items-baseline gap-3 border-b border-line py-2.5 last:border-0"
+              style={{ animationDelay: `${220 + i * 60}ms` }}
+            >
               <span className="font-head text-xl font-extrabold leading-none text-signal">
                 {String(i + 1).padStart(2, '0')}
               </span>
@@ -137,8 +143,12 @@ export function AnalyzePage() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-sm border border-line px-2 py-0.5 font-head text-[9px] font-semibold tracking-[0.12em] uppercase text-fg-faint transition-colors hover:border-line-strong hover:text-fg-muted"
+            className="flex items-center gap-1.5 rounded-sm border border-line-strong px-3 py-1.5 font-head text-[11px] font-semibold tracking-[0.12em] uppercase text-fg-muted transition-colors hover:border-signal/60 hover:text-signal"
           >
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M6 8.5V1.5M3 4.5L6 1.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M1 10.5H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
             Upload file
           </button>
           <input
