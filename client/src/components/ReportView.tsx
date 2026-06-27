@@ -95,9 +95,14 @@ export function ReportView({ analysis }: { analysis: AnalysisRecord }) {
           </div>
         }
       >
-        <pre className="overflow-x-auto font-mono text-xs leading-relaxed whitespace-pre-wrap text-fg-muted">
-          {report.bugReportMarkdown}
-        </pre>
+        <details>
+          <summary className="cursor-pointer select-none font-mono text-xs text-fg-faint transition-colors hover:text-fg-muted">
+            View markdown ({report.bugReportMarkdown.split('\n').length} lines)
+          </summary>
+          <pre className="mt-3 overflow-x-auto font-mono text-xs leading-relaxed whitespace-pre-wrap text-fg-muted">
+            {report.bugReportMarkdown}
+          </pre>
+        </details>
       </Panel>
     </div>
   );

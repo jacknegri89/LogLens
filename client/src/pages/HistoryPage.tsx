@@ -4,13 +4,8 @@ import { Link } from 'react-router-dom';
 import { SeverityBadge } from '../components/SeverityBadge';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/format';
-import type { AnalysisSummary, Severity } from '../lib/types';
+import type { AnalysisSummary } from '../lib/types';
 
-const borderLColor: Record<Severity, string> = {
-  high: 'border-l-high',
-  medium: 'border-l-medium',
-  low: 'border-l-low',
-};
 
 export function HistoryPage() {
   const [items, setItems] = useState<AnalysisSummary[] | null>(null);
@@ -69,7 +64,7 @@ export function HistoryPage() {
             <li key={item.id}>
               <Link
                 to={`/analyses/${item.id}`}
-                className={`group flex flex-col gap-2 rounded-xl border border-l-2 border-line bg-surface/30 px-5 py-4 transition-all hover:bg-surface hover:shadow-lg hover:shadow-black/25 hover:translate-x-0.5 ${borderLColor[item.severity]}`}
+                className="group flex flex-col gap-2 rounded-xl border border-line bg-surface/30 px-5 py-4 transition-all hover:bg-surface hover:shadow-lg hover:shadow-black/25 hover:translate-x-0.5"
               >
                 <div className="flex items-center gap-3">
                   <SeverityBadge severity={item.severity} />

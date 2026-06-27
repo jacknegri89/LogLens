@@ -32,10 +32,11 @@ export interface CreateAnalysisInput {
 }
 
 export const api = {
-  createAnalysis: (input: CreateAnalysisInput) =>
+  createAnalysis: (input: CreateAnalysisInput, signal?: AbortSignal) =>
     request<AnalysisRecord>('/api/analyses', {
       method: 'POST',
       body: JSON.stringify(input),
+      signal,
     }),
   listAnalyses: () => request<AnalysisSummary[]>('/api/analyses'),
   getAnalysis: (id: string) => request<AnalysisRecord>(`/api/analyses/${id}`),

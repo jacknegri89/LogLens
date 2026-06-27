@@ -8,6 +8,14 @@ import type { AnalysisRecord } from '../lib/types';
 
 type Status = 'idle' | 'loading' | 'error';
 
+function friendlyError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : 'Something went wrong';
+  if (/ECONNREFUSED|Failed to fetch|fetch failed|net::ERR_CONNECTION/i.test(msg)) {
+    return 'Cannot reach analysis server — is Ollama running at localhost:11434?';
+  }
+  return msg;
+}
+
 export function AnalyzePage() {
   const [text, setText] = useState('');
   const [fileName, setFileName] = useState<string | null>(null);
@@ -16,6 +24,7 @@ export function AnalyzePage() {
   const [error, setError] = useState('');
   const [result, setResult] = useState<AnalysisRecord | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const canSubmit = text.trim().length > 0 && status !== 'loading';
 
@@ -28,21 +37,35 @@ export function AnalyzePage() {
     reader.readAsText(file);
   }
 
+  function onCancel() {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setStatus('idle');
+  }
+
   async function onAnalyze() {
     if (!canSubmit) return;
+    const controller = new AbortController();
+    abortRef.current = controller;
     setStatus('loading');
     setError('');
     setResult(null);
     try {
-      const record = await api.createAnalysis({
-        rawLog: text,
-        source: fileName ? 'upload' : 'paste',
-        fileName: fileName ?? undefined,
-      });
+      const record = await api.createAnalysis(
+        {
+          rawLog: text,
+          source: fileName ? 'upload' : 'paste',
+          fileName: fileName ?? undefined,
+        },
+        controller.signal,
+      );
+      abortRef.current = null;
       setResult(record);
       setStatus('idle');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      abortRef.current = null;
+      if (err instanceof Error && err.name === 'AbortError') return;
+      setError(friendlyError(err));
       setStatus('error');
     }
   }
@@ -118,6 +141,12 @@ export function AnalyzePage() {
             setText(e.target.value);
             if (fileName) setFileName(null);
           }}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+              e.preventDefault();
+              onAnalyze();
+            }
+          }}
           placeholder="Paste your log here, or drop a .log file..."
           spellCheck={false}
           className="block h-72 w-full resize-y bg-transparent px-5 py-4 font-mono text-sm text-fg placeholder:text-fg-faint/50 focus:outline-none"
@@ -146,6 +175,7 @@ export function AnalyzePage() {
             type="button"
             onClick={onAnalyze}
             disabled={!canSubmit}
+            title="Analyze (Ctrl+Enter)"
             className="inline-flex items-center gap-2 rounded-lg bg-signal px-5 py-2 font-semibold text-ink transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {status === 'loading' ? 'Analyzing...' : 'Analyze'}
@@ -154,7 +184,7 @@ export function AnalyzePage() {
         </div>
       </section>
 
-      {status === 'loading' && <ScanningLoader />}
+      {status === 'loading' && <ScanningLoader onCancel={onCancel} />}
 
       {status === 'error' && (
         <div className="rounded-xl border border-high/30 bg-high/10 px-4 py-3 text-sm text-high">
@@ -165,7 +195,6 @@ export function AnalyzePage() {
       {result && (
         <section className="animate-fade-up space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-mono text-xs tracking-[0.15em] text-fg-faint uppercase">Result</h2>
             <Link
               to={`/analyses/${result.id}`}
               className="font-mono text-xs text-fg-muted transition-colors hover:text-signal"
@@ -180,12 +209,21 @@ export function AnalyzePage() {
   );
 }
 
-function ScanningLoader() {
+function ScanningLoader({ onCancel }: { onCancel: () => void }) {
   return (
     <div className="animate-fade-up rounded-2xl border border-line/70 bg-surface/50 px-6 py-7">
-      <div className="mb-5 flex items-center gap-3">
-        <span className="h-2 w-2 animate-pulse-dot rounded-full bg-signal" />
-        <span className="font-mono text-sm text-fg-muted">Scanning log file...</span>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="h-2 w-2 animate-pulse-dot rounded-full bg-signal" />
+          <span className="font-mono text-sm text-fg-muted">Scanning log file...</span>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="font-mono text-xs text-fg-faint transition-colors hover:text-fg"
+        >
+          Cancel
+        </button>
       </div>
       <div className="relative h-0.5 overflow-hidden rounded-full bg-line">
         <div className="absolute inset-y-0 w-1/3 animate-scan rounded-full bg-signal" />

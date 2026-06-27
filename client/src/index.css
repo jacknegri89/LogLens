@@ -21,7 +21,7 @@
   --color-medium: #f3b340;
   --color-low: #54aef5;
 
-  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 
   --animate-scan: scan 1.2s ease-in-out infinite;
