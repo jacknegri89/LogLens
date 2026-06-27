@@ -36,7 +36,11 @@
 
   body {
     background-color: var(--color-ink);
-    background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.018) 1px, transparent 0);
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(255, 255, 255, 0.018) 1px,
+      transparent 0
+    );
     background-size: 20px 20px;
     color: var(--color-fg);
     font-family: var(--font-sans);
@@ -49,43 +53,90 @@
     color: var(--color-fg);
   }
 
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-fg-faint); }
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-fg-faint);
+  }
 
-  details > summary { list-style: none; }
-  details > summary::-webkit-details-marker { display: none; }
+  details > summary {
+    list-style: none;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
 }
 
 @keyframes scan {
-  0% { left: -35%; }
-  100% { left: 100%; }
+  0% {
+    left: -35%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 @keyframes reveal-up {
-  from { opacity: 0; transform: translateY(36px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(36px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes reveal-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
 }
 
 @keyframes scroll-logs {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-50%); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
 }
 
 @keyframes scan-v {
-  0%   { top: 0%;    opacity: 0; }
-  5%   { opacity: 1; }
-  95%  { opacity: 1; }
-  100% { top: 100%;  opacity: 0; }
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
 }

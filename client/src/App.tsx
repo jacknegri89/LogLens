@@ -17,9 +17,30 @@ export function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<Suspense fallback={null}><AnalyzePage /></Suspense>} />
-        <Route path="/history" element={<Suspense fallback={null}><HistoryPage /></Suspense>} />
-        <Route path="/analyses/:id" element={<Suspense fallback={null}><AnalysisDetailPage /></Suspense>} />
+        <Route
+          path="/"
+          element={
+            <Suspense fallback={null}>
+              <AnalyzePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <Suspense fallback={null}>
+              <HistoryPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/analyses/:id"
+          element={
+            <Suspense fallback={null}>
+              <AnalysisDetailPage />
+            </Suspense>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

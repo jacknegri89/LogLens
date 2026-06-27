@@ -22,7 +22,9 @@ export function ReportView({ analysis }: { analysis: AnalysisRecord }) {
               {analysis.category}
             </span>
           </div>
-          <span className="font-mono text-[9px] text-fg-faint">{formatDate(analysis.createdAt)}</span>
+          <span className="font-mono text-[9px] text-fg-faint">
+            {formatDate(analysis.createdAt)}
+          </span>
         </div>
         <div className="border-t border-line px-5 py-4">
           <h3 className="font-head text-2xl font-extrabold uppercase leading-tight tracking-[0.01em] text-fg sm:text-3xl">
@@ -123,7 +125,9 @@ function Panel({
   return (
     <section className={`overflow-hidden rounded border ${styles[variant]}`}>
       <header className="flex items-center justify-between border-b border-line bg-surface-2 px-4 py-2.5">
-        <h4 className="font-head text-[9px] font-bold tracking-[0.2em] uppercase text-fg-faint">{title}</h4>
+        <h4 className="font-head text-[9px] font-bold tracking-[0.2em] uppercase text-fg-faint">
+          {title}
+        </h4>
         {action}
       </header>
       <div className="px-4 py-4">{children}</div>
