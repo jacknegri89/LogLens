@@ -49,19 +49,20 @@ export function AnalyzePage() {
 
   return (
     <div className="space-y-10">
-      {/* Hero */}
-      <section className="pb-2 pt-6 text-center">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-signal/20 bg-signal/5 px-4 py-1.5">
-          <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-signal" />
-          <span className="font-mono text-xs tracking-[0.2em] text-signal uppercase">
+      {/* Hero — left-aligned, editorial rule kicker */}
+      <section className="pb-2 pt-6">
+        <div className="mb-7 flex items-center gap-4">
+          <div className="h-px flex-1 bg-line" />
+          <span className="font-mono text-xs tracking-[0.25em] text-fg-faint uppercase">
             AI log analysis
           </span>
+          <div className="h-px w-8 bg-line" />
         </div>
-        <h1 className="mx-auto max-w-3xl text-5xl leading-[1.1] font-bold text-balance text-fg sm:text-6xl">
+        <h1 className="max-w-2xl text-5xl leading-[1.08] font-bold text-fg sm:text-[4rem]">
           Find the real error{' '}
           <span className="text-fg-muted">in the noise.</span>
         </h1>
-        <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-fg-muted">
+        <p className="mt-6 max-w-lg text-base leading-relaxed text-fg-muted">
           Paste a log or stack trace. LogLens pinpoints the problem, rates its severity, and writes
           a bug report you can drop straight into a GitHub issue.
         </p>
@@ -82,26 +83,21 @@ export function AnalyzePage() {
         }}
         className={`overflow-hidden rounded-2xl border bg-surface/60 shadow-2xl shadow-black/50 transition-all ${
           dragging
-            ? 'border-signal shadow-[0_0_40px_rgba(196,241,53,0.12)]'
+            ? 'border-signal'
             : 'border-line focus-within:border-signal/40'
         }`}
       >
-        {/* Chrome bar */}
-        <div className="flex items-center justify-between border-b border-line bg-surface-2/70 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-line" />
-            <span className="h-2 w-2 rounded-full bg-line" />
-            <span className="h-2 w-2 rounded-full bg-line" />
-            <span className="ml-3 font-mono text-xs text-fg-faint">
-              {fileName ?? 'stdin'}
-            </span>
-          </div>
+        {/* Header bar */}
+        <div className="flex items-center justify-between border-b border-line bg-surface-2/50 px-4 py-2.5">
+          <span className="font-mono text-xs text-fg-faint">
+            {fileName ?? 'stdin'}
+          </span>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="rounded border border-transparent px-2 py-0.5 font-mono text-xs text-fg-faint transition-all hover:border-line hover:text-fg-muted"
+            className="font-mono text-xs text-fg-faint transition-colors hover:text-fg-muted"
           >
-            upload .txt / .log
+            upload file
           </button>
           <input
             ref={fileInputRef}
@@ -127,7 +123,7 @@ export function AnalyzePage() {
         />
 
         {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-surface-2/50 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-surface-2/40 px-4 py-3">
           <span className="font-mono text-xs text-fg-faint">try:</span>
           {EXAMPLES.map((example) => (
             <button
@@ -149,7 +145,7 @@ export function AnalyzePage() {
             type="button"
             onClick={onAnalyze}
             disabled={!canSubmit}
-            className="inline-flex items-center gap-2 rounded-lg bg-signal px-5 py-2 font-semibold text-ink shadow-[0_0_20px_rgba(196,241,53,0.2)] transition-all hover:brightness-110 hover:shadow-[0_0_28px_rgba(196,241,53,0.4)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+            className="inline-flex items-center gap-2 rounded-lg bg-signal px-5 py-2 font-semibold text-ink transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {status === 'loading' ? 'Analyzing...' : 'Analyze'}
             <span aria-hidden>{'->'}</span>
@@ -185,13 +181,13 @@ export function AnalyzePage() {
 
 function ScanningLoader() {
   return (
-    <div className="animate-fade-up rounded-2xl border border-line/70 bg-surface/50 px-6 py-7 shadow-xl shadow-black/30">
+    <div className="animate-fade-up rounded-2xl border border-line/70 bg-surface/50 px-6 py-7">
       <div className="mb-5 flex items-center gap-3">
-        <span className="h-2 w-2 animate-pulse-dot rounded-full bg-signal shadow-[0_0_6px_rgba(196,241,53,0.6)]" />
+        <span className="h-2 w-2 animate-pulse-dot rounded-full bg-signal" />
         <span className="font-mono text-sm text-fg-muted">Scanning log file...</span>
       </div>
       <div className="relative h-0.5 overflow-hidden rounded-full bg-line">
-        <div className="absolute inset-y-0 w-1/3 animate-scan rounded-full bg-signal shadow-[0_0_8px_rgba(196,241,53,0.8)]" />
+        <div className="absolute inset-y-0 w-1/3 animate-scan rounded-full bg-signal" />
       </div>
       <p className="mt-5 font-mono text-xs text-fg-faint">
         Local models may take a few seconds on the first run.
