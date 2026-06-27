@@ -27,12 +27,6 @@ export function Layout() {
               History
             </NavLink>
           </nav>
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-signal" />
-            <span className="font-mono text-[9px] tracking-[0.12em] text-signal uppercase">
-              ready
-            </span>
-          </div>
         </div>
       </header>
 
@@ -40,11 +34,6 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <footer className="mx-auto w-full max-w-5xl px-6 pb-8">
-        <div className="border-t border-line pt-6 text-center font-mono text-[9px] tracking-[0.15em] text-fg-faint uppercase">
-          LogLens
-        </div>
-      </footer>
     </div>
   );
 }
