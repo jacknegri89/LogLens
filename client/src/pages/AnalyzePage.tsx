@@ -59,7 +59,8 @@ export function AnalyzePage() {
           <div className="h-px w-8 bg-line" />
         </div>
         <h1 className="max-w-2xl text-5xl leading-[1.08] font-bold text-fg sm:text-[4rem]">
-          Find the real error{' '}
+          Find the real error
+          <br />
           <span className="text-fg-muted">in the noise.</span>
         </h1>
         <p className="mt-6 max-w-lg text-base leading-relaxed text-fg-muted">

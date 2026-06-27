@@ -69,22 +69,25 @@ export function HistoryPage() {
             <li key={item.id}>
               <Link
                 to={`/analyses/${item.id}`}
-                className={`group flex items-center gap-4 rounded-xl border border-l-2 border-line bg-surface/30 px-5 py-4 transition-all hover:bg-surface hover:shadow-lg hover:shadow-black/25 hover:translate-x-0.5 ${borderLColor[item.severity]}`}
+                className={`group flex flex-col gap-2 rounded-xl border border-l-2 border-line bg-surface/30 px-5 py-4 transition-all hover:bg-surface hover:shadow-lg hover:shadow-black/25 hover:translate-x-0.5 ${borderLColor[item.severity]}`}
               >
-                <SeverityBadge severity={item.severity} />
-                <span className="min-w-0 flex-1 truncate text-sm text-fg">{item.title}</span>
-                <span className="hidden font-mono text-xs text-fg-faint sm:inline">
-                  {item.category}
-                </span>
-                <span className="hidden font-mono text-xs text-fg-faint md:inline">
-                  {formatDate(item.createdAt)}
-                </span>
-                <span
-                  className="text-fg-faint transition-transform group-hover:translate-x-0.5"
-                  aria-hidden
-                >
-                  {'->'}
-                </span>
+                <div className="flex items-center gap-3">
+                  <SeverityBadge severity={item.severity} />
+                  <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                    {item.title}
+                  </span>
+                  <span
+                    className="shrink-0 text-fg-faint transition-transform group-hover:translate-x-0.5"
+                    aria-hidden
+                  >
+                    {'->'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-fg-faint">
+                  <span className="font-mono text-xs">{item.category}</span>
+                  <span className="text-xs opacity-40">·</span>
+                  <span className="font-mono text-xs">{formatDate(item.createdAt)}</span>
+                </div>
               </Link>
             </li>
           ))}

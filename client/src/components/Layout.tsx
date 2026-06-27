@@ -14,7 +14,7 @@ export function Layout() {
       <header className="sticky top-0 z-20 border-b border-line/60 bg-ink/85 backdrop-blur-md">
         {/* Signal accent line at the very top of the viewport */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-signal/50 to-transparent" />
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3.5">
           <NavLink to="/" className="flex items-center gap-2.5">
             <LensMark />
             <span className="font-mono text-sm font-semibold tracking-[0.2em] text-fg uppercase">
