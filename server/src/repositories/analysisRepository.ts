@@ -86,5 +86,8 @@ export async function listAnalysisSummaries(): Promise<AnalysisSummary[]> {
 
 export async function getAnalysisById(id: string): Promise<AnalysisRecord | null> {
   const row = await prisma.analysis.findUnique({ where: { id } });
-  return row ? toRecord(row) : null;
+  if (!row) {
+    return null;
+  }
+  return toRecord(row);
 }

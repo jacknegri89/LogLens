@@ -12,11 +12,14 @@ import { env } from '../config/env';
  */
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: env.NODE_ENV === 'development' ? ['query', 'warn', 'error'] : ['warn', 'error'],
-  });
+let logLevel: ('query' | 'warn' | 'error')[];
+if (env.NODE_ENV === 'development') {
+  logLevel = ['query', 'warn', 'error'];
+} else {
+  logLevel = ['warn', 'error'];
+}
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({ log: logLevel });
 
 if (env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;

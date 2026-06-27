@@ -1,9 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
 function navClass({ isActive }: { isActive: boolean }): string {
-  return `rounded-sm px-2.5 py-1 font-head text-[10px] font-semibold tracking-[0.18em] uppercase transition-colors ${
-    isActive ? 'bg-signal/10 text-signal' : 'text-fg-faint hover:text-fg-muted'
-  }`;
+  let activeClass = 'text-fg-faint hover:text-fg-muted';
+  if (isActive) {
+    activeClass = 'bg-signal/10 text-signal';
+  }
+  return `rounded-sm px-2.5 py-1 font-head text-[10px] font-semibold tracking-[0.18em] uppercase transition-colors ${activeClass}`;
 }
 
 export function Layout() {

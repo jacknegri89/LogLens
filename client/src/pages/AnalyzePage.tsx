@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -9,7 +10,10 @@ import type { AnalysisRecord } from '../lib/types';
 type Status = 'idle' | 'loading' | 'error';
 
 function friendlyError(err: unknown): string {
-  const msg = err instanceof Error ? err.message : 'Something went wrong';
+  let msg = 'Something went wrong';
+  if (err instanceof Error) {
+    msg = err.message;
+  }
   if (/ECONNREFUSED|Failed to fetch|fetch failed|net::ERR_CONNECTION/i.test(msg)) {
     return 'Cannot reach the analysis server. Make sure it is running on localhost:3001.';
   }
@@ -51,10 +55,15 @@ export function AnalyzePage() {
     setError('');
     setResult(null);
     try {
+      let source: 'upload' | 'paste' = 'paste';
+      if (fileName) {
+        source = 'upload';
+      }
+
       const record = await api.createAnalysis(
         {
           rawLog: text,
-          source: fileName ? 'upload' : 'paste',
+          source,
           fileName: fileName ?? undefined,
         },
         controller.signal,
@@ -68,6 +77,23 @@ export function AnalyzePage() {
       setError(friendlyError(err));
       setStatus('error');
     }
+  }
+
+  let sectionBorderClass = 'border-line focus-within:border-line-strong';
+  if (dragging) {
+    sectionBorderClass = 'border-signal';
+  }
+
+  let dotClass = 'bg-line-strong';
+  if (text) {
+    dotClass = 'bg-signal';
+  }
+
+  let titlebarText = 'ready';
+  if (fileName) {
+    titlebarText = `${fileName} · ${text.split('\n').length} lines`;
+  } else if (text.length > 0) {
+    titlebarText = `${text.split('\n').length} lines · ${text.length.toLocaleString()} chars`;
   }
 
   return (
@@ -122,21 +148,13 @@ export function AnalyzePage() {
           const file = e.dataTransfer.files?.[0];
           if (file) loadFile(file);
         }}
-        className={`overflow-hidden rounded border transition-colors ${
-          dragging ? 'border-signal' : 'border-line focus-within:border-line-strong'
-        }`}
+        className={`overflow-hidden rounded border transition-colors ${sectionBorderClass}`}
       >
         {/* Titlebar */}
         <div className="flex items-center gap-2 border-b border-line bg-surface-2 px-4 py-2.5">
-          <span
-            className={`h-1.5 w-1.5 rounded-full transition-colors ${text ? 'bg-signal' : 'bg-line-strong'}`}
-          />
+          <span className={`h-1.5 w-1.5 rounded-full transition-colors ${dotClass}`} />
           <span className="font-mono text-[9px] tracking-[0.06em] text-fg-faint">
-            {fileName
-              ? `${fileName} · ${text.split('\n').length} lines`
-              : text.length > 0
-                ? `${text.split('\n').length} lines · ${text.length.toLocaleString()} chars`
-                : 'ready'}
+            {titlebarText}
           </span>
         </div>
 
@@ -159,7 +177,7 @@ export function AnalyzePage() {
 
         {/* Statusbar */}
         <div className="flex flex-wrap items-center gap-2 border-t border-line bg-surface-2 px-4 py-2.5">
-          {status === 'loading' ? (
+          {status === 'loading' && (
             <div className="flex flex-1 items-center gap-2.5">
               <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-signal" />
               <span className="font-head text-[10px] font-semibold tracking-[0.15em] uppercase text-fg-muted">
@@ -173,7 +191,8 @@ export function AnalyzePage() {
                 Cancel
               </button>
             </div>
-          ) : (
+          )}
+          {status !== 'loading' && (
             <>
               <span className="font-head text-[8px] font-semibold tracking-[0.2em] uppercase text-fg-faint">
                 try:
@@ -307,6 +326,20 @@ const LOG_LINES: LogLine[] = [
   { ts: '14:23:03.289', level: 'WARN', msg: 'Disk usage at 91% on /var/log partition' },
 ];
 
+function rowBgClass(level: LogLine['level']): string {
+  if (level === 'ERROR') {
+    return 'bg-high/[0.04]';
+  }
+  return '';
+}
+
+function errorGlow(level: LogLine['level']): CSSProperties | undefined {
+  if (level === 'ERROR') {
+    return { textShadow: '0 0 10px rgba(247,109,109,0.45)' };
+  }
+  return undefined;
+}
+
 function levelTextColor(level: LogLine['level']): string {
   if (level === 'ERROR') return 'text-high';
   if (level === 'WARN') return 'text-medium';
@@ -345,18 +378,12 @@ function LogStream() {
         {doubled.map((line, i) => (
           <div
             key={i}
-            className={`flex items-baseline gap-3 px-4 py-[3px] font-mono text-[9px] leading-5 ${
-              line.level === 'ERROR' ? 'bg-high/[0.04]' : ''
-            }`}
+            className={`flex items-baseline gap-3 px-4 py-[3px] font-mono text-[9px] leading-5 ${rowBgClass(line.level)}`}
           >
             <span className="shrink-0 tabular-nums text-fg-faint/30">{line.ts}</span>
             <span
               className={`w-[38px] shrink-0 font-bold ${levelTextColor(line.level)}`}
-              style={
-                line.level === 'ERROR'
-                  ? { textShadow: '0 0 10px rgba(247,109,109,0.45)' }
-                  : undefined
-              }
+              style={errorGlow(line.level)}
             >
               {line.level}
             </span>

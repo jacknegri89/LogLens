@@ -15,7 +15,13 @@ export function AnalysisDetailPage() {
     api
       .getAnalysis(id)
       .then(setAnalysis)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Not found'));
+      .catch((err: unknown) => {
+        let message = 'Not found';
+        if (err instanceof Error) {
+          message = err.message;
+        }
+        setError(message);
+      });
   }, [id]);
 
   return (

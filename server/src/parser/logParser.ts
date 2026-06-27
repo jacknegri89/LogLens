@@ -79,7 +79,10 @@ function classify(line: string): Exclude<LineCategory, 'context'> | null {
 }
 
 function truncate(text: string, max: number): string {
-  return text.length > max ? `${text.slice(0, max)} ... (truncated)` : text;
+  if (text.length > max) {
+    return `${text.slice(0, max)} ... (truncated)`;
+  }
+  return text;
 }
 
 function computeSeverity(categories: Set<LineCategory>): Severity {
