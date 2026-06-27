@@ -25,6 +25,8 @@ services:
       # Set these in the Render dashboard (do not hardcode secrets here):
       - key: DATABASE_URL
         sync: false
+      - key: DIRECT_URL
+        sync: false
       - key: CORS_ORIGIN
         sync: false
       - key: OPENAI_API_KEY
