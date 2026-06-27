@@ -3,8 +3,8 @@ import { NavLink, Outlet } from 'react-router-dom';
 function navClass({ isActive }: { isActive: boolean }): string {
   return `rounded-lg px-3 py-1.5 font-mono text-xs tracking-wider uppercase transition-all ${
     isActive
-      ? 'bg-signal/10 text-signal border border-signal/20'
-      : 'border border-transparent text-fg-muted hover:text-fg hover:bg-surface/60'
+      ? 'bg-signal/10 text-signal'
+      : 'text-fg-muted hover:text-fg hover:bg-surface/60'
   }`;
 }
 
@@ -15,13 +15,10 @@ export function Layout() {
         {/* Signal accent line at the very top of the viewport */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-signal/50 to-transparent" />
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <NavLink to="/" className="group flex items-center gap-2.5">
+          <NavLink to="/" className="flex items-center gap-2.5">
             <LensMark />
             <span className="font-mono text-sm font-semibold tracking-[0.2em] text-fg uppercase">
-              Log
-              <span className="text-signal transition-all group-hover:drop-shadow-[0_0_8px_rgba(196,241,53,0.7)]">
-                Lens
-              </span>
+              Log<span className="text-signal">Lens</span>
             </span>
           </NavLink>
           <nav className="flex items-center gap-1.5">
