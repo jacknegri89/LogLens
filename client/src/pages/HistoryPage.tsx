@@ -14,7 +14,13 @@ export function HistoryPage() {
     api
       .listAnalyses()
       .then(setItems)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Failed to load'));
+      .catch((err: unknown) => {
+        let message = 'Failed to load';
+        if (err instanceof Error) {
+          message = err.message;
+        }
+        setError(message);
+      });
   }, []);
 
   return (

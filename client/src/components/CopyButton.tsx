@@ -25,9 +25,14 @@ export function CopyButton({
     }
   }
 
+  let buttonLabel = label;
+  if (copied) {
+    buttonLabel = copiedLabel;
+  }
+
   return (
     <button type="button" onClick={onCopy} className={className}>
-      {copied ? copiedLabel : label}
+      {buttonLabel}
     </button>
   );
 }
