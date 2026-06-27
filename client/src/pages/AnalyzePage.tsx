@@ -104,49 +104,58 @@ export function AnalyzePage() {
         </p>
       </section>
 
-      {/* Step pipeline — reacts to app state */}
+      {/* Live log stream */}
       {(() => {
-        const stepLabels = ['Paste log', 'AI analysis', 'Rate severity', 'Copy issue'];
-        const stepDone = [
-          text.length > 0,
-          result !== null,
-          result !== null,
-          result !== null,
+        const lines = [
+          { ts: '14:23:01.042', level: 'INFO',  msg: 'Application starting on port 8080' },
+          { ts: '14:23:01.107', level: 'DEBUG', msg: 'Loading config from /etc/app/config.yaml' },
+          { ts: '14:23:01.189', level: 'INFO',  msg: 'Database connection pool initialized (max=20)' },
+          { ts: '14:23:01.234', level: 'WARN',  msg: 'Memory usage at 78% - consider scaling' },
+          { ts: '14:23:01.301', level: 'ERROR', msg: 'Connection refused: postgres.svc.cluster:5432' },
+          { ts: '14:23:01.312', level: 'ERROR', msg: 'Retry 1/3 failed - backoff 500ms' },
+          { ts: '14:23:01.823', level: 'WARN',  msg: 'Cache miss rate exceeding threshold (42%)' },
+          { ts: '14:23:01.956', level: 'INFO',  msg: 'Health check passed /api/health 200 OK' },
+          { ts: '14:23:02.011', level: 'DEBUG', msg: 'GET /api/users?page=1 uid=a9f2c3d1' },
+          { ts: '14:23:02.156', level: 'ERROR', msg: 'Unhandled exception in worker thread #4' },
+          { ts: '14:23:02.157', level: 'ERROR', msg: 'NullPointerException at UserService.java:247' },
+          { ts: '14:23:02.203', level: 'WARN',  msg: 'Slow query: 2341ms  SELECT * FROM sessions' },
+          { ts: '14:23:02.387', level: 'INFO',  msg: 'Restarting degraded worker thread #4' },
+          { ts: '14:23:02.501', level: 'INFO',  msg: 'Circuit breaker OPEN for payments-service' },
+          { ts: '14:23:02.678', level: 'DEBUG', msg: 'Token refreshed: user@company.com' },
+          { ts: '14:23:02.801', level: 'WARN',  msg: 'API rate limit: 983/1000 req/hour' },
+          { ts: '14:23:02.934', level: 'ERROR', msg: 'Pod crash-loopbackoff: api-deploy-5cd8f' },
+          { ts: '14:23:03.021', level: 'INFO',  msg: 'Scaling deployment to 3 replicas' },
+          { ts: '14:23:03.145', level: 'DEBUG', msg: 'Metrics flushed to prometheus:9090' },
+          { ts: '14:23:03.289', level: 'WARN',  msg: 'Disk usage at 91% on /var/log partition' },
         ];
-        const current =
-          status === 'loading' ? 1
-          : result !== null ? 3
-          : text.length > 0 ? 0
-          : -1;
+        const levelColor = (l: string) => l === 'ERROR' ? 'text-high' : l === 'WARN' ? 'text-medium' : l === 'INFO' ? 'text-low/70' : 'text-fg-faint/40';
+        const msgColor  = (l: string) => l === 'ERROR' ? 'text-high/75' : l === 'WARN' ? 'text-medium/60' : l === 'DEBUG' ? 'text-fg-faint/40' : 'text-fg-faint/70';
+        const rowBg     = (l: string) => l === 'ERROR' ? 'bg-high/[0.04]' : '';
         return (
           <div
-            className="grid grid-cols-4 overflow-hidden rounded-sm border border-line"
-            style={{ animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '420ms' }}
+            className="relative h-44 overflow-hidden rounded-sm border border-line bg-ink-deep"
+            style={{ animation: 'reveal-fade 0.6s ease-out both', animationDelay: '420ms' }}
           >
-            {stepLabels.map((label, i) => {
-              const done = stepDone[i];
-              const active = i === current;
-              return (
-                <div
-                  key={i}
-                  className={`relative flex flex-col gap-2 border-r border-line px-4 py-4 last:border-0 transition-colors duration-500 ${done ? 'bg-signal/5' : ''}`}
-                >
-                  {active && (
-                    <div className="absolute inset-x-0 top-0 h-0.5 bg-signal" />
-                  )}
-                  <span className={`font-head text-[38px] font-extrabold leading-none transition-colors duration-500 ${
-                    active ? 'text-signal' : done ? 'text-signal/35' : 'text-signal/12'
-                  }`}>
-                    {String(i + 1).padStart(2, '0')}
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-gradient-to-b from-ink-deep to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-14 bg-gradient-to-t from-ink-deep to-transparent" />
+            <div
+              className="pointer-events-none absolute inset-x-0 z-20 h-px bg-signal/20"
+              style={{ animation: 'scan-v 5s ease-in-out infinite' }}
+            />
+            <div style={{ animation: 'scroll-logs 22s linear infinite' }}>
+              {[...lines, ...lines].map((line, i) => (
+                <div key={i} className={`flex items-baseline gap-3 px-4 py-[3px] font-mono text-[9px] leading-5 ${rowBg(line.level)}`}>
+                  <span className="shrink-0 tabular-nums text-fg-faint/30">{line.ts}</span>
+                  <span
+                    className={`w-[38px] shrink-0 font-bold ${levelColor(line.level)}`}
+                    style={line.level === 'ERROR' ? { textShadow: '0 0 10px rgba(247,109,109,0.45)' } : undefined}
+                  >
+                    {line.level}
                   </span>
-                  <span className={`font-head text-[10px] font-bold tracking-[0.1em] uppercase transition-colors duration-500 ${
-                    active || done ? 'text-fg-muted' : 'text-fg-faint'
-                  }`}>
-                    {label}
-                  </span>
+                  <span className={msgColor(line.level)}>{line.msg}</span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         );
       })()}

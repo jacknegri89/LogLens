@@ -77,3 +77,15 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
+
+@keyframes scroll-logs {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+@keyframes scan-v {
+  0%   { top: 0%;    opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { top: 100%;  opacity: 0; }
+}
