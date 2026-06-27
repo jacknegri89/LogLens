@@ -2,7 +2,7 @@
 
 The LogLens frontend: **React + TypeScript + Vite + Tailwind CSS**.
 
-> 🚧 Scaffolded in **Phase 6** of the roadmap. For now this folder is a
+> Scaffolded in **Phase 6** of the roadmap. For now this folder is a
 > placeholder so the repository structure is complete.
 
 Planned screens:

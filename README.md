@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔍 LogLens
+# LogLens
 
 **Paste a log or a stack trace — get an AI-powered analysis and a ready-to-paste bug report.**
 
@@ -18,21 +18,21 @@ GitHub Issue you can copy in one click.
 
 ---
 
-## ✨ Features
+## Features
 
-- 📋 **Paste or upload** — paste a log/stack trace or drop a `.txt` / `.log` file
-- 🧠 **AI analysis** — the relevant lines are sent to an AI model that returns a structured report
-- 🚦 **Severity & category** — every issue is classified (low / medium / high) and tagged
-- 🧩 **Actionable report** — main problem, key log lines, probable causes, debug steps
-- 📝 **Markdown export** — download the report or copy a ready-to-paste **GitHub Issue**
-- 🕓 **History** — every analysis is saved; revisit it from a detail page
-- 🔌 **Pluggable AI** — works with **OpenAI** or a **free local Ollama** model
+- **Paste or upload** — paste a log/stack trace or drop a `.txt` / `.log` file
+- **AI analysis** — the relevant lines are sent to an AI model that returns a structured report
+- **Severity & category** — every issue is classified (low / medium / high) and tagged
+- **Actionable report** — main problem, key log lines, probable causes, debug steps
+- **Markdown export** — download the report or copy a ready-to-paste **GitHub Issue**
+- **History** — every analysis is saved; revisit it from a detail page
+- **Pluggable AI** — works with **OpenAI** or a **free local Ollama** model
 
-## 🖼️ Screenshots
+## Screenshots
 
-> 🚧 Added in Phase 9 — see [`docs/screenshots/`](./docs/screenshots/).
+> Added in Phase 9 — see [`docs/screenshots/`](./docs/screenshots/).
 
-## 🧰 Tech stack
+## Tech stack
 
 | Area     | Technology                        |
 | -------- | --------------------------------- |
@@ -43,14 +43,14 @@ GitHub Issue you can copy in one click.
 | Tests    | Vitest                            |
 | CI/CD    | GitHub Actions                    |
 
-## 🏗️ Architecture
+## Architecture
 
 The flow in one line: **client → API → parser → AI provider → database → report**.
 
 Full diagram and design decisions in [`docs/architecture.md`](./docs/architecture.md).
 Prompt design lives in [`docs/prompts.md`](./docs/prompts.md).
 
-## 🚀 Getting started
+## Getting started
 
 ### Prerequisites
 
@@ -71,10 +71,10 @@ cp .env.example .env   # then edit .env with your values
 npm install
 ```
 
-> 🚧 Run commands for the client and server are added as those parts are built
+> Run commands for the client and server are added as those parts are built
 > (see the roadmap below). Until then, this section will grow with the project.
 
-## 📁 Project structure
+## Project structure
 
 ```text
 loglens/
@@ -86,7 +86,7 @@ loglens/
 └── .github/    # CI workflow
 ```
 
-## 🧪 Examples
+## Examples
 
 Try LogLens with the sample logs in [`examples/`](./examples/):
 
@@ -94,7 +94,7 @@ Try LogLens with the sample logs in [`examples/`](./examples/):
 - [`docker-error.log`](./examples/docker-error.log) — a Docker Compose startup failure
 - [`database-error.log`](./examples/database-error.log) — database connection & query errors
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [x] **Phase 0** — Project structure, CI skeleton, docs & examples
 - [ ] **Phase 1** — Express + TypeScript backend
@@ -107,6 +107,6 @@ Try LogLens with the sample logs in [`examples/`](./examples/):
 - [ ] **Phase 8** — Full CI/CD
 - [ ] **Phase 9** — Screenshots, polish & docs
 
-## 📄 License
+## License
 
 [MIT](./LICENSE) © 2026 Giacomo Negri
