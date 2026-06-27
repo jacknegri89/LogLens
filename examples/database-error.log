@@ -1,0 +1,9 @@
+2026-06-20T10:02:14.001Z INFO  Prisma migrate: applying pending migrations
+2026-06-20T10:02:14.553Z ERROR PrismaClientInitializationError: Can't reach database server at `db:5432`
+Please make sure your database server is running at `db:5432`.
+    at PrismaClient._getActiveProvider (/app/node_modules/@prisma/client/runtime/library.js:122:14)
+2026-06-20T10:02:14.560Z ERROR Failed to connect to database: connect ECONNREFUSED 172.18.0.2:5432
+2026-06-20T10:05:41.220Z WARN  Retrying connection (attempt 3/5)...
+2026-06-20T10:05:42.880Z ERROR QueryFailedError: duplicate key value violates unique constraint "users_email_key"
+DETAIL:  Key (email)=(jane@example.com) already exists.
+2026-06-20T10:05:42.881Z WARN  Transaction rolled back

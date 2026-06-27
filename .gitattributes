@@ -1,0 +1,14 @@
+# Normalize line endings to LF inside the repo, on every OS.
+# This prevents noisy CRLF/LF diffs when collaborating from Windows.
+* text=auto eol=lf
+
+# Example logs must stay text with LF endings
+*.log text eol=lf
+
+# Binary assets — never touch line endings
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary

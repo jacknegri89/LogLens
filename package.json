@@ -1,0 +1,22 @@
+{
+  "name": "loglens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Analyze logs and stack traces with AI: detect errors, classify severity, and generate a ready-to-paste bug report.",
+  "license": "MIT",
+  "author": "Giacomo Negri",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "echo \"(lint is configured per workspace in a later step)\"",
+    "test": "echo \"(tests are added in a later step)\"",
+    "build": "echo \"(build is configured per workspace in a later step)\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.0"
+  }
+}

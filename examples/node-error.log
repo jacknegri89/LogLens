@@ -1,0 +1,10 @@
+2026-06-20T09:14:02.331Z INFO  Starting api server on port 3001
+2026-06-20T09:14:02.512Z INFO  Connected to database (sqlite:./dev.db)
+2026-06-20T09:14:11.882Z WARN  Slow request: GET /api/analyses took 1423ms
+2026-06-20T09:14:23.104Z ERROR Unhandled promise rejection in request handler
+TypeError: Cannot read properties of undefined (reading 'map')
+    at buildReport (/app/server/src/services/report.ts:42:28)
+    at AnalysisService.create (/app/server/src/services/analysis.ts:88:20)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST /api/analyses (/app/server/src/routes/analyses.ts:31:18)
+2026-06-20T09:14:23.107Z ERROR Request failed: POST /api/analyses 500 (28ms)

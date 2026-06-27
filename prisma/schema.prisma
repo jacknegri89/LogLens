@@ -1,0 +1,38 @@
+// Prisma schema for LogLens
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // SQLite keeps local setup zero-config. To move to Postgres later,
+  // change provider to "postgresql" and update DATABASE_URL.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// One log-analysis run: what the user submitted plus the structured
+/// report produced by the AI.
+model Analysis {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // ── Input ──
+  source   String  @default("paste") // "paste" | "upload"
+  fileName String? // original file name when uploaded
+  rawLog   String // the full log text submitted by the user
+
+  // ── Report: top-level fields kept as columns so we can list/filter them ──
+  title    String // short summary of the main problem
+  severity String // "low" | "medium" | "high"
+  category String // e.g. "Database", "Network", "Runtime", "Build"
+
+  // ── Report: full structured payload stored as a JSON string ──
+  // (SQLite has no native JSON type, so we serialize it. It holds the
+  // probable causes, debug steps, key log lines and the Markdown bug report.)
+  report String
+
+  @@index([createdAt])
+  @@index([severity])
+}

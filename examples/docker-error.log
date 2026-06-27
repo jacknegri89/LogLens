@@ -1,0 +1,11 @@
+node-api  | > loglens-server@0.1.0 start
+node-api  | > node dist/index.js
+node-api  | Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+node-api  |     at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+node-api  |     at listenInCluster (node:net:1965:12)
+node-api  |     at Server.listen (node:net:2113:7)
+node-api  | node-api exited with code 1
+postgres  | 2026-06-20 09:20:01.442 UTC [1] LOG:  database system is ready to accept connections
+postgres  | 2026-06-20 09:21:55.310 UTC [1] FATAL:  out of memory
+node-api  | container "loglens-node-api" killed: OOMKilled (exit code 137)
+docker-compose | service "node-api" failed to start: dependency failed to start
