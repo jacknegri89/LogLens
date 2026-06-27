@@ -1,17 +1,25 @@
+import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { Layout } from './components/Layout';
-import { AnalysisDetailPage } from './pages/AnalysisDetailPage';
-import { AnalyzePage } from './pages/AnalyzePage';
-import { HistoryPage } from './pages/HistoryPage';
+
+const AnalyzePage = lazy(() =>
+  import('./pages/AnalyzePage').then((m) => ({ default: m.AnalyzePage })),
+);
+const HistoryPage = lazy(() =>
+  import('./pages/HistoryPage').then((m) => ({ default: m.HistoryPage })),
+);
+const AnalysisDetailPage = lazy(() =>
+  import('./pages/AnalysisDetailPage').then((m) => ({ default: m.AnalysisDetailPage })),
+);
 
 export function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<AnalyzePage />} />
-        <Route path="/history" element={<HistoryPage />} />
-        <Route path="/analyses/:id" element={<AnalysisDetailPage />} />
+        <Route path="/" element={<Suspense fallback={null}><AnalyzePage /></Suspense>} />
+        <Route path="/history" element={<Suspense fallback={null}><HistoryPage /></Suspense>} />
+        <Route path="/analyses/:id" element={<Suspense fallback={null}><AnalysisDetailPage /></Suspense>} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
