@@ -82,9 +82,9 @@ export function AnalyzePage() {
             </span>
             <div className="h-px w-6 bg-line" />
           </div>
-          <h1 className="font-head text-[48px] font-extrabold uppercase leading-[0.95] tracking-[0.01em] text-fg sm:text-[60px]">
-            Find the<br />
-            real error.
+          <h1 className="font-head text-[48px] font-extrabold uppercase leading-[0.95] tracking-[0.01em] sm:text-[60px]">
+            <span className="text-fg-faint">Find the</span><br />
+            <span className="text-fg">real </span><span className="text-signal">error.</span>
           </h1>
           <p className="mt-5 max-w-[36ch] text-sm leading-relaxed text-fg-faint">
             Paste a log or stack trace. LogLens pinpoints the root cause, rates severity, and writes a bug report ready for GitHub.
@@ -93,7 +93,7 @@ export function AnalyzePage() {
         <div className="hidden flex-col justify-center gap-0 md:flex">
           {(['Paste log', 'AI finds root cause', 'Rate severity', 'Copy issue'] as const).map((step, i) => (
             <div key={i} className="flex items-baseline gap-3 border-b border-line py-2.5 last:border-0">
-              <span className="font-head text-xl font-extrabold leading-none text-fg-faint">
+              <span className="font-head text-xl font-extrabold leading-none text-signal">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <span className="font-head text-[9px] font-semibold tracking-[0.18em] uppercase text-fg-faint">
