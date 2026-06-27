@@ -8,16 +8,13 @@ LogLens reads your logs, finds the real error, classifies its severity and
 category, explains the likely causes, suggests debugging steps, and generates a
 GitHub Issue you can copy in one click.
 
-[![CI](https://github.com/your-github-username/loglens/actions/workflows/ci.yml/badge.svg)](https://github.com/your-github-username/loglens/actions/workflows/ci.yml)
+[![CI](https://github.com/jacknegri89/LogLens/actions/workflows/ci.yml/badge.svg)](https://github.com/jacknegri89/LogLens/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=nodedotjs&logoColor=white)
 
 </div>
-
-> ⚠️ Replace `your-github-username` above with your real GitHub username once the
-> repo is pushed.
 
 ---
 
@@ -64,8 +61,8 @@ Prompt design lives in [`docs/prompts.md`](./docs/prompts.md).
 
 ```bash
 # 1. Clone
-git clone https://github.com/your-github-username/loglens.git
-cd loglens
+git clone https://github.com/jacknegri89/LogLens.git
+cd LogLens
 
 # 2. Configure environment
 cp .env.example .env   # then edit .env with your values
