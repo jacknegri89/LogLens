@@ -1,27 +1,32 @@
 @import 'tailwindcss';
 
-/* Design tokens. In Tailwind v4 these generate utilities automatically:
-   --color-signal -> bg-signal / text-signal / border-signal, etc. */
+/* Design tokens — Tailwind v4 auto-generates utilities from these:
+   --color-signal -> bg-signal / text-signal / border-signal etc.
+   --animate-fade-up -> animate-fade-up etc. */
 @theme {
   --color-ink: #0a0c11;
   --color-surface: #12151c;
   --color-surface-2: #181d27;
+  --color-surface-raised: #1e2433;
   --color-line: #232a37;
+  --color-line-strong: #2e3848;
 
   --color-fg: #e7eaf0;
   --color-fg-muted: #98a2b3;
   --color-fg-faint: #5e6877;
 
-  /* Brand "scan beam" accent */
   --color-signal: #c4f135;
 
-  /* Severity = log levels */
   --color-high: #f76d6d;
   --color-medium: #f3b340;
   --color-low: #54aef5;
 
   --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --animate-scan: scan 1.2s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.35s ease-out both;
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
 }
 
 @layer base {
@@ -31,13 +36,12 @@
 
   body {
     background-color: var(--color-ink);
-    /* Top "scan glow" + a faint dotted grid for atmosphere/depth. */
+    /* Three layers: signal glow top-center, blue accent bottom-right, dotted grid. */
     background-image:
-      radial-gradient(55rem 32rem at 50% -8%, rgba(196, 241, 53, 0.07), transparent 70%),
-      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.025) 1px, transparent 0);
-    background-size:
-      auto,
-      22px 22px;
+      radial-gradient(72rem 40rem at 50% -4%, rgba(196, 241, 53, 0.06) 0%, transparent 65%),
+      radial-gradient(45rem 28rem at 105% 105%, rgba(84, 174, 245, 0.04) 0%, transparent 60%),
+      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.022) 1px, transparent 0);
+    background-size: auto, auto, 18px 18px;
     color: var(--color-fg);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -45,17 +49,51 @@
   }
 
   ::selection {
-    background-color: color-mix(in oklab, var(--color-signal) 30%, transparent);
+    background-color: color-mix(in oklab, var(--color-signal) 28%, transparent);
     color: var(--color-fg);
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-fg-faint);
+  }
+
+  /* Remove default browser disclosure arrow from <details><summary>. */
+  details > summary {
+    list-style: none;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
   }
 }
 
-/* Scanning beam used by the "Analyzing..." loader. */
 @keyframes scan {
-  0% {
-    left: -35%;
+  0% { left: -35%; }
+  100% { left: 100%; }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
-  100% {
-    left: 100%;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }

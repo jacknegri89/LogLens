@@ -1,23 +1,30 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
 function navClass({ isActive }: { isActive: boolean }): string {
-  return `rounded-md px-3 py-2 font-mono text-xs tracking-wider uppercase transition-colors ${
-    isActive ? 'text-signal' : 'text-fg-muted hover:text-fg'
+  return `rounded-lg px-3 py-1.5 font-mono text-xs tracking-wider uppercase transition-all ${
+    isActive
+      ? 'bg-signal/10 text-signal border border-signal/20'
+      : 'border border-transparent text-fg-muted hover:text-fg hover:bg-surface/60'
   }`;
 }
 
 export function Layout() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-20 border-b border-line/70 bg-ink/80 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
-          <NavLink to="/" className="flex items-center gap-2.5">
+      <header className="sticky top-0 z-20 border-b border-line/60 bg-ink/85 backdrop-blur-md">
+        {/* Signal accent line at the very top of the viewport */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-signal/50 to-transparent" />
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <NavLink to="/" className="group flex items-center gap-2.5">
             <LensMark />
             <span className="font-mono text-sm font-semibold tracking-[0.2em] text-fg uppercase">
-              Log<span className="text-signal">Lens</span>
+              Log
+              <span className="text-signal transition-all group-hover:drop-shadow-[0_0_8px_rgba(196,241,53,0.7)]">
+                Lens
+              </span>
             </span>
           </NavLink>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-1.5">
             <NavLink to="/" end className={navClass}>
               Analyze
             </NavLink>
@@ -28,12 +35,14 @@ export function Layout() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-12">
         <Outlet />
       </main>
 
-      <footer className="mx-auto w-full max-w-5xl px-6 py-10 text-center font-mono text-xs text-fg-faint">
-        LogLens — AI log analysis
+      <footer className="mx-auto w-full max-w-5xl px-6 pb-10">
+        <div className="border-t border-line/40 pt-8 text-center font-mono text-xs text-fg-faint">
+          LogLens — AI log analysis
+        </div>
       </footer>
     </div>
   );
@@ -41,7 +50,7 @@ export function Layout() {
 
 function LensMark() {
   return (
-    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
       <circle cx="14" cy="14" r="7" fill="none" stroke="#c4f135" strokeWidth="2.5" />
       <line
         x1="19"
