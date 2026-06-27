@@ -127,7 +127,11 @@ export function AnalyzePage() {
               <span className="h-2 w-2 rounded-full bg-line-strong" />
             </div>
             <span className="font-mono text-[9px] tracking-[0.06em] text-fg-faint">
-              {fileName ?? 'stdin'} · {text.length.toLocaleString()} chars
+              {fileName
+                ? `${fileName} · ${text.length.toLocaleString()} chars`
+                : text.length > 0
+                  ? `${text.length.toLocaleString()} chars`
+                  : 'ready'}
             </span>
           </div>
           <button
