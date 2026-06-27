@@ -198,9 +198,6 @@ export function AnalyzePage() {
                 </button>
               ))}
               <div className="ml-auto flex items-center gap-2.5">
-                <span className="font-mono text-[8px] text-fg-faint">
-                  {String.fromCharCode(8984)}+Return
-                </span>
                 <button
                   type="button"
                   onClick={onAnalyze}
