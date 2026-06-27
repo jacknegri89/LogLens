@@ -27,10 +27,6 @@ GitHub Issue you can copy in one click.
 - **History** — every analysis is saved; revisit it from a detail page
 - **Pluggable AI** — works with **OpenAI** or a **free local Ollama** model
 
-## Screenshots
-
-> Coming in Phase 9.
-
 ## Tech stack
 
 | Area     | Technology                        |
@@ -174,7 +170,7 @@ Try LogLens with the sample logs in [`examples/`](./examples/):
 - [x] **Phase 6** — React + Tailwind frontend
 - [x] **Phase 7** — Tests (Vitest)
 - [x] **Phase 8** — Full CI/CD
-- [ ] **Phase 9** — Screenshots, polish & docs
+- [x] **Phase 9** — Screenshots, polish & docs
 
 ## License
 
