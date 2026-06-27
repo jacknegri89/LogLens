@@ -71,58 +71,86 @@ export function AnalyzePage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Hero — 2-column asymmetric */}
-      <section className="grid gap-10 pt-4 md:grid-cols-[1fr_auto]">
-        <div>
-          <div className="mb-6 flex items-center gap-3" style={{ animation: 'reveal-fade 0.6s ease-out both', animationDelay: '0ms' }}>
-            <div className="h-px flex-1 bg-line" />
-            <span className="font-head text-[9px] font-semibold tracking-[0.28em] uppercase text-signal">
-              AI log analysis
-            </span>
-            <div className="h-px w-6 bg-line" />
-          </div>
-          <h1 className="font-head uppercase leading-none">
-            <span
-              className="block font-normal italic text-fg-faint"
-              style={{ fontSize: 'clamp(28px, 5vw, 42px)', animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '80ms' }}
-            >
-              Find the
-            </span>
-            <span
-              className="block font-extrabold"
-              style={{ fontSize: 'clamp(52px, 9vw, 80px)', animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '200ms' }}
-            >
-              <span className="text-fg">Real </span>
-              <span className="text-signal">Error.</span>
-            </span>
-          </h1>
-          <p
-            className="mt-6 max-w-[38ch] text-sm leading-relaxed text-fg-faint"
-            style={{ animation: 'reveal-fade 0.6s ease-out both', animationDelay: '380ms' }}
+    <div className="space-y-6">
+      {/* Hero */}
+      <section className="pt-4">
+        <div className="mb-6 flex items-center gap-3" style={{ animation: 'reveal-fade 0.6s ease-out both', animationDelay: '0ms' }}>
+          <div className="h-px flex-1 bg-line" />
+          <span className="font-head text-[9px] font-semibold tracking-[0.28em] uppercase text-signal">
+            AI log analysis
+          </span>
+          <div className="h-px w-6 bg-line" />
+        </div>
+        <h1 className="font-head uppercase leading-none">
+          <span
+            className="block font-normal italic text-fg-faint"
+            style={{ fontSize: 'clamp(28px, 5vw, 42px)', animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '80ms' }}
           >
-            Paste a log or stack trace. LogLens pinpoints the root cause, rates severity, and writes a bug report ready for GitHub.
-          </p>
-        </div>
-
-        {/* Step list */}
-        <div className="hidden flex-col justify-center border-l border-line pl-8 md:flex">
-          {(['Paste log', 'AI analysis', 'Rate severity', 'Copy issue'] as const).map((step, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-4 border-b border-line py-4 last:border-0"
-              style={{ animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: `${300 + i * 80}ms` }}
-            >
-              <span className="w-10 font-head text-[40px] font-extrabold leading-none text-signal/20">
-                {i + 1}
-              </span>
-              <span className="font-head text-[12px] font-bold tracking-[0.1em] uppercase text-fg-muted">
-                {step}
-              </span>
-            </div>
-          ))}
-        </div>
+            Find the
+          </span>
+          <span
+            className="block font-extrabold"
+            style={{ fontSize: 'clamp(52px, 9vw, 80px)', animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '200ms' }}
+          >
+            <span className="text-fg">Real </span>
+            <span className="text-signal">Error.</span>
+          </span>
+        </h1>
+        <p
+          className="mt-5 max-w-[38ch] text-sm leading-relaxed text-fg-faint"
+          style={{ animation: 'reveal-fade 0.6s ease-out both', animationDelay: '340ms' }}
+        >
+          Paste a log or stack trace. LogLens pinpoints the root cause, rates severity, and writes a bug report ready for GitHub.
+        </p>
       </section>
+
+      {/* Step pipeline — reacts to app state */}
+      {(() => {
+        const stepLabels = ['Paste log', 'AI analysis', 'Rate severity', 'Copy issue'];
+        const stepDone = [
+          text.length > 0,
+          result !== null,
+          result !== null,
+          result !== null,
+        ];
+        const current =
+          status === 'loading' ? 1
+          : result !== null ? 3
+          : text.length > 0 ? 0
+          : -1;
+        return (
+          <div
+            className="grid grid-cols-4 overflow-hidden rounded-sm border border-line"
+            style={{ animation: 'reveal-up 0.75s cubic-bezier(0.16,1,0.3,1) both', animationDelay: '420ms' }}
+          >
+            {stepLabels.map((label, i) => {
+              const done = stepDone[i];
+              const active = i === current;
+              return (
+                <div
+                  key={i}
+                  className={`relative flex flex-col gap-2 border-r border-line px-4 py-4 last:border-0 transition-colors duration-500 ${done ? 'bg-signal/5' : ''}`}
+                >
+                  {active && (
+                    <div className="absolute inset-x-0 top-0 h-0.5 bg-signal" />
+                  )}
+                  <span className={`font-head text-[38px] font-extrabold leading-none transition-colors duration-500 ${
+                    active ? 'text-signal' : done ? 'text-signal/35' : 'text-signal/12'
+                  }`}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className={`font-head text-[10px] font-bold tracking-[0.1em] uppercase transition-colors duration-500 ${
+                    active || done ? 'text-fg-muted' : 'text-fg-faint'
+                  }`}>
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+
 
       {/* Terminal input */}
       <section
