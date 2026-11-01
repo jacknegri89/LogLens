@@ -16,7 +16,108 @@ interface Rule {
 
 const RULES: Rule[] = [
   {
-    pattern: /econnrefused|can't reach database server|connection refused/i,
+    pattern:
+      /imagepullbackoff|errimagepull|crashloopbackoff|back-off restarting|failed to pull image/i,
+    category: 'Infrastructure',
+    severity: 'high',
+    causes: [
+      'The container image cannot be downloaded: wrong name or tag, or no access to the registry.',
+      'The container starts and crashes right away, so Kubernetes keeps restarting it.',
+    ],
+    debugSteps: [
+      'Run kubectl describe pod and read the Events section at the bottom.',
+      'Check the image name and tag, and that the cluster has the credentials for the registry.',
+      'For a crash loop, read the logs of the previous run (kubectl logs --previous).',
+    ],
+  },
+  {
+    pattern:
+      /\benotfound\b|getaddrinfo|could not resolve host|name or service not known|temporary failure in name resolution/i,
+    category: 'Network',
+    severity: 'high',
+    causes: [
+      'The host name cannot be resolved: it is misspelled, or the DNS server does not know it.',
+      'The machine or container has no internet access or uses a wrong DNS server.',
+    ],
+    debugSteps: [
+      'Check the host name for typos in the configuration or the URL.',
+      'Resolve the name by hand from the same machine (nslookup, ping).',
+      'Check the DNS and proxy settings of the machine or container.',
+    ],
+  },
+  {
+    pattern: /no space left on device|enospc|disk quota exceeded/i,
+    category: 'Infrastructure',
+    severity: 'high',
+    causes: [
+      'The disk or the partition where the app writes is full.',
+      'Logs, caches or temporary files grew without a limit.',
+    ],
+    debugSteps: [
+      'Check free space (df -h) and find what takes it (du -sh on the biggest folders).',
+      'Remove old logs and temporary files, and set up log rotation.',
+      'Move the data to a bigger volume if the growth is expected.',
+    ],
+  },
+  {
+    pattern:
+      /unable to verify the first certificate|self[- ]signed certificate|certificate has expired|cert_has_expired|ssl routines|unable_to_verify_leaf_signature/i,
+    category: 'Network',
+    severity: 'medium',
+    causes: [
+      'The certificate is expired, self-signed, or not issued by an authority the client trusts.',
+      'The server does not send the full certificate chain.',
+    ],
+    debugSteps: [
+      'Open the address in a browser and look at the certificate and its expiry date.',
+      'Install the full chain on the server, or add your own authority to the client trust store.',
+      'Do not turn off certificate checks in production: fix the certificate instead.',
+    ],
+  },
+  {
+    pattern: /blocked by cors policy|no 'access-control-allow-origin'/i,
+    category: 'Network',
+    severity: 'low',
+    causes: [
+      'The API does not allow the origin of the page that calls it.',
+      'The response to the preflight (OPTIONS) request misses the CORS headers.',
+    ],
+    debugSteps: [
+      'Allow the exact origin of the frontend in the API CORS settings.',
+      'In development, proxy the API through the dev server so the browser sees one origin.',
+      'Check in the browser network tab that the OPTIONS request returns the allow headers.',
+    ],
+  },
+  {
+    pattern: /hydration failed|text content does not match|hydrat/i,
+    category: 'Runtime',
+    severity: 'low',
+    causes: [
+      'The HTML rendered on the server differs from what the browser renders first.',
+      'The code uses values that change between the two, such as dates, random numbers or window.',
+    ],
+    debugSteps: [
+      'Find the component named in the message and look for dates, random values or browser-only checks.',
+      'Move that code into an effect that runs only in the browser.',
+    ],
+  },
+  {
+    pattern: /nullpointerexception/i,
+    category: 'Runtime',
+    severity: 'medium',
+    causes: [
+      'A reference is null at the line named in the stack trace.',
+      'A method returned null and the result was used without a check.',
+    ],
+    debugSteps: [
+      'Open the first line of the stack trace that belongs to your code.',
+      'Find which reference on that line is null and where it should have been set.',
+      'Check it before use, or make the method return an empty value instead of null.',
+    ],
+  },
+  {
+    pattern:
+      /can't reach database server|(econnrefused|connection refused)[^\n]*(postgres|mysql|mongo|redis|database|:5432|:3306|:27017|:6379)/i,
     category: 'Database',
     severity: 'high',
     causes: [
@@ -29,6 +130,20 @@ const RULES: Rule[] = [
       'Compare the host and port in your configuration (for example DATABASE_URL) with the real ones.',
       'Try to connect by hand from the same machine or container (psql, nc, curl).',
       'In Docker Compose, use the service name as host and wait for a healthy status before starting the app.',
+    ],
+  },
+  {
+    pattern: /econnrefused|connection refused/i,
+    category: 'Network',
+    severity: 'high',
+    causes: [
+      'Nothing listens on that address and port: the service is down or not ready yet.',
+      'The address is wrong. Inside Docker, "localhost" is the container itself, not another service.',
+    ],
+    debugSteps: [
+      'Check that the target service is running and listens on the expected port.',
+      'Compare the host and port in your configuration with the real ones.',
+      'Try the connection by hand from the same machine or container (curl, nc).',
     ],
   },
   {
@@ -46,7 +161,7 @@ const RULES: Rule[] = [
     ],
   },
   {
-    pattern: /out of memory|oomkilled|heap out of memory|exit code 137/i,
+    pattern: /out of memory|outofmemoryerror|oomkilled|heap out of memory|exit code 137/i,
     category: 'Infrastructure',
     severity: 'high',
     causes: [

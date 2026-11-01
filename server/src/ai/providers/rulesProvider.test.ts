@@ -55,4 +55,46 @@ describe('RulesProvider', () => {
 
     expect(await provider.analyze(input)).toEqual(await provider.analyze(input));
   });
+
+  it('tells a missing Python module apart from a DNS error', async () => {
+    const report = await provider.analyze({
+      excerpt: "ModuleNotFoundError: No module named 'requests'",
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Build');
+  });
+
+  it('recognises a name that cannot be resolved', async () => {
+    const report = await provider.analyze({
+      excerpt: 'Error: getaddrinfo ENOTFOUND api.example.com',
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Network');
+    expect(report.severity).toBe('high');
+  });
+
+  it('treats a refused connection to a web service as a network problem', async () => {
+    const report = await provider.analyze({
+      excerpt: 'connect() failed (111: Connection refused) while connecting to upstream',
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Network');
+  });
+
+  it('recognises a full disk and a failing image pull', async () => {
+    const disk = await provider.analyze({
+      excerpt: 'ERROR write /data: no space left on device',
+      severityHint: 'low',
+    });
+    const image = await provider.analyze({
+      excerpt: 'Warning Failed kubelet Error: ImagePullBackOff',
+      severityHint: 'low',
+    });
+
+    expect(disk.category).toBe('Infrastructure');
+    expect(image.category).toBe('Infrastructure');
+  });
 });
