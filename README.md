@@ -15,7 +15,7 @@ GitHub Issue you can copy in one click.
 
 </div>
 
-**Live demo:** https://giacomonegri-loglens.vercel.app
+**Live demo:** https://loglens-demo.vercel.app
 
 ---
 
