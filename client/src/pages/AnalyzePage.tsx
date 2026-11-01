@@ -35,8 +35,7 @@ export function AnalyzePage() {
 
   const canSubmit = text.trim().length > 0 && status !== 'loading';
   const lineCount = text === '' ? 0 : text.split('\n').length;
-  const longestLine = Math.max(0, ...text.split('
-').map((l) => l.length));
+  const longestLine = Math.max(0, ...text.split('\n').map((l) => l.length));
 
   // Line numbers of the failing lines: marked with the highlighter in the editor gutter.
   const failingLines = new Set<number>();
