@@ -35,6 +35,8 @@ export function AnalyzePage() {
 
   const canSubmit = text.trim().length > 0 && status !== 'loading';
   const lineCount = text === '' ? 0 : text.split('\n').length;
+  const longestLine = Math.max(0, ...text.split('
+").map((l) => l.length));
 
   // Line numbers of the failing lines: marked with the highlighter in the editor gutter.
   const failingLines = new Set<number>();
@@ -196,6 +198,8 @@ export function AnalyzePage() {
                 spellCheck={false}
                 wrap="off"
                 rows={Math.max(lineCount, MIN_EDITOR_LINES)}
+                // The box grows with the longest line so the scroll area can reach its end.
+                style={{ minWidth: `${longestLine + 4}ch` }}
                 className="block min-w-0 flex-1 resize-none overflow-hidden bg-transparent p-0 pl-4 whitespace-pre text-ink placeholder:text-ink-soft focus:outline-none"
               />
             </div>
