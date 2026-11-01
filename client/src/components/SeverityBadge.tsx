@@ -5,9 +5,12 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
   const meta = severityMeta[severity];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 border px-2.5 py-0.5 font-head text-[10px] font-bold tracking-[0.15em] uppercase ${meta.badge}`}
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[11px] font-medium tracking-wide ${meta.text} ${meta.border}`}
     >
-      <span className={`h-1 w-1 rounded-full ${meta.dot}`} />
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${meta.dot}`}
+        style={{ boxShadow: `0 0 10px ${meta.glow}` }}
+      />
       {meta.label}
     </span>
   );

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { SeverityBadge } from '../components/SeverityBadge';
 import { api } from '../lib/api';
-import { formatDate } from '../lib/format';
+import { formatDate, severityMeta } from '../lib/format';
 import type { AnalysisSummary } from '../lib/types';
 
 export function HistoryPage() {
@@ -24,86 +24,77 @@ export function HistoryPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <header className="flex items-end justify-between border-b border-line pb-5">
-        <div>
-          <p className="font-head text-[9px] font-semibold tracking-[0.3em] uppercase text-signal">
-            Incident log
-          </p>
-          <h1 className="mt-1.5 font-head text-[28px] font-extrabold uppercase tracking-[0.04em] text-fg">
-            Past Analyses
-          </h1>
-        </div>
+    <div className="space-y-8 pt-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className="font-display text-[clamp(2rem,5vw,3.4rem)] leading-none font-light tracking-tight">
+          Past analyses
+        </h1>
         {items && items.length > 0 && (
-          <span className="font-mono text-[10px] text-fg-faint">{items.length} records</span>
+          <span className="font-mono text-sm text-fg-faint">{items.length} saved</span>
         )}
       </header>
 
       {error && (
-        <div className="flex items-start gap-2.5 rounded border border-high/20 bg-high/6 px-4 py-3">
-          <span className="mt-0.5 font-mono text-[10px] text-high">!</span>
-          <p className="text-xs text-high/90">{error}</p>
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-2xl border border-high/30 bg-high/8 px-5 py-4"
+        >
+          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-high" />
+          <p className="text-sm text-fg">{error}</p>
         </div>
       )}
 
       {items === null && !error && (
-        <div className="flex items-center gap-2 py-4">
-          <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-signal" />
-          <span className="font-mono text-[10px] tracking-[0.1em] text-fg-faint">Loading</span>
+        <div className="flex items-center gap-3 py-4">
+          <span className="h-2 w-2 animate-pulse-dot rounded-full bg-violet" />
+          <span className="text-sm text-fg-faint">Loading analyses…</span>
         </div>
       )}
 
       {items && items.length === 0 && (
-        <div className="rounded border border-line bg-surface px-6 py-12 text-center">
-          <p className="font-head text-[11px] font-bold tracking-[0.2em] uppercase text-fg-faint">
-            No records yet
-          </p>
-          <p className="mt-2 text-xs text-fg-faint">Run your first analysis to see it here.</p>
+        <div className="glass px-6 py-16 text-center">
+          <p className="font-display text-lg font-normal text-fg">Nothing analysed yet</p>
+          <p className="mt-2 text-fg-muted">Analyse a log and it will be saved here.</p>
           <Link
             to="/"
-            className="mt-4 inline-flex items-center gap-1.5 font-head text-[10px] font-semibold tracking-[0.15em] uppercase text-signal transition-opacity hover:opacity-80"
+            className="btn-photon mt-6 inline-flex rounded-full px-6 py-2.5 text-sm font-semibold"
           >
-            Analyze a log {'->'}
+            Analyze a log
           </Link>
         </div>
       )}
 
       {items && items.length > 0 && (
-        <div>
-          <div className="mb-1 grid grid-cols-[90px_1fr_110px_130px_16px] gap-3 px-3 py-1.5">
-            {['Severity', 'Issue', 'Category', 'Date', ''].map((col) => (
-              <span
-                key={col}
-                className="font-head text-[8px] font-semibold tracking-[0.2em] uppercase text-fg-faint"
+        <ul className="space-y-3">
+          {items.map((item) => (
+            <li key={item.id}>
+              <Link
+                to={`/analyses/${item.id}`}
+                className="glass group relative flex flex-wrap items-center gap-x-5 gap-y-2 overflow-hidden px-6 py-5 transition-colors hover:bg-white/5"
               >
-                {col}
-              </span>
-            ))}
-          </div>
-          <ul>
-            {items.map((item) => (
-              <li key={item.id} className="border-t border-line first:border-0">
-                <Link
-                  to={`/analyses/${item.id}`}
-                  className="group grid grid-cols-[90px_1fr_110px_130px_16px] items-center gap-3 rounded-sm px-3 py-3 transition-colors hover:bg-surface"
+                <span
+                  className="absolute inset-y-0 left-0 w-1 opacity-70 transition-opacity group-hover:opacity-100"
+                  style={{ background: severityMeta[item.severity].glow }}
+                  aria-hidden="true"
+                />
+                <SeverityBadge severity={item.severity} />
+                <span className="min-w-0 flex-1 basis-64 truncate text-[15px] font-medium text-fg">
+                  {item.title}
+                </span>
+                <span className="font-mono text-xs text-fg-faint">{item.category}</span>
+                <span className="font-mono text-xs text-fg-faint">
+                  {formatDate(item.createdAt)}
+                </span>
+                <span
+                  className="text-fg-faint transition-transform group-hover:translate-x-1 group-hover:text-fg"
+                  aria-hidden="true"
                 >
-                  <SeverityBadge severity={item.severity} />
-                  <span className="min-w-0 truncate text-xs font-medium text-fg">{item.title}</span>
-                  <span className="font-mono text-[9px] text-fg-faint">{item.category}</span>
-                  <span className="font-mono text-[9px] text-fg-faint">
-                    {formatDate(item.createdAt)}
-                  </span>
-                  <span
-                    className="text-right font-mono text-[10px] text-fg-faint transition-transform group-hover:translate-x-0.5"
-                    aria-hidden
-                  >
-                    {'->'}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+                  →
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

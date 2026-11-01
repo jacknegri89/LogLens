@@ -50,7 +50,8 @@ export function App() {
 function NotFound() {
   return (
     <div className="py-24 text-center">
-      <p className="font-mono text-sm text-fg-faint">404 — page not found</p>
+      <p className="font-display text-5xl font-light">404</p>
+      <p className="mt-4 text-fg-muted">This page does not exist.</p>
     </div>
   );
 }

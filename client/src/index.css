@@ -1,32 +1,28 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-ink: #060b10;
-  --color-ink-deep: #030508;
-  --color-surface: #0a1018;
-  --color-surface-2: #0e1520;
-  --color-raised: #121d28;
-  --color-line: #172030;
-  --color-line-strong: #1e2d40;
+  --color-night: #06070d;
+  --color-slab: #0c0e1a;
+  --color-slab-2: #121530;
+  --color-line: #1c2040;
+  --color-line-strong: #2d3363;
 
-  --color-fg: #dde0e8;
-  --color-fg-muted: #8896aa;
-  --color-fg-faint: #4a5668;
+  --color-fg: #f1f3ff;
+  --color-fg-muted: #a0a6c6;
+  --color-fg-faint: #6a7096;
 
-  --color-signal: #c4f135;
+  --color-violet: #8f6bff;
+  --color-high: #ff4f8b;
+  --color-medium: #ffc04d;
+  --color-low: #4fd6ff;
 
-  --color-high: #f76d6d;
-  --color-medium: #f3b340;
-  --color-low: #54aef5;
-
-  --font-head: 'Barlow Condensed', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Epilogue', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Unbounded', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 
-  --animate-scan: scan 1.2s ease-in-out infinite;
-  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
-  --animate-reveal-up: reveal-up 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-reveal-fade: reveal-fade 0.6s ease-out both;
+  --animate-rise: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-sweep: sweep 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
 }
 
 @layer base {
@@ -35,37 +31,42 @@
   }
 
   body {
-    background-color: var(--color-ink);
-    background-image: radial-gradient(
-      circle at 1px 1px,
-      rgba(255, 255, 255, 0.018) 1px,
-      transparent 0
-    );
-    background-size: 20px 20px;
+    background-color: var(--color-night);
     color: var(--color-fg);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
+  /* Ambient light: two soft blooms of the spectrum behind the page. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60rem 38rem at 85% -8%, rgb(143 107 255 / 0.2), transparent 65%),
+      radial-gradient(48rem 32rem at 5% 105%, rgb(79 214 255 / 0.1), transparent 65%);
+  }
+
   ::selection {
-    background-color: color-mix(in oklab, var(--color-signal) 28%, transparent);
+    background-color: rgb(143 107 255 / 0.4);
     color: var(--color-fg);
   }
 
-  ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+  :focus-visible {
+    outline: 2px solid var(--color-violet);
+    outline-offset: 3px;
   }
-  ::-webkit-scrollbar-track {
-    background: transparent;
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-thumb {
     background: var(--color-line-strong);
     border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-fg-faint);
   }
 
   details > summary {
@@ -76,67 +77,143 @@
   }
 }
 
-@keyframes scan {
-  0% {
-    left: -35%;
-  }
-  100% {
-    left: 100%;
-  }
+/* The signature: a ring of refracted light that travels around the console. */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
 }
 
-@keyframes reveal-up {
+.console {
+  border: 1px solid transparent;
+  border-radius: 22px;
+  background:
+    linear-gradient(var(--color-slab), var(--color-slab)) padding-box,
+    linear-gradient(var(--color-line), var(--color-line)) border-box;
+  box-shadow: 0 30px 80px -40px rgb(0 0 0 / 0.9);
+  transition: box-shadow 0.4s;
+}
+
+.console:focus-within,
+.console[data-state='active'] {
+  background:
+    linear-gradient(var(--color-slab), var(--color-slab)) padding-box,
+    conic-gradient(
+        from var(--angle),
+        rgb(143 107 255 / 0.05) 0%,
+        #8f6bff 14%,
+        #4f8bff 30%,
+        #4fd6ff 44%,
+        #5dffb0 58%,
+        #ffc04d 72%,
+        #ff4f8b 86%,
+        rgb(143 107 255 / 0.05) 100%
+      )
+      border-box;
+  animation: ring 7s linear infinite;
+  box-shadow:
+    0 30px 80px -40px rgb(0 0 0 / 0.9),
+    0 0 70px -20px rgb(143 107 255 / 0.45);
+}
+
+.console[data-state='dragging'] {
+  box-shadow: 0 0 0 3px rgb(79 214 255 / 0.5);
+}
+
+.glass {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.04), rgb(255 255 255 / 0.015));
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+}
+
+.btn-photon {
+  background: var(--color-fg);
+  color: var(--color-night);
+  transition:
+    box-shadow 0.3s,
+    transform 0.2s,
+    opacity 0.2s;
+}
+.btn-photon:hover:not(:disabled) {
+  box-shadow:
+    0 0 28px 2px rgb(143 107 255 / 0.55),
+    0 0 60px 6px rgb(79 214 255 / 0.25);
+  transform: translateY(-1px);
+}
+
+/* Prism: flowing dashes on the incoming log lines and the outgoing rays. */
+.prism-in {
+  stroke-dasharray: 6 14;
+  animation: flow 2.4s linear infinite;
+}
+.prism-ray {
+  stroke-dasharray: 90 18;
+  animation:
+    flow 3s linear infinite,
+    shimmer 4s ease-in-out infinite;
+}
+.prism[data-active='true'] .prism-in {
+  animation-duration: 0.7s;
+}
+.prism[data-active='true'] .prism-ray {
+  animation-duration: 0.9s, 1s;
+}
+
+@keyframes ring {
+  to {
+    --angle: 360deg;
+  }
+}
+@keyframes flow {
+  to {
+    stroke-dashoffset: -120;
+  }
+}
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(36px);
+    transform: translateY(28px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
-@keyframes reveal-fade {
+@keyframes sweep {
   from {
-    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    opacity: 0.2;
   }
   to {
+    clip-path: inset(0 0 0 0);
     opacity: 1;
   }
 }
-
 @keyframes pulse-dot {
   0%,
   100% {
     opacity: 1;
   }
   50% {
-    opacity: 0.35;
+    opacity: 0.3;
   }
 }
 
-@keyframes scroll-logs {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-50%);
-  }
-}
-
-@keyframes scan-v {
-  0% {
-    top: 0%;
-    opacity: 0;
-  }
-  5% {
-    opacity: 1;
-  }
-  95% {
-    opacity: 1;
-  }
-  100% {
-    top: 100%;
-    opacity: 0;
+@media (prefers-reduced-motion: reduce) {
+  .prism-in,
+  .prism-ray,
+  .console:focus-within,
+  .console[data-state='active'],
+  [class*='animate-'] {
+    animation: none !important;
   }
 }

@@ -16,7 +16,7 @@ export function AnalysisDetailPage() {
       .getAnalysis(id)
       .then(setAnalysis)
       .catch((err: unknown) => {
-        let message = 'Not found';
+        let message = 'Analysis not found';
         if (err instanceof Error) {
           message = err.message;
         }
@@ -25,40 +25,43 @@ export function AnalysisDetailPage() {
   }, [id]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6 pt-6">
       <Link
         to="/history"
-        className="group inline-flex items-center gap-1.5 font-head text-[9px] font-semibold tracking-[0.15em] uppercase text-fg-faint transition-colors hover:text-signal"
+        className="group inline-flex items-center gap-2 text-sm text-fg-muted transition-colors hover:text-fg"
       >
-        <span className="transition-transform group-hover:-translate-x-0.5">{'<-'}</span>
+        <span className="transition-transform group-hover:-translate-x-1">←</span>
         Back to history
       </Link>
 
       {error && (
-        <div className="flex items-start gap-2.5 rounded border border-high/20 bg-high/6 px-4 py-3">
-          <span className="mt-0.5 font-mono text-[10px] text-high">!</span>
-          <p className="text-xs text-high/90">{error}</p>
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-2xl border border-high/30 bg-high/8 px-5 py-4"
+        >
+          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-high" />
+          <p className="text-sm text-fg">{error}</p>
         </div>
       )}
 
       {!analysis && !error && (
-        <div className="flex items-center gap-2 py-4">
-          <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-signal" />
-          <span className="font-mono text-[10px] tracking-[0.1em] text-fg-faint">Loading</span>
+        <div className="flex items-center gap-3 py-4">
+          <span className="h-2 w-2 animate-pulse-dot rounded-full bg-violet" />
+          <span className="text-sm text-fg-faint">Loading analysis…</span>
         </div>
       )}
 
       {analysis && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <ReportView analysis={analysis} />
-          <details className="overflow-hidden rounded border border-line">
-            <summary className="flex cursor-pointer select-none items-center justify-between gap-4 px-5 py-3.5 font-head text-[9px] font-semibold tracking-[0.2em] uppercase text-fg-faint transition-colors hover:text-fg-muted">
+          <details className="glass overflow-hidden">
+            <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 text-sm text-fg-muted transition-colors select-none hover:text-fg">
               Original log
-              <span className="rounded-sm border border-line bg-surface px-2 py-0.5 font-mono normal-case text-[9px] text-fg-faint">
+              <span className="font-mono text-xs text-fg-faint">
                 {analysis.rawLog.split('\n').length} lines
               </span>
             </summary>
-            <pre className="overflow-x-auto border-t border-line bg-ink-deep px-5 py-4 font-mono text-[9px] leading-relaxed text-fg-faint">
+            <pre className="overflow-x-auto border-t border-line px-6 py-5 font-mono text-[13px] leading-relaxed text-fg-faint">
               {analysis.rawLog}
             </pre>
           </details>
