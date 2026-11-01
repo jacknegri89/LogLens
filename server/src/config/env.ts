@@ -19,7 +19,7 @@ const envSchema = z
     DATABASE_URL: z.string().min(1, 'DATABASE_URL is required (see .env.example)'),
 
     // Which AI engine analyzes the logs.
-    AI_PROVIDER: z.enum(['mock', 'openai', 'ollama']).default('mock'),
+    AI_PROVIDER: z.enum(['mock', 'rules', 'openai', 'ollama']).default('mock'),
 
     // OpenAI (used when AI_PROVIDER=openai)
     OPENAI_API_KEY: z.string().optional(),

@@ -46,3 +46,6 @@ docs/superpowers/
 
 # Vercel build output
 .vercel/
+
+.vercel
+.env*

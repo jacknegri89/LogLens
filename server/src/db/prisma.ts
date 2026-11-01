@@ -19,7 +19,21 @@ if (env.NODE_ENV === 'development') {
   logLevel = ['warn', 'error'];
 }
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({ log: logLevel });
+/**
+ * Pooled connection strings (Neon, Supabase) go through PgBouncer, which needs
+ * `pgbouncer=true` so Prisma does not reuse prepared statements.
+ */
+function withPgbouncer(url: string): string {
+  if (!url.includes('-pooler') || url.includes('pgbouncer=')) {
+    return url;
+  }
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}pgbouncer=true`;
+}
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({ log: logLevel, datasourceUrl: withPgbouncer(env.DATABASE_URL) });
 
 if (env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
