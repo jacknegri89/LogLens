@@ -113,6 +113,23 @@
   border-radius: 50%;
   background: var(--color-paper);
 }
+/* On touch screens a small tab on the glass says it can be dragged. */
+@media (hover: none) {
+  .lens-glass::after {
+    content: '< drag >';
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    padding: 1px 6px;
+    background: var(--color-ink);
+    color: var(--color-paper);
+    font-size: 10px;
+    line-height: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
 .lens-inner {
   position: absolute;
   left: calc(90px - var(--x));

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { LensStage } from '../components/LensStage';
@@ -35,8 +35,9 @@ export function AnalyzePage() {
 
   const canSubmit = text.trim().length > 0 && status !== 'loading';
   const editorRef = useRef<HTMLDivElement>(null);
+  const mirrorRef = useRef<HTMLDivElement>(null);
+  const [rowHeights, setRowHeights] = useState<number[]>([]);
   const lineCount = text === '' ? 0 : text.split('\n').length;
-  const longestLine = Math.max(0, ...text.split('\n').map((l) => l.length));
 
   // Line numbers of the failing lines: marked with the highlighter in the editor gutter.
   const failingLines = new Set<number>();
@@ -98,6 +99,23 @@ export function AnalyzePage() {
     (_, i) => i + 1,
   );
 
+  const mirrorLines = text.split('\n');
+  while (mirrorLines.length < MIN_EDITOR_LINES) mirrorLines.push('');
+
+  // Re-measure when the text changes or the box is resized (a phone turned sideways).
+  useLayoutEffect(() => {
+    const mirror = mirrorRef.current;
+    if (!mirror) return;
+    function measure() {
+      const heights = Array.from(mirror!.children, (row) => (row as HTMLElement).offsetHeight);
+      setRowHeights((prev) => (prev.join() === heights.join() ? prev : heights));
+    }
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(mirror);
+    return () => observer.disconnect();
+  }, [text]);
+
   let editorTitle = 'Log';
   if (fileName) {
     editorTitle = fileName;
@@ -144,7 +162,6 @@ export function AnalyzePage() {
             <span className="font-mono text-sm font-bold">
               {editorTitle}
               {lineCount > 0 && ` · ${lineCount} lines`}
-              {longestLine > 60 && ' · scroll sideways for long lines'}
             </span>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               <span className="text-ink-soft">Examples:</span>
@@ -164,8 +181,8 @@ export function AnalyzePage() {
             </div>
           </div>
 
-          <div ref={editorRef} className="h-[30rem] overflow-auto">
-            <div className="bands flex min-h-full w-max min-w-full font-mono text-[14px] leading-[22px]">
+          <div ref={editorRef} className="h-[30rem] overflow-x-hidden overflow-y-auto">
+            <div className="bands flex min-h-full font-mono text-[14px] leading-[22px]">
               <ol
                 className="sticky left-0 z-10 shrink-0 border-r-2 border-ink bg-paper text-right text-ink-soft select-none"
                 aria-hidden="true"
@@ -173,6 +190,7 @@ export function AnalyzePage() {
                 {gutterNumbers.map((n) => (
                   <li
                     key={n}
+                    style={{ height: rowHeights[n - 1] }}
                     className={`px-3 ${failingLines.has(n) ? 'bg-marker font-bold text-pen' : ''}`}
                   >
                     {n}
@@ -182,28 +200,31 @@ export function AnalyzePage() {
               <label htmlFor="log-input" className="sr-only">
                 Log or stack trace
               </label>
-              <textarea
-                id="log-input"
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value);
-                  if (fileName) setFileName(null);
-                }}
-                onPaste={() => requestAnimationFrame(() => editorRef.current?.scrollTo({ left: 0, top: 0 }))}
-                onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-                    e.preventDefault();
-                    onAnalyze();
-                  }
-                }}
-                placeholder="Paste a log or stack trace here, or drop a .log file."
-                spellCheck={false}
-                wrap="off"
-                rows={Math.max(lineCount, MIN_EDITOR_LINES)}
-                // The box grows with the longest line so the scroll area can reach its end.
-                style={{ minWidth: `${longestLine + 4}ch` }}
-                className="block min-w-0 flex-1 resize-none overflow-hidden bg-transparent p-0 pl-4 whitespace-pre text-ink placeholder:text-ink-soft focus:outline-none"
-              />
+              <div className="relative min-w-0 flex-1">
+                {/* Invisible copy of the text: it sizes the box and tells the gutter how tall each wrapped line is. */}
+                <div ref={mirrorRef} aria-hidden="true" className="invisible pl-4 whitespace-pre-wrap [overflow-wrap:anywhere]">
+                  {mirrorLines.map((line, i) => (
+                    <div key={i}>{line === '' ? ' ' : line}</div>
+                  ))}
+                </div>
+                <textarea
+                  id="log-input"
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                    if (fileName) setFileName(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                      e.preventDefault();
+                      onAnalyze();
+                    }
+                  }}
+                  placeholder="Paste a log or stack trace here, or drop a .log file."
+                  spellCheck={false}
+                  className="absolute inset-0 block h-full w-full resize-none overflow-hidden bg-transparent p-0 pl-4 whitespace-pre-wrap text-ink [overflow-wrap:anywhere] placeholder:text-ink-soft focus:outline-none"
+                />
+              </div>
             </div>
           </div>
 
