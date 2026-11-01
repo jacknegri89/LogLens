@@ -34,6 +34,7 @@ export function AnalyzePage() {
   const abortRef = useRef<AbortController | null>(null);
 
   const canSubmit = text.trim().length > 0 && status !== 'loading';
+  const editorRef = useRef<HTMLDivElement>(null);
   const lineCount = text === '' ? 0 : text.split('\n').length;
   const longestLine = Math.max(0, ...text.split('\n').map((l) => l.length));
 
@@ -143,6 +144,7 @@ export function AnalyzePage() {
             <span className="font-mono text-sm font-bold">
               {editorTitle}
               {lineCount > 0 && ` · ${lineCount} lines`}
+              {longestLine > 60 && ' · scroll sideways for long lines'}
             </span>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               <span className="text-ink-soft">Examples:</span>
@@ -162,8 +164,8 @@ export function AnalyzePage() {
             </div>
           </div>
 
-          <div className="h-[30rem] overflow-auto">
-            <div className="bands flex min-h-full font-mono text-[14px] leading-[22px]">
+          <div ref={editorRef} className="h-[30rem] overflow-auto">
+            <div className="bands flex min-h-full w-max min-w-full font-mono text-[14px] leading-[22px]">
               <ol
                 className="sticky left-0 z-10 shrink-0 border-r-2 border-ink bg-paper text-right text-ink-soft select-none"
                 aria-hidden="true"
@@ -187,6 +189,7 @@ export function AnalyzePage() {
                   setText(e.target.value);
                   if (fileName) setFileName(null);
                 }}
+                onPaste={() => requestAnimationFrame(() => editorRef.current?.scrollTo({ left: 0, top: 0 }))}
                 onKeyDown={(e) => {
                   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
                     e.preventDefault();

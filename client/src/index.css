@@ -102,7 +102,7 @@
   top: calc(var(--y) - 96px);
   width: 192px;
   height: 192px;
-  pointer-events: none;
+  touch-action: none;
   filter: drop-shadow(0 14px 18px rgb(0 0 0 / 0.35));
 }
 .lens-glass {

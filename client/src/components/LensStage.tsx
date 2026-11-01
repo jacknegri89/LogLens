@@ -55,6 +55,7 @@ export function LensStage() {
     if (!stage) return;
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const lens = stage.querySelector<HTMLElement>('.lens');
     let pointerInside = false;
     let frame = 0;
 
@@ -99,7 +100,7 @@ export function LensStage() {
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(stage);
-    stage.addEventListener('pointerdown', onDown);
+    lens?.addEventListener('pointerdown', onDown);
     stage.addEventListener('pointermove', onMove);
     stage.addEventListener('pointerleave', onLeave);
     stage.addEventListener('pointerup', onLeave);
@@ -114,7 +115,7 @@ export function LensStage() {
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
-      stage.removeEventListener('pointerdown', onDown);
+      lens?.removeEventListener('pointerdown', onDown);
       stage.removeEventListener('pointermove', onMove);
       stage.removeEventListener('pointerleave', onLeave);
       stage.removeEventListener('pointerup', onLeave);
@@ -125,7 +126,7 @@ export function LensStage() {
   return (
     <div
       ref={stageRef}
-      className="relative h-[19rem] cursor-none touch-none select-none overflow-hidden shadow-[0_24px_40px_-18px_rgb(0_0_0/0.6)] sm:h-[23rem]"
+      className="relative h-[19rem] cursor-none touch-pan-y select-none overflow-hidden shadow-[0_24px_40px_-18px_rgb(0_0_0/0.6)] sm:h-[23rem]"
       style={{ '--x': '55%', '--y': '50%', '--w': '600px', '--h': '368px' } as React.CSSProperties}
       aria-hidden="true"
     >
