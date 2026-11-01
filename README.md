@@ -99,57 +99,50 @@ LogLens/
 └── .github/    # CI workflow
 ```
 
-## Deploy (free, no credit card)
+## Screenshots
 
-The stack deploys on **Render** (backend + frontend) + **Supabase** (PostgreSQL).
-All free tiers. No credit card required for either.
+> Captured with `AI_PROVIDER=mock`, so the causes shown are the mock provider's placeholder text.
+> With `openai` or `ollama` the report contains a real analysis.
 
-> Note: Render's free web services spin down after 15 minutes of inactivity and
-> take ~30 seconds to wake up on the next request. This is normal for free tier.
+| Paste a log or upload a file                  | Report with severity, key lines, causes and steps |
+| --------------------------------------------- | ------------------------------------------------- |
+| ![Analyze page](docs/screenshots/analyze.png) | ![Report](docs/screenshots/report.png)            |
 
-### 1 — Set up the database (Supabase)
+![History of analyses](docs/screenshots/history.png)
 
-1. Go to [supabase.com](https://supabase.com) → **New project**
-2. Once the project is ready: **Settings → Database → Connection string → URI**
-3. Copy the URI (starts with `postgresql://`) — you'll need it in step 3
+## Deploy on Vercel
 
-Run the migration once from your local machine (with `DATABASE_URL` pointing to Supabase):
+The whole app (React client + Express API) runs as one Vercel project, with
+PostgreSQL on Supabase. Both have a free tier.
 
-```bash
-cd server
-# paste the Supabase URI into .env first, then:
-npm run prisma:migrate
-```
+1. **Database.** Create a project on [supabase.com](https://supabase.com), then copy the
+   two connection strings (Settings → Database): the _transaction pooler_ (port 6543) and
+   the _session pooler_ (port 5432).
+2. **Create the tables once**, from your computer:
 
-This creates the `Analysis` table in your Supabase database.
+   ```bash
+   cd server
+   cp .env.example .env     # paste DATABASE_URL and DIRECT_URL
+   npm run prisma:migrate
+   ```
 
-### 2 — Deploy to Render
+3. **Import the repo** on [vercel.com](https://vercel.com) → _Add New → Project_.
+   Leave the build settings alone: `vercel.json` already contains them.
+4. **Environment variables** (Project → Settings → Environment Variables):
 
-1. Go to [render.com](https://render.com) → **New → Blueprint**
-2. Connect your GitHub account and select the **LogLens** repo
-3. Render reads `render.yaml` and creates two services automatically:
-   - `loglens-api` — the Express backend
-   - `loglens-web` — the React static site
+   | Variable         | Value                                             |
+   | ---------------- | ------------------------------------------------- |
+   | `DATABASE_URL`   | Supabase transaction pooler URI                   |
+   | `DIRECT_URL`     | Supabase session pooler URI                       |
+   | `AI_PROVIDER`    | `mock`, or `openai`                               |
+   | `OPENAI_API_KEY` | your key (only when `AI_PROVIDER=openai`)         |
+   | `CORS_ORIGIN`    | leave empty: client and API share the same domain |
 
-### 3 — Set environment variables in Render
+5. **Deploy.** `npm run build:vercel` builds the client and bundles the API into
+   `.vercel/output` (see `server/scripts/build-vercel.mjs`).
 
-For **`loglens-api`** (Settings → Environment):
-
-| Variable         | Value                                                      |
-| ---------------- | ---------------------------------------------------------- |
-| `DATABASE_URL`   | Your Supabase connection URI                               |
-| `CORS_ORIGIN`    | `https://loglens-web.onrender.com` (or your custom domain) |
-| `AI_PROVIDER`    | `mock` (or `openai` if you have a key)                     |
-| `OPENAI_API_KEY` | Your key (only if `AI_PROVIDER=openai`)                    |
-
-For **`loglens-web`** (Settings → Environment):
-
-| Variable       | Value                              |
-| -------------- | ---------------------------------- |
-| `VITE_API_URL` | `https://loglens-api.onrender.com` |
-
-Trigger a manual redeploy of `loglens-web` after setting `VITE_API_URL` so the
-frontend rebuilds with the correct backend URL baked in.
+> Note: the history page lists every saved analysis, so on a public demo anyone can see
+> what other visitors pasted. Do not paste real secrets into a public instance.
 
 ## Examples
 

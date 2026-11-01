@@ -43,3 +43,6 @@ Thumbs.db
 .impeccable/
 .superpowers/
 docs/superpowers/
+
+# Vercel build output
+.vercel/

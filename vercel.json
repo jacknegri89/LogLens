@@ -1,0 +1,4 @@
+{
+  "installCommand": "npm ci && npm ci --prefix server && npm ci --prefix client",
+  "buildCommand": "npm run build:vercel"
+}
