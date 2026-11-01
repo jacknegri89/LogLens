@@ -15,6 +15,8 @@ GitHub Issue you can copy in one click.
 
 </div>
 
+**Live demo:** https://giacomonegri-loglens.vercel.app
+
 ---
 
 ## Features
@@ -101,8 +103,7 @@ LogLens/
 
 ## Screenshots
 
-> Captured with `AI_PROVIDER=mock`, so the causes shown are the mock provider's placeholder text.
-> With `openai` or `ollama` the report contains a real analysis.
+> Captured on the live demo, which uses `AI_PROVIDER=rules` (built-in rules, no API key).
 
 | Paste a log or upload a file                  | Report with severity, key lines, causes and steps |
 | --------------------------------------------- | ------------------------------------------------- |
