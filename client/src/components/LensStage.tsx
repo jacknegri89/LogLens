@@ -75,6 +75,13 @@ export function LensStage() {
       moveLens(event.clientX - box.left, event.clientY - box.top);
     }
 
+    // Touch: keep the finger's gesture on the glass and let go of it cleanly.
+    function onDown(event: PointerEvent) {
+      if (event.pointerType === 'mouse') return;
+      stage?.setPointerCapture(event.pointerId);
+      onMove(event);
+    }
+
     function onLeave() {
       pointerInside = false;
     }
@@ -92,8 +99,11 @@ export function LensStage() {
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(stage);
+    stage.addEventListener('pointerdown', onDown);
     stage.addEventListener('pointermove', onMove);
     stage.addEventListener('pointerleave', onLeave);
+    stage.addEventListener('pointerup', onLeave);
+    stage.addEventListener('pointercancel', onLeave);
 
     if (reduceMotion) {
       moveLens(stage.clientWidth * 0.55, stage.clientHeight * 0.5);
@@ -104,15 +114,18 @@ export function LensStage() {
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      stage.removeEventListener('pointerdown', onDown);
       stage.removeEventListener('pointermove', onMove);
       stage.removeEventListener('pointerleave', onLeave);
+      stage.removeEventListener('pointerup', onLeave);
+      stage.removeEventListener('pointercancel', onLeave);
     };
   }, []);
 
   return (
     <div
       ref={stageRef}
-      className="relative h-[19rem] cursor-none overflow-hidden shadow-[0_24px_40px_-18px_rgb(0_0_0/0.6)] sm:h-[23rem]"
+      className="relative h-[19rem] cursor-none touch-none select-none overflow-hidden shadow-[0_24px_40px_-18px_rgb(0_0_0/0.6)] sm:h-[23rem]"
       style={{ '--x': '55%', '--y': '50%', '--w': '600px', '--h': '368px' } as React.CSSProperties}
       aria-hidden="true"
     >
