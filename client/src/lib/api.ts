@@ -1,4 +1,5 @@
 import type { AnalysisRecord, AnalysisSummary } from './types';
+import { getVisitorId } from './visitor';
 
 // Empty base -> calls "/api/..." on the same origin. In dev, Vite proxies that
 // to the backend (see vite.config.ts). In prod, set VITE_API_URL if the API
@@ -7,7 +8,7 @@ const BASE = import.meta.env.VITE_API_URL ?? '';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Visitor-Id': getVisitorId() },
     ...init,
   });
 

@@ -19,6 +19,8 @@ export interface CreateAnalysisInput {
   severity: Severity;
   category: string;
   report: AnalysisReport;
+  owner: string;
+  clientHash: string;
 }
 
 /**
@@ -44,6 +46,8 @@ export async function createAnalysis(input: CreateAnalysisInput): Promise<Analys
       severity: input.severity,
       category: input.category,
       report: JSON.stringify(input.report),
+      owner: input.owner,
+      clientHash: input.clientHash,
     },
   });
   return toRecord(row);
@@ -69,8 +73,9 @@ export interface AnalysisSummary {
  * Most recent first, but only the columns the history page needs. Selecting
  * fewer columns keeps the response small and fast.
  */
-export async function listAnalysisSummaries(): Promise<AnalysisSummary[]> {
+export async function listAnalysisSummaries(owner: string): Promise<AnalysisSummary[]> {
   const rows = await prisma.analysis.findMany({
+    where: { owner },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
@@ -84,10 +89,20 @@ export async function listAnalysisSummaries(): Promise<AnalysisSummary[]> {
   return rows.map((row) => ({ ...row, severity: row.severity as Severity }));
 }
 
-export async function getAnalysisById(id: string): Promise<AnalysisRecord | null> {
-  const row = await prisma.analysis.findUnique({ where: { id } });
+export async function getAnalysisById(id: string, owner: string): Promise<AnalysisRecord | null> {
+  const row = await prisma.analysis.findFirst({ where: { id, owner } });
   if (!row) {
     return null;
   }
   return toRecord(row);
+}
+
+const ONE_HOUR_MS = 60 * 60 * 1000;
+
+/** Analyses created in the last hour by one client, or by everyone when no hash is given. */
+export function countAnalysesInLastHour(clientHash?: string): Promise<number> {
+  const since = new Date(Date.now() - ONE_HOUR_MS);
+  return prisma.analysis.count({
+    where: { createdAt: { gte: since }, ...(clientHash ? { clientHash } : {}) },
+  });
 }

@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
+import { identifyVisitor } from './middleware/visitor';
 import { analysesRouter } from './routes/analyses';
 import { healthRouter } from './routes/health';
 
@@ -32,7 +33,7 @@ export function createApp() {
 
   // Routes
   app.use('/api/health', healthRouter);
-  app.use('/api/analyses', analysesRouter);
+  app.use('/api/analyses', identifyVisitor, analysesRouter);
 
   // These two must come LAST, in this order:
   app.use(notFound); // anything unmatched -> 404

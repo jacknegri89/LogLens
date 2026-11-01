@@ -33,6 +33,12 @@ model Analysis {
   // probable causes, debug steps, key log lines and the Markdown bug report.)
   report String
 
+  // Who made it (see middleware/visitor.ts)
+  owner      String @default("") // random id kept in the visitor's browser
+  clientHash String @default("") // salted hash of the network address, for rate limits
+
   @@index([createdAt])
   @@index([severity])
+  @@index([owner])
+  @@index([clientHash, createdAt])
 }
