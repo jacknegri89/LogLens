@@ -1,17 +1,15 @@
 import type { Severity } from './types';
 
-/** Colour classes for each severity. Colour is used only to carry this meaning. */
+/** Ink colours for each severity, readable on the cream paper. */
 export const severityMeta: Record<Severity, { label: string; text: string; border: string }> = {
-  high: { label: 'High', text: 'text-high', border: 'border-high' },
-  medium: { label: 'Medium', text: 'text-medium', border: 'border-medium' },
-  low: { label: 'Low', text: 'text-low', border: 'border-low' },
+  high: { label: 'High', text: 'text-pen', border: 'border-pen' },
+  medium: { label: 'Medium', text: 'text-amber', border: 'border-amber' },
+  low: { label: 'Low', text: 'text-blueink', border: 'border-blueink' },
 };
 
-/** Colour of a log line by what it says, so the failing lines stand out. */
-export function lineTone(line: string): string {
-  if (/error|exception|fatal|fail|refused|killed/i.test(line)) return 'text-high';
-  if (/warn|retry|slow|timeout/i.test(line)) return 'text-medium';
-  return 'text-ink';
+/** Whether a log line is a failure, so the report can mark it with the highlighter. */
+export function isFailure(line: string): boolean {
+  return /error|exception|fatal|fail|refused|killed/i.test(line);
 }
 
 /**

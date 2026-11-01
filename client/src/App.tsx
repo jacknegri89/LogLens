@@ -50,8 +50,10 @@ export function App() {
 function NotFound() {
   return (
     <div className="py-16">
-      <p className="font-mono text-sm text-muted">404</p>
-      <h1 className="mt-2 text-2xl font-semibold">This page does not exist.</h1>
+      <p className="font-mono text-lg font-bold text-chalk">404</p>
+      <h1 className="mt-2 text-4xl font-extrabold uppercase [font-stretch:125%]">
+        This page <span className="marker">does not exist.</span>
+      </h1>
     </div>
   );
 }

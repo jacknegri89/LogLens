@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { LensStage } from '../components/LensStage';
 import { ReportView } from '../components/ReportView';
 import { api } from '../lib/api';
 import { EXAMPLES } from '../lib/examples';
@@ -9,7 +10,7 @@ import type { AnalysisRecord } from '../lib/types';
 
 type Status = 'idle' | 'loading' | 'error';
 
-const MIN_EDITOR_LINES = 22;
+const MIN_EDITOR_LINES = 20;
 
 function friendlyError(err: unknown): string {
   let msg = 'Something went wrong';
@@ -35,7 +36,7 @@ export function AnalyzePage() {
   const canSubmit = text.trim().length > 0 && status !== 'loading';
   const lineCount = text === '' ? 0 : text.split('\n').length;
 
-  // Line numbers of the failing lines, shown in red in the editor gutter.
+  // Line numbers of the failing lines: marked with the highlighter in the editor gutter.
   const failingLines = new Set<number>();
   if (result && result.rawLog === text) {
     for (const lineNumber of findLineNumbers(result.rawLog, result.report.keyLines).values()) {
@@ -102,18 +103,29 @@ export function AnalyzePage() {
 
   return (
     <div>
-      <h1 className="max-w-3xl text-[clamp(1.7rem,3.4vw,2.4rem)] leading-tight font-semibold tracking-tight">
-        Paste a log, get the lines that matter.
-      </h1>
-      <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted">
-        LogLens picks out the failing lines, rates the severity, lists probable causes and drafts
-        the GitHub issue.
-      </p>
+      {/* Hero */}
+      <section className="grid items-center gap-10 pt-6 pb-16 lg:grid-cols-[1fr_1.1fr] lg:pt-10">
+        <div>
+          <h1 className="text-[clamp(2.9rem,7.4vw,6.2rem)] leading-[0.92] font-extrabold tracking-tight uppercase [font-stretch:125%]">
+            Find
+            <br />
+            the line
+            <br />
+            that <span className="marker">broke.</span>
+          </h1>
+          <p className="mt-8 max-w-md text-lg leading-relaxed text-chalk">
+            Paste a log or a stack trace. LogLens marks the failing lines, rates how serious it is
+            and drafts the GitHub issue.
+          </p>
+        </div>
+        <LensStage />
+      </section>
 
-      <div className="mt-8 grid border border-rule-strong bg-panel lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        {/* Left: the log */}
+      {/* Workbench */}
+      <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        {/* Left: the log, on green bar paper */}
         <section
-          className={`flex min-w-0 flex-col border-b border-rule-strong lg:border-r lg:border-b-0 ${dragging ? 'bg-paper' : ''}`}
+          className={`relative flex min-w-0 flex-col bg-paper text-ink ${dragging ? 'outline-4 outline-marker outline-dashed -outline-offset-8' : ''}`}
           onDragOver={(e) => {
             e.preventDefault();
             setDragging(true);
@@ -126,13 +138,13 @@ export function AnalyzePage() {
             if (file) loadFile(file);
           }}
         >
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-4 py-2.5">
-            <span className="font-mono text-xs text-muted">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink px-5 py-3">
+            <span className="font-mono text-sm font-bold">
               {editorTitle}
               {lineCount > 0 && ` · ${lineCount} lines`}
             </span>
-            <div className="flex items-center gap-4 text-[13px]">
-              <span className="text-faint">Examples</span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              <span className="text-ink-soft">Examples:</span>
               {EXAMPLES.map((example) => (
                 <button
                   key={example.label}
@@ -141,7 +153,7 @@ export function AnalyzePage() {
                     setText(example.content);
                     setFileName(null);
                   }}
-                  className="text-ink underline underline-offset-4 hover:no-underline"
+                  className="font-bold underline decoration-2 underline-offset-4 hover:bg-marker"
                 >
                   {example.label}
                 </button>
@@ -149,16 +161,16 @@ export function AnalyzePage() {
             </div>
           </div>
 
-          <div className="h-[28rem] overflow-auto">
-            <div className="flex min-h-full font-mono text-[12.5px] leading-5">
+          <div className="h-[30rem] overflow-auto">
+            <div className="bands flex min-h-full font-mono text-[14px] leading-[22px]">
               <ol
-                className="sticky left-0 shrink-0 border-r border-rule bg-paper py-3 text-right text-faint select-none"
+                className="sticky left-0 z-10 shrink-0 border-r-2 border-ink bg-paper text-right text-ink-soft select-none"
                 aria-hidden="true"
               >
                 {gutterNumbers.map((n) => (
                   <li
                     key={n}
-                    className={`px-3 ${failingLines.has(n) ? 'bg-high font-medium text-paper' : ''}`}
+                    className={`px-3 ${failingLines.has(n) ? 'bg-marker font-bold text-pen' : ''}`}
                   >
                     {n}
                   </li>
@@ -180,28 +192,28 @@ export function AnalyzePage() {
                     onAnalyze();
                   }
                 }}
-                placeholder="Paste a log or stack trace, or drop a .log file here."
+                placeholder="Paste a log or stack trace here, or drop a .log file."
                 spellCheck={false}
                 wrap="off"
                 rows={Math.max(lineCount, MIN_EDITOR_LINES)}
-                className="block min-w-0 flex-1 resize-none overflow-hidden bg-transparent py-3 pl-4 whitespace-pre text-ink placeholder:text-faint focus:outline-none"
+                className="block min-w-0 flex-1 resize-none overflow-hidden bg-transparent p-0 pl-4 whitespace-pre text-ink placeholder:text-ink-soft focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 border-t border-rule px-4 py-3">
+          <div className="flex flex-wrap items-center gap-4 border-t-2 border-ink px-5 py-4">
             <button
               type="button"
               onClick={onAnalyze}
               disabled={!canSubmit}
-              className="bg-ink px-5 py-2 text-sm font-medium text-paper hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-ink px-6 py-2.5 text-sm font-bold tracking-wide uppercase disabled:cursor-not-allowed disabled:opacity-40"
             >
               Analyze log
             </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="border border-rule-strong px-4 py-2 text-sm font-medium hover:bg-paper"
+              className="btn-paper px-5 py-2.5 text-sm font-bold tracking-wide uppercase"
             >
               Open file
             </button>
@@ -209,12 +221,12 @@ export function AnalyzePage() {
               <button
                 type="button"
                 onClick={onCancel}
-                className="text-sm text-muted underline underline-offset-4 hover:text-ink"
+                className="text-sm font-bold underline decoration-2 underline-offset-4 hover:bg-marker"
               >
                 Cancel
               </button>
             )}
-            <span className="ml-auto text-xs text-faint">Ctrl + Enter to analyze</span>
+            <span className="ml-auto text-xs text-ink-soft">Ctrl + Enter to analyze</span>
           </div>
           <input
             ref={fileInputRef}
@@ -228,14 +240,17 @@ export function AnalyzePage() {
           />
         </section>
 
-        {/* Right: the analysis */}
-        <section className="min-w-0 p-6 lg:max-h-[36.5rem] lg:overflow-y-auto" aria-live="polite">
-          {status === 'loading' && <p className="caret text-[15px] text-muted">Analyzing log</p>}
+        {/* Right: the review, in red pen */}
+        <section
+          className="min-w-0 bg-felt-2 p-7 lg:max-h-[40.5rem] lg:overflow-y-auto"
+          aria-live="polite"
+        >
+          {status === 'loading' && <p className="caret text-lg text-chalk">Reading the log</p>}
 
           {status === 'error' && (
-            <div role="alert" className="border-l-2 border-high pl-4">
-              <p className="text-[15px] font-medium text-high">Analysis failed</p>
-              <p className="mt-1 text-[15px] text-muted">{error}</p>
+            <div role="alert" className="border-l-4 border-marker pl-4">
+              <p className="text-lg font-bold">Analysis failed</p>
+              <p className="mt-1 text-chalk">{error}</p>
             </div>
           )}
 
@@ -244,7 +259,7 @@ export function AnalyzePage() {
               <ReportView analysis={result} />
               <Link
                 to={`/analyses/${result.id}`}
-                className="mt-8 inline-block text-sm text-muted underline underline-offset-4 hover:text-ink"
+                className="mt-8 inline-block font-bold underline decoration-2 underline-offset-4 hover:bg-marker hover:text-ink"
               >
                 Open full page
               </Link>
@@ -253,12 +268,16 @@ export function AnalyzePage() {
 
           {status === 'idle' && !result && (
             <div>
-              <h2 className="text-[13px] font-semibold">Analysis</h2>
-              <p className="mt-3 text-[15px] leading-relaxed text-muted">
-                Nothing analysed yet. After you run a log, this panel shows:
+              <h2 className="text-2xl font-extrabold tracking-tight uppercase [font-stretch:125%]">
+                Review
+              </h2>
+              <p className="mt-3 text-lg text-chalk">
+                Nothing analysed yet. Run a log and the review appears here:
               </p>
-              <ul className="mt-4 space-y-2 text-[15px]">
-                <li>The failing lines, with their line numbers in the log</li>
+              <ul className="mt-5 space-y-3 text-lg">
+                <li>
+                  <span className="marker">Failing lines</span> with their line numbers
+                </li>
                 <li>Severity and category</li>
                 <li>Probable causes and debug steps</li>
                 <li>A GitHub issue ready to copy</li>

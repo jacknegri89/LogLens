@@ -1,41 +1,48 @@
 @import 'tailwindcss';
 
+/*
+ * Look: a line-printer printout read with a magnifying glass.
+ * Dark green desk, cream "green bar" paper, highlighter yellow and red pen.
+ */
 @theme {
-  --color-paper: #edeef0;
-  --color-panel: #f8f8f9;
-  --color-ink: #15181d;
-  --color-muted: #555b66;
-  --color-faint: #6b7280;
-  --color-rule: #cbced5;
-  --color-rule-strong: #9aa0ab;
+  --color-felt: #0f2a24;
+  --color-felt-2: #16372f;
+  --color-chalk: #b7c9bd;
+  --color-chalk-dim: #7f9a8c;
 
-  --color-high: #c23a25;
-  --color-medium: #9a6200;
-  --color-low: #2d6a9a;
+  --color-paper: #f1e9d2;
+  --color-band: #dfe7cb;
+  --color-ink: #17201c;
+  --color-ink-soft: #4a554f;
 
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --color-marker: #ffe45c;
+  --color-pen: #c8321f;
+  --color-amber: #96560a;
+  --color-blueink: #1d5a80;
+
+  --font-sans: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Courier Prime', 'Courier New', ui-monospace, monospace;
 }
 
 @layer base {
   html {
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   body {
-    background-color: var(--color-paper);
-    color: var(--color-ink);
+    background-color: var(--color-felt);
+    color: var(--color-paper);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
 
   ::selection {
-    background-color: var(--color-ink);
-    color: var(--color-paper);
+    background-color: var(--color-marker);
+    color: var(--color-ink);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-ink);
+    outline: 3px solid var(--color-marker);
     outline-offset: 2px;
   }
 
@@ -47,7 +54,110 @@
   }
 }
 
-/* Blinking cursor shown while a log is being analysed. */
+/* Green bar paper: alternating cream and pale green bands, one band per text line. */
+.bands {
+  background-color: var(--color-paper);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--color-paper) 0,
+    var(--color-paper) 22px,
+    var(--color-band) 22px,
+    var(--color-band) 44px
+  );
+}
+
+/* Tractor-feed holes along both edges of the paper. */
+.perforated::before,
+.perforated::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 26px;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 13px 22px, var(--color-felt) 5px, transparent 5.5px);
+  background-size: 26px 44px;
+}
+.perforated::before {
+  left: 0;
+}
+.perforated::after {
+  right: 0;
+}
+
+/* Highlighter pen: a slightly crooked yellow block behind the text. */
+.marker {
+  display: inline-block;
+  padding: 0 0.14em;
+  background: var(--color-marker);
+  color: var(--color-ink);
+  transform: rotate(-1.6deg);
+  box-decoration-break: clone;
+}
+
+/* The magnifying glass that follows the pointer over the printout. */
+.lens {
+  position: absolute;
+  left: calc(var(--x) - 96px);
+  top: calc(var(--y) - 96px);
+  width: 192px;
+  height: 192px;
+  pointer-events: none;
+  filter: drop-shadow(0 14px 18px rgb(0 0 0 / 0.35));
+}
+.lens-glass {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 6px solid var(--color-ink);
+  border-radius: 50%;
+  background: var(--color-paper);
+}
+.lens-inner {
+  position: absolute;
+  left: calc(90px - var(--x));
+  top: calc(90px - var(--y));
+  width: var(--w);
+  height: var(--h);
+  transform: scale(2);
+  transform-origin: var(--x) var(--y);
+}
+.lens-handle {
+  position: absolute;
+  left: calc(50% - 9px);
+  top: 50%;
+  width: 18px;
+  height: 100px;
+  border-radius: 9px;
+  background: var(--color-ink);
+  transform-origin: 9px 0;
+  transform: rotate(-45deg) translateY(92px);
+}
+
+/* Buttons and stamps: hard edges, a flat offset shadow, no blur. */
+.btn-ink {
+  border: 2px solid var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  box-shadow: 4px 4px 0 var(--color-marker);
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
+}
+.btn-ink:hover:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-marker);
+}
+.btn-paper {
+  border: 2px solid var(--color-ink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  transition: background-color 0.12s;
+}
+.btn-paper:hover {
+  background: var(--color-marker);
+}
+
 .caret::after {
   content: '';
   display: inline-block;
@@ -55,7 +165,7 @@
   height: 1.05em;
   margin-left: 4px;
   vertical-align: -0.15em;
-  background: var(--color-ink);
+  background: currentColor;
   animation: blink 1s steps(1) infinite;
 }
 

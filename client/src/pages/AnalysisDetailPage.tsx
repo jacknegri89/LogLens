@@ -25,34 +25,34 @@ export function AnalysisDetailPage() {
   }, [id]);
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl pt-4">
       <Link
         to="/history"
-        className="text-sm text-muted underline underline-offset-4 hover:text-ink"
+        className="font-bold underline decoration-2 underline-offset-4 hover:bg-marker hover:text-ink"
       >
         Back to history
       </Link>
 
       {error && (
-        <div role="alert" className="mt-8 border-l-2 border-high pl-4">
-          <p className="text-[15px] font-medium text-high">Could not load this analysis</p>
-          <p className="mt-1 text-[15px] text-muted">{error}</p>
+        <div role="alert" className="mt-10 border-l-4 border-marker pl-4">
+          <p className="text-lg font-bold">Could not load this analysis</p>
+          <p className="mt-1 text-chalk">{error}</p>
         </div>
       )}
 
-      {!analysis && !error && <p className="caret mt-8 text-[15px] text-muted">Loading</p>}
+      {!analysis && !error && <p className="caret mt-10 text-lg text-chalk">Loading</p>}
 
       {analysis && (
-        <div className="mt-8 space-y-10">
+        <div className="mt-10 space-y-12">
           <ReportView analysis={analysis} />
-          <details className="border border-rule-strong bg-panel">
-            <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3 text-sm font-medium select-none hover:bg-paper">
+          <details>
+            <summary className="flex cursor-pointer items-center justify-between gap-4 border-b-2 border-chalk-dim pb-2 text-sm font-extrabold tracking-widest uppercase select-none [font-stretch:125%] hover:text-marker">
               Original log
-              <span className="font-mono text-xs font-normal text-muted">
+              <span className="font-mono text-xs font-normal tracking-normal normal-case">
                 {analysis.rawLog.split('\n').length} lines
               </span>
             </summary>
-            <pre className="overflow-x-auto border-t border-rule p-4 font-mono text-[12.5px] leading-6">
+            <pre className="bands mt-4 overflow-x-auto p-4 font-mono text-[13.5px] leading-[22px] text-ink">
               {analysis.rawLog}
             </pre>
           </details>

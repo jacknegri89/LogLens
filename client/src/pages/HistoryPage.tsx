@@ -25,30 +25,30 @@ export function HistoryPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="text-[clamp(1.7rem,3.4vw,2.4rem)] leading-tight font-semibold tracking-tight">
-          Past analyses
+      <div className="flex flex-wrap items-end justify-between gap-3 pt-4">
+        <h1 className="text-[clamp(2.4rem,6vw,4.6rem)] leading-[0.95] font-extrabold tracking-tight uppercase [font-stretch:125%]">
+          Past <span className="marker">analyses</span>
         </h1>
         {items && items.length > 0 && (
-          <span className="font-mono text-sm text-muted">{items.length} saved</span>
+          <span className="font-mono text-base font-bold text-chalk">{items.length} saved</span>
         )}
       </div>
 
       {error && (
-        <div role="alert" className="mt-8 border-l-2 border-high pl-4">
-          <p className="text-[15px] font-medium text-high">Could not load the history</p>
-          <p className="mt-1 text-[15px] text-muted">{error}</p>
+        <div role="alert" className="mt-10 border-l-4 border-marker pl-4">
+          <p className="text-lg font-bold">Could not load the history</p>
+          <p className="mt-1 text-chalk">{error}</p>
         </div>
       )}
 
-      {items === null && !error && <p className="caret mt-8 text-[15px] text-muted">Loading</p>}
+      {items === null && !error && <p className="caret mt-10 text-lg text-chalk">Loading</p>}
 
       {items && items.length === 0 && (
-        <div className="mt-8 border border-rule-strong bg-panel p-8">
-          <p className="text-[15px]">No analyses yet. Run a log and it is saved here.</p>
+        <div className="mt-10 bg-paper p-8 text-ink">
+          <p className="text-lg">No analyses yet. Run a log and it is saved here.</p>
           <Link
             to="/"
-            className="mt-5 inline-block bg-ink px-5 py-2 text-sm font-medium text-paper hover:bg-black"
+            className="btn-ink mt-6 inline-block px-6 py-2.5 text-sm font-bold tracking-wide uppercase"
           >
             Analyze a log
           </Link>
@@ -56,36 +56,25 @@ export function HistoryPage() {
       )}
 
       {items && items.length > 0 && (
-        <table className="mt-8 w-full border-collapse border border-rule-strong bg-panel text-left">
-          <thead>
-            <tr className="border-b border-rule-strong text-[13px] text-muted">
-              <th className="px-4 py-2.5 font-medium">Severity</th>
-              <th className="px-4 py-2.5 font-medium">Issue</th>
-              <th className="hidden px-4 py-2.5 font-medium sm:table-cell">Category</th>
-              <th className="hidden px-4 py-2.5 font-medium md:table-cell">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => (
-              <tr key={item.id} className="border-b border-rule last:border-0 hover:bg-paper">
-                <td className="px-4 py-3 align-top">
+        <ul className="perforated bands relative mt-10 py-2 pr-9 pl-10 text-ink">
+          {items.map((item) => (
+            <li key={item.id}>
+              <Link
+                to={`/analyses/${item.id}`}
+                className="group flex h-11 items-center gap-5 hover:bg-marker"
+              >
+                <span className="w-24 shrink-0">
                   <SeverityBadge severity={item.severity} />
-                </td>
-                <td className="max-w-0 px-4 py-3 align-top text-[15px] font-medium">
-                  <Link to={`/analyses/${item.id}`} className="block truncate hover:underline">
-                    {item.title}
-                  </Link>
-                </td>
-                <td className="hidden px-4 py-3 align-top font-mono text-xs text-muted sm:table-cell">
-                  {item.category}
-                </td>
-                <td className="hidden px-4 py-3 align-top font-mono text-xs text-muted md:table-cell">
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[16px] font-bold">{item.title}</span>
+                <span className="hidden font-mono text-sm sm:block">{item.category}</span>
+                <span className="hidden font-mono text-sm text-ink-soft md:block">
                   {formatDate(item.createdAt)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
