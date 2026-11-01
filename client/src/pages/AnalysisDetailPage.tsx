@@ -25,43 +25,34 @@ export function AnalysisDetailPage() {
   }, [id]);
 
   return (
-    <div className="space-y-6 pt-6">
+    <div className="max-w-3xl">
       <Link
         to="/history"
-        className="group inline-flex items-center gap-2 text-sm text-fg-muted transition-colors hover:text-fg"
+        className="text-sm text-muted underline underline-offset-4 hover:text-ink"
       >
-        <span className="transition-transform group-hover:-translate-x-1">←</span>
         Back to history
       </Link>
 
       {error && (
-        <div
-          role="alert"
-          className="flex items-start gap-3 rounded-2xl border border-high/30 bg-high/8 px-5 py-4"
-        >
-          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-high" />
-          <p className="text-sm text-fg">{error}</p>
+        <div role="alert" className="mt-8 border-l-2 border-high pl-4">
+          <p className="text-[15px] font-medium text-high">Could not load this analysis</p>
+          <p className="mt-1 text-[15px] text-muted">{error}</p>
         </div>
       )}
 
-      {!analysis && !error && (
-        <div className="flex items-center gap-3 py-4">
-          <span className="h-2 w-2 animate-pulse-dot rounded-full bg-violet" />
-          <span className="text-sm text-fg-faint">Loading analysis…</span>
-        </div>
-      )}
+      {!analysis && !error && <p className="caret mt-8 text-[15px] text-muted">Loading</p>}
 
       {analysis && (
-        <div className="space-y-4">
+        <div className="mt-8 space-y-10">
           <ReportView analysis={analysis} />
-          <details className="glass overflow-hidden">
-            <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 text-sm text-fg-muted transition-colors select-none hover:text-fg">
+          <details className="border border-rule-strong bg-panel">
+            <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3 text-sm font-medium select-none hover:bg-paper">
               Original log
-              <span className="font-mono text-xs text-fg-faint">
+              <span className="font-mono text-xs font-normal text-muted">
                 {analysis.rawLog.split('\n').length} lines
               </span>
             </summary>
-            <pre className="overflow-x-auto border-t border-line px-6 py-5 font-mono text-[13px] leading-relaxed text-fg-faint">
+            <pre className="overflow-x-auto border-t border-rule p-4 font-mono text-[12.5px] leading-6">
               {analysis.rawLog}
             </pre>
           </details>

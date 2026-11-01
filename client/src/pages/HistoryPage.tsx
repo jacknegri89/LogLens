@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { SeverityBadge } from '../components/SeverityBadge';
 import { api } from '../lib/api';
-import { formatDate, severityMeta } from '../lib/format';
+import { formatDate } from '../lib/format';
 import type { AnalysisSummary } from '../lib/types';
 
 export function HistoryPage() {
@@ -24,40 +24,31 @@ export function HistoryPage() {
   }, []);
 
   return (
-    <div className="space-y-8 pt-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="font-display text-[clamp(2rem,5vw,3.4rem)] leading-none font-light tracking-tight">
+    <div>
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h1 className="text-[clamp(1.7rem,3.4vw,2.4rem)] leading-tight font-semibold tracking-tight">
           Past analyses
         </h1>
         {items && items.length > 0 && (
-          <span className="font-mono text-sm text-fg-faint">{items.length} saved</span>
+          <span className="font-mono text-sm text-muted">{items.length} saved</span>
         )}
-      </header>
+      </div>
 
       {error && (
-        <div
-          role="alert"
-          className="flex items-start gap-3 rounded-2xl border border-high/30 bg-high/8 px-5 py-4"
-        >
-          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-high" />
-          <p className="text-sm text-fg">{error}</p>
+        <div role="alert" className="mt-8 border-l-2 border-high pl-4">
+          <p className="text-[15px] font-medium text-high">Could not load the history</p>
+          <p className="mt-1 text-[15px] text-muted">{error}</p>
         </div>
       )}
 
-      {items === null && !error && (
-        <div className="flex items-center gap-3 py-4">
-          <span className="h-2 w-2 animate-pulse-dot rounded-full bg-violet" />
-          <span className="text-sm text-fg-faint">Loading analyses…</span>
-        </div>
-      )}
+      {items === null && !error && <p className="caret mt-8 text-[15px] text-muted">Loading</p>}
 
       {items && items.length === 0 && (
-        <div className="glass px-6 py-16 text-center">
-          <p className="font-display text-lg font-normal text-fg">Nothing analysed yet</p>
-          <p className="mt-2 text-fg-muted">Analyse a log and it will be saved here.</p>
+        <div className="mt-8 border border-rule-strong bg-panel p-8">
+          <p className="text-[15px]">No analyses yet. Run a log and it is saved here.</p>
           <Link
             to="/"
-            className="btn-photon mt-6 inline-flex rounded-full px-6 py-2.5 text-sm font-semibold"
+            className="mt-5 inline-block bg-ink px-5 py-2 text-sm font-medium text-paper hover:bg-black"
           >
             Analyze a log
           </Link>
@@ -65,36 +56,36 @@ export function HistoryPage() {
       )}
 
       {items && items.length > 0 && (
-        <ul className="space-y-3">
-          {items.map((item) => (
-            <li key={item.id}>
-              <Link
-                to={`/analyses/${item.id}`}
-                className="glass group relative flex flex-wrap items-center gap-x-5 gap-y-2 overflow-hidden px-6 py-5 transition-colors hover:bg-white/5"
-              >
-                <span
-                  className="absolute inset-y-0 left-0 w-1 opacity-70 transition-opacity group-hover:opacity-100"
-                  style={{ background: severityMeta[item.severity].glow }}
-                  aria-hidden="true"
-                />
-                <SeverityBadge severity={item.severity} />
-                <span className="min-w-0 flex-1 basis-64 truncate text-[15px] font-medium text-fg">
-                  {item.title}
-                </span>
-                <span className="font-mono text-xs text-fg-faint">{item.category}</span>
-                <span className="font-mono text-xs text-fg-faint">
+        <table className="mt-8 w-full border-collapse border border-rule-strong bg-panel text-left">
+          <thead>
+            <tr className="border-b border-rule-strong text-[13px] text-muted">
+              <th className="px-4 py-2.5 font-medium">Severity</th>
+              <th className="px-4 py-2.5 font-medium">Issue</th>
+              <th className="hidden px-4 py-2.5 font-medium sm:table-cell">Category</th>
+              <th className="hidden px-4 py-2.5 font-medium md:table-cell">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.id} className="border-b border-rule last:border-0 hover:bg-paper">
+                <td className="px-4 py-3 align-top">
+                  <SeverityBadge severity={item.severity} />
+                </td>
+                <td className="max-w-0 px-4 py-3 align-top text-[15px] font-medium">
+                  <Link to={`/analyses/${item.id}`} className="block truncate hover:underline">
+                    {item.title}
+                  </Link>
+                </td>
+                <td className="hidden px-4 py-3 align-top font-mono text-xs text-muted sm:table-cell">
+                  {item.category}
+                </td>
+                <td className="hidden px-4 py-3 align-top font-mono text-xs text-muted md:table-cell">
                   {formatDate(item.createdAt)}
-                </span>
-                <span
-                  className="text-fg-faint transition-transform group-hover:translate-x-1 group-hover:text-fg"
-                  aria-hidden="true"
-                >
-                  →
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );

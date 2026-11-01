@@ -1,13 +1,15 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Prism } from '../components/Prism';
 import { ReportView } from '../components/ReportView';
 import { api } from '../lib/api';
 import { EXAMPLES } from '../lib/examples';
+import { findLineNumbers } from '../lib/format';
 import type { AnalysisRecord } from '../lib/types';
 
 type Status = 'idle' | 'loading' | 'error';
+
+const MIN_EDITOR_LINES = 22;
 
 function friendlyError(err: unknown): string {
   let msg = 'Something went wrong';
@@ -31,6 +33,15 @@ export function AnalyzePage() {
   const abortRef = useRef<AbortController | null>(null);
 
   const canSubmit = text.trim().length > 0 && status !== 'loading';
+  const lineCount = text === '' ? 0 : text.split('\n').length;
+
+  // Line numbers of the failing lines, shown in red in the editor gutter.
+  const failingLines = new Set<number>();
+  if (result && result.rawLog === text) {
+    for (const lineNumber of findLineNumbers(result.rawLog, result.report.keyLines).values()) {
+      failingLines.add(lineNumber);
+    }
+  }
 
   function loadFile(file: File) {
     const reader = new FileReader();
@@ -79,110 +90,49 @@ export function AnalyzePage() {
     }
   }
 
-  let consoleState = 'idle';
-  if (status === 'loading') {
-    consoleState = 'active';
-  } else if (dragging) {
-    consoleState = 'dragging';
-  }
+  const gutterNumbers = Array.from(
+    { length: Math.max(lineCount, MIN_EDITOR_LINES) },
+    (_, i) => i + 1,
+  );
 
-  let statusText = 'Waiting for a log';
+  let editorTitle = 'Log';
   if (fileName) {
-    statusText = `${fileName} · ${text.split('\n').length} lines`;
-  } else if (text.length > 0) {
-    statusText = `${text.split('\n').length} lines · ${text.length.toLocaleString()} characters`;
+    editorTitle = fileName;
   }
 
   return (
     <div>
-      {/* Hero: headline on the left, the prism on the right */}
-      <section className="grid items-center gap-8 pt-6 pb-12 lg:grid-cols-[1.05fr_1fr] lg:pt-12 lg:pb-16">
-        <div className="animate-rise">
-          <h1 className="font-display text-[clamp(2.4rem,6vw,4.6rem)] leading-[1.02] font-light tracking-tight">
-            Find the
-            <br />
-            line that{' '}
-            <span
-              className="bg-clip-text font-medium text-transparent"
-              style={{
-                backgroundImage: 'linear-gradient(100deg, #8f6bff, #4fd6ff 45%, #ff4f8b)',
-              }}
-            >
-              broke.
+      <h1 className="max-w-3xl text-[clamp(1.7rem,3.4vw,2.4rem)] leading-tight font-semibold tracking-tight">
+        Paste a log, get the lines that matter.
+      </h1>
+      <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted">
+        LogLens picks out the failing lines, rates the severity, lists probable causes and drafts
+        the GitHub issue.
+      </p>
+
+      <div className="mt-8 grid border border-rule-strong bg-panel lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        {/* Left: the log */}
+        <section
+          className={`flex min-w-0 flex-col border-b border-rule-strong lg:border-r lg:border-b-0 ${dragging ? 'bg-paper' : ''}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            const file = e.dataTransfer.files?.[0];
+            if (file) loadFile(file);
+          }}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-4 py-2.5">
+            <span className="font-mono text-xs text-muted">
+              {editorTitle}
+              {lineCount > 0 && ` · ${lineCount} lines`}
             </span>
-          </h1>
-          <p className="mt-7 max-w-[44ch] text-lg leading-relaxed text-fg-muted">
-            Paste a log or a stack trace. LogLens isolates the failing lines, rates how serious the
-            problem is and writes the GitHub issue for you.
-          </p>
-        </div>
-        <div className="-mx-2 lg:mx-0">
-          <Prism active={status === 'loading'} />
-        </div>
-      </section>
-
-      {/* Console */}
-      <section
-        className="console overflow-hidden"
-        data-state={consoleState}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragging(false);
-          const file = e.dataTransfer.files?.[0];
-          if (file) loadFile(file);
-        }}
-      >
-        <div className="flex items-center gap-3 border-b border-line px-5 py-3.5">
-          <span
-            className={`h-2 w-2 rounded-full transition-colors ${text ? 'bg-low' : 'bg-line-strong'}`}
-            style={text ? { boxShadow: '0 0 12px #4fd6ff' } : undefined}
-          />
-          <span className="font-mono text-xs text-fg-faint">{statusText}</span>
-        </div>
-
-        <label htmlFor="log-input" className="sr-only">
-          Log or stack trace
-        </label>
-        <textarea
-          id="log-input"
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            if (fileName) setFileName(null);
-          }}
-          onKeyDown={(e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-              e.preventDefault();
-              onAnalyze();
-            }
-          }}
-          placeholder="Paste a log or stack trace here, or drop a .log file"
-          spellCheck={false}
-          className="block h-72 w-full resize-y bg-transparent px-6 py-5 font-mono text-[13px] leading-relaxed text-fg-muted placeholder:text-fg-faint/60 focus:outline-none"
-        />
-
-        <div className="flex flex-wrap items-center gap-3 border-t border-line px-5 py-4">
-          {status === 'loading' && (
-            <div className="flex flex-1 items-center gap-3">
-              <span className="h-2 w-2 animate-pulse-dot rounded-full bg-violet" />
-              <span className="text-sm text-fg-muted">Analyzing log…</span>
-              <button
-                type="button"
-                onClick={onCancel}
-                className="ml-auto rounded-full px-4 py-2 text-sm text-fg-faint transition-colors hover:text-fg"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-          {status !== 'loading' && (
-            <>
-              <span className="text-sm text-fg-faint">Try an example:</span>
+            <div className="flex items-center gap-4 text-[13px]">
+              <span className="text-faint">Examples</span>
               {EXAMPLES.map((example) => (
                 <button
                   key={example.label}
@@ -191,87 +141,132 @@ export function AnalyzePage() {
                     setText(example.content);
                     setFileName(null);
                   }}
-                  className="rounded-full border border-line px-3.5 py-1.5 text-sm text-fg-muted transition-colors hover:border-line-strong hover:text-fg"
+                  className="text-ink underline underline-offset-4 hover:no-underline"
                 >
                   {example.label}
                 </button>
               ))}
-              <div className="ml-auto flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 rounded-full border border-line-strong px-5 py-2.5 text-sm font-medium text-fg transition-colors hover:bg-white/5"
-                >
-                  <svg width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                    <path
-                      d="M6 8.5V1.5M3 4.5L6 1.5L9 4.5"
-                      stroke="currentColor"
-                      strokeWidth="1.4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M1 10.5H11"
-                      stroke="currentColor"
-                      strokeWidth="1.4"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  Upload file
-                </button>
-                <button
-                  type="button"
-                  onClick={onAnalyze}
-                  disabled={!canSubmit}
-                  className="btn-photon rounded-full px-7 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-35"
-                >
-                  Analyze log
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".txt,.log,text/plain"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) loadFile(file);
-          }}
-        />
-      </section>
-
-      {status === 'error' && (
-        <div
-          role="alert"
-          className="mt-6 flex items-start gap-3 rounded-2xl border border-high/30 bg-high/8 px-5 py-4"
-        >
-          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-high" />
-          <div>
-            <p className="text-sm text-fg">{error}</p>
-            <p className="mt-1 text-sm text-fg-faint">
-              Check that the analysis server is running, then try again.
-            </p>
+            </div>
           </div>
-        </div>
-      )}
 
-      {result && (
-        <section className="mt-12 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-sm font-medium tracking-wide text-fg-faint">Result</h2>
-            <Link
-              to={`/analyses/${result.id}`}
-              className="text-sm text-fg-muted transition-colors hover:text-fg"
+          <div className="h-[28rem] overflow-auto">
+            <div className="flex min-h-full font-mono text-[12.5px] leading-5">
+              <ol
+                className="sticky left-0 shrink-0 border-r border-rule bg-paper py-3 text-right text-faint select-none"
+                aria-hidden="true"
+              >
+                {gutterNumbers.map((n) => (
+                  <li
+                    key={n}
+                    className={`px-3 ${failingLines.has(n) ? 'bg-high font-medium text-paper' : ''}`}
+                  >
+                    {n}
+                  </li>
+                ))}
+              </ol>
+              <label htmlFor="log-input" className="sr-only">
+                Log or stack trace
+              </label>
+              <textarea
+                id="log-input"
+                value={text}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  if (fileName) setFileName(null);
+                }}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    onAnalyze();
+                  }
+                }}
+                placeholder="Paste a log or stack trace, or drop a .log file here."
+                spellCheck={false}
+                wrap="off"
+                rows={Math.max(lineCount, MIN_EDITOR_LINES)}
+                className="block min-w-0 flex-1 resize-none overflow-hidden bg-transparent py-3 pl-4 whitespace-pre text-ink placeholder:text-faint focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 border-t border-rule px-4 py-3">
+            <button
+              type="button"
+              onClick={onAnalyze}
+              disabled={!canSubmit}
+              className="bg-ink px-5 py-2 text-sm font-medium text-paper hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Open full page →
-            </Link>
+              Analyze log
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="border border-rule-strong px-4 py-2 text-sm font-medium hover:bg-paper"
+            >
+              Open file
+            </button>
+            {status === 'loading' && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="text-sm text-muted underline underline-offset-4 hover:text-ink"
+              >
+                Cancel
+              </button>
+            )}
+            <span className="ml-auto text-xs text-faint">Ctrl + Enter to analyze</span>
           </div>
-          <ReportView analysis={result} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".txt,.log,text/plain"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) loadFile(file);
+            }}
+          />
         </section>
-      )}
+
+        {/* Right: the analysis */}
+        <section className="min-w-0 p-6 lg:max-h-[36.5rem] lg:overflow-y-auto" aria-live="polite">
+          {status === 'loading' && <p className="caret text-[15px] text-muted">Analyzing log</p>}
+
+          {status === 'error' && (
+            <div role="alert" className="border-l-2 border-high pl-4">
+              <p className="text-[15px] font-medium text-high">Analysis failed</p>
+              <p className="mt-1 text-[15px] text-muted">{error}</p>
+            </div>
+          )}
+
+          {status === 'idle' && result && (
+            <div>
+              <ReportView analysis={result} />
+              <Link
+                to={`/analyses/${result.id}`}
+                className="mt-8 inline-block text-sm text-muted underline underline-offset-4 hover:text-ink"
+              >
+                Open full page
+              </Link>
+            </div>
+          )}
+
+          {status === 'idle' && !result && (
+            <div>
+              <h2 className="text-[13px] font-semibold">Analysis</h2>
+              <p className="mt-3 text-[15px] leading-relaxed text-muted">
+                Nothing analysed yet. After you run a log, this panel shows:
+              </p>
+              <ul className="mt-4 space-y-2 text-[15px]">
+                <li>The failing lines, with their line numbers in the log</li>
+                <li>Severity and category</li>
+                <li>Probable causes and debug steps</li>
+                <li>A GitHub issue ready to copy</li>
+              </ul>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
