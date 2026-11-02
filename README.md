@@ -23,7 +23,7 @@ GitHub Issue you can copy in one click.
 
 - **Paste or upload** — paste a log/stack trace or drop a `.txt` / `.log` file
 - **AI analysis** — the relevant lines are sent to an AI model that returns a structured report
-- **Severity & category** — every issue is classified (low / medium / high) and tagged
+- **Severity & category** — every issue is classified (informational / low / medium / high / critical) and tagged
 - **Actionable report** — main problem, key log lines, probable causes, debug steps
 - **Copy-ready GitHub Issue** — one click to copy a formatted bug report
 - **History** — every analysis is saved and revisitable; each visitor sees only their own (kept in their browser)

@@ -84,6 +84,71 @@ describe('RulesProvider', () => {
     expect(report.category).toBe('Network');
   });
 
+  it('marks an injection attack that got a 500 as a critical security attack', async () => {
+    const report = await provider.analyze({
+      excerpt:
+        '203.0.113.7 - - [02/Nov/2026:10:14:02 +0000] "GET /products?id=1%27%20OR%201%3D1-- HTTP/1.1" 500 612 "-" "sqlmap/1.8#stable"',
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Security Attack');
+    expect(report.severity).toBe('critical');
+    expect(report.keyLines[0]).toContain('sqlmap');
+  });
+
+  it('keeps an injection attempt that got no server error at high severity', async () => {
+    const report = await provider.analyze({
+      excerpt:
+        '203.0.113.7 - - [02/Nov/2026:10:14:02 +0000] "GET /products?id=1 UNION SELECT password FROM users HTTP/1.1" 404 - "-" "sqlmap/1.8"',
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Security Attack');
+    expect(report.severity).toBe('high');
+  });
+
+  it('does not flag normal traffic as an attack', async () => {
+    const report = await provider.analyze({
+      excerpt:
+        '203.0.113.9 - - [02/Nov/2026:10:14:05 +0000] "GET /products?id=3 HTTP/1.1" 200 980 "-" "Mozilla/5.0"',
+      severityHint: 'low',
+    });
+
+    expect(report.category).not.toBe('Security Attack');
+  });
+
+  it('names the user and the cause of a failed PostgreSQL login', async () => {
+    const report = await provider.analyze({
+      excerpt: [
+        'org.postgresql.util.PSQLException: FATAL: password authentication failed for user "db_user"',
+        '\tat org.postgresql.core.v3.ConnectionFactoryImpl.doAuthentication(ConnectionFactoryImpl.java:700)',
+      ].join('\n'),
+      severityHint: 'high',
+    });
+
+    expect(report.category).toBe('Database Connection Failure');
+    expect(report.severity).toBe('high');
+    expect(report.causes[0]).toContain('db_user');
+  });
+
+  it('explains a Python IndexError with the last frame of the traceback', async () => {
+    const report = await provider.analyze({
+      excerpt: [
+        'Traceback (most recent call last):',
+        '  File "app.py", line 8, in main',
+        '    return handle(items)',
+        '  File "app.py", line 12, in get_first',
+        '    return items[3]',
+        'IndexError: list index out of range',
+      ].join('\n'),
+      severityHint: 'medium',
+    });
+
+    expect(report.category).toBe('Runtime');
+    expect(report.severity).toBe('high');
+    expect(report.causes[0]).toContain('app.py, line 12, in get_first');
+  });
+
   it('recognises a full disk and a failing image pull', async () => {
     const disk = await provider.analyze({
       excerpt: 'ERROR write /data: no space left on device',

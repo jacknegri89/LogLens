@@ -13,7 +13,9 @@ export const REPORT_TEXT = {
 };
 
 export const SEVERITY_LABEL: Record<Severity, string> = {
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
+  critical: 'Critica',
+  high: 'Alta',
+  medium: 'Media',
+  low: 'Bassa',
+  informational: 'Informativa',
 };

@@ -12,13 +12,7 @@ import type { Severity } from '../types/report';
 
 /** Why a line was kept. `context` is used only for the no-match fallback. */
 export type LineCategory =
-  | 'error'
-  | 'warning'
-  | 'exception'
-  | 'failure'
-  | 'timeout'
-  | 'stack'
-  | 'context';
+  'error' | 'warning' | 'exception' | 'failure' | 'timeout' | 'stack' | 'context';
 
 export interface ParsedLine {
   /** 1-based line number in the original log. */

@@ -77,7 +77,7 @@ describe('parseReport', () => {
   });
 
   it('throws AppError 502 when severity is not a valid enum value', () => {
-    const bad = { ...VALID_REPORT, severity: 'critical' };
+    const bad = { ...VALID_REPORT, severity: 'catastrophic' };
     expect(() => parseReport(JSON.stringify(bad))).toThrowError(AppError);
   });
 

@@ -13,11 +13,51 @@ export interface Rule {
   pattern: RegExp;
   category: string;
   severity?: Severity;
+  /** Raises the severity to critical when the log also shows a server error (5xx). */
+  criticalOnServerError?: boolean;
   causes: string[];
+  /** Builds the causes from the log when its details make the cause specific. Replaces `causes`. */
+  causesFor?: (excerpt: string) => string[];
   debugSteps: string[];
 }
 
 export const RULES: Rule[] = [
+  {
+    pattern:
+      /sqlmap|\bnikto\b|\bnmap\b|dirbuster|gobuster|acunetix|union(?:\s|%20|\+)+select|(?:'|%27)(?:\s|%20|\+)*or(?:\s|%20|\+)+\d+(?:=|%3d)\d+|sleep\(\d+\)|<script|\.\.\/\.\.\//i,
+    category: 'Security Attack',
+    severity: 'high',
+    criticalOnServerError: true,
+    causes: [
+      'An automated attack tool or scanner sent injection payloads (SQL, XSS or path traversal) in the request.',
+      'The payload reached the application logic without being rejected or escaped, so the server failed while processing it.',
+    ],
+    debugSteps: [
+      'Block the source IP at the firewall or WAF (for example: iptables -A INPUT -s <IP> -j DROP) and add a WAF rule for this payload.',
+      'Replace string concatenation in the query with a prepared statement, for example db.query("SELECT * FROM products WHERE id = $1", [id]).',
+      'Check the database and application logs for the same time window to see whether any data was returned.',
+      'Return a generic error to the client and log the details on the server, so no SQL error reaches the attacker.',
+    ],
+  },
+  {
+    pattern: /password authentication failed for user/i,
+    category: 'Database Connection Failure',
+    severity: 'high',
+    causesFor: (excerpt) => {
+      const user = excerpt.match(/for user "?([^"\s]+)"?/i)?.[1] ?? 'the configured user';
+      return [
+        `Wrong credentials for user ${user} on PostgreSQL: the server rejected the password (FATAL: password authentication failed).`,
+        'Because the login fails, the connection pool cannot open any connection and the requests that need the database fail.',
+      ];
+    },
+    causes: [],
+    debugSteps: [
+      'Compare the user and password in DATABASE_URL (or the JDBC URL) with the real credentials of the database role.',
+      'Test the same credentials by hand: psql -h <host> -U <user> -d <database>.',
+      "If the password changed, update the secret the app reads, or reset it on the server: ALTER USER <user> WITH PASSWORD '...';",
+      'Make sure the app reads the secret from the environment or the secret store, not from an old file or a cached value.',
+    ],
+  },
   {
     pattern:
       /imagepullbackoff|errimagepull|crashloopbackoff|back-off restarting|failed to pull image/i,
@@ -107,7 +147,7 @@ export const RULES: Rule[] = [
   {
     pattern: /nullpointerexception/i,
     category: 'Runtime',
-    severity: 'medium',
+    severity: 'high',
     causes: [
       'A reference is null at the line named in the stack trace.',
       'A method returned null and the result was used without a check.',
@@ -183,7 +223,7 @@ export const RULES: Rule[] = [
     pattern:
       /cannot read propert(y|ies) of (undefined|null)|undefined is not an object|is not a function/i,
     category: 'Runtime',
-    severity: 'medium',
+    severity: 'high',
     causes: [
       'A value that should exist is undefined or null at this point.',
       'A function received data in a different shape than expected, often an empty API or database result.',
@@ -193,6 +233,28 @@ export const RULES: Rule[] = [
       'Open the first stack frame that belongs to your code and look at the variable on that line.',
       'Log the value just before the failing line to see what it really is.',
       'Check or validate the input before using it, and decide what happens when it is missing.',
+    ],
+  },
+  {
+    pattern: /\bIndexError\b|(?:list|string|tuple) index out of range/i,
+    category: 'Runtime',
+    severity: 'high',
+    causesFor: (excerpt) => {
+      const frames = [...excerpt.matchAll(/File "([^"]+)", line (\d+), in (\S+)/g)];
+      const last = frames.at(-1);
+      const location = last
+        ? `${last[1]}, line ${last[2]}, in ${last[3]}`
+        : 'the failing line of the traceback';
+      return [
+        `An index is read beyond the end of a sequence at ${location}: the list, string or tuple is shorter than the code expects.`,
+        'The data source returned fewer items than expected, often an empty query or API result.',
+      ];
+    },
+    causes: [],
+    debugSteps: [
+      'Open the file and line named in the last frame of the traceback and look at the index used there.',
+      'Print len() of that sequence just before the failing line to see its real size.',
+      'Check the length before indexing (for example if items:) or use a default, and decide what the caller gets when the data is empty.',
     ],
   },
   {

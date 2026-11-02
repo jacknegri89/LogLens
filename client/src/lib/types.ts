@@ -1,4 +1,4 @@
-export type Severity = 'low' | 'medium' | 'high';
+export type Severity = 'informational' | 'low' | 'medium' | 'high' | 'critical';
 
 export interface AnalysisReport {
   keyLines: string[];

@@ -25,7 +25,7 @@ model Analysis {
 
   // ── Report: top-level fields kept as columns so we can list/filter them ──
   title    String // short summary of the main problem
-  severity String // "low" | "medium" | "high"
+  severity String // "informational" | "low" | "medium" | "high" | "critical"
   category String // e.g. "Database", "Network", "Runtime", "Build"
 
   // ── Report: full structured payload stored as a JSON string ──
