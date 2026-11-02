@@ -6,42 +6,40 @@ import type { AnalysisRecord } from '../lib/types';
 
 export type AnalysisStatus = 'idle' | 'loading' | 'error';
 
+interface AnalysisState {
+  status: AnalysisStatus;
+  error: string;
+  result: AnalysisRecord | null;
+}
+
+const IDLE: AnalysisState = { status: 'idle', error: '', result: null };
+
 /** Sends a log for analysis and keeps the state of the last request. */
 export function useAnalysis() {
-  const [status, setStatus] = useState<AnalysisStatus>('idle');
-  const [error, setError] = useState('');
-  const [result, setResult] = useState<AnalysisRecord | null>(null);
+  const [state, setState] = useState<AnalysisState>(IDLE);
   const abortRef = useRef<AbortController | null>(null);
 
   async function run(input: CreateAnalysisInput) {
     const controller = new AbortController();
     abortRef.current = controller;
-    setStatus('loading');
-    setError('');
-    setResult(null);
+    setState({ status: 'loading', error: '', result: null });
     try {
-      const record = await api.createAnalysis(input, controller.signal);
-      setResult(record);
-      setStatus('idle');
+      const result = await api.createAnalysis(input, controller.signal);
+      setState({ status: 'idle', error: '', result });
     } catch (err) {
-      if (!isAbort(err)) showFailure(err);
+      if (!isAbort(err)) setState({ status: 'error', error: friendlyError(err), result: null });
     } finally {
       abortRef.current = null;
-    }
-
-    function showFailure(err: unknown) {
-      setError(friendlyError(err));
-      setStatus('error');
     }
   }
 
   function cancel() {
     abortRef.current?.abort();
     abortRef.current = null;
-    setStatus('idle');
+    setState((previous) => ({ ...previous, status: 'idle' }));
   }
 
-  return { status, error, result, run, cancel };
+  return { ...state, run, cancel };
 }
 
 function isAbort(err: unknown): boolean {

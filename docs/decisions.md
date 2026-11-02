@@ -40,7 +40,7 @@ Ogni voce: data, decisione, motivo, alternative scartate.
 
 ## 2026-11-02 — Eccezioni alle regole di qualità
 
-- **Funzioni sopra 20 righe:** i componenti JSX con molte righe di markup restano tra 21 e 33 righe. Spezzarli oltre questo punto renderebbe più difficile seguire la struttura della pagina. La logica resta sotto 20 righe, salvo `useAnalysis` (30).
+- **Funzioni sopra 20 righe:** i componenti JSX con molte righe di markup restano tra 21 e 33 righe. Spezzarli oltre questo punto renderebbe più difficile seguire la struttura della pagina. La logica resta sotto 20 righe, salvo `useAnalysis` (21).
 - **`errorHandler` con 4 parametri:** Express riconosce un middleware di errore solo se ha esattamente quattro argomenti.
 - **`console.log` di avvio:** è il messaggio "server running" in `server/src/index.ts`, utile in locale.
 - **Testi di errore del server:** restano nel codice, perché compaiono solo come messaggi di risposta, non come testo dell'interfaccia.

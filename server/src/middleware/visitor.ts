@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 
 import { env } from '../config/env';
+import { AppError } from './errorHandler';
 
 /** Who is calling: the browser's random id (owner) and a hash of its network address. */
 export interface Visitor {
@@ -35,6 +36,18 @@ function readAddress(req: Request): string {
     return forwarded.split(',')[0]?.trim() ?? '';
   }
   return req.socket.remoteAddress ?? '';
+}
+
+/**
+ * Analysis routes need a visitor id. Without one, the request would read or write
+ * the shared rows that have no owner, so it is refused.
+ */
+export function requireVisitorOwner(_req: Request, res: Response, next: NextFunction) {
+  const visitor = res.locals.visitor as Visitor | undefined;
+  if (!visitor?.owner) {
+    throw new AppError(400, 'Missing or invalid X-Visitor-Id header.');
+  }
+  next();
 }
 
 export function identifyVisitor(req: Request, res: Response, next: NextFunction) {
