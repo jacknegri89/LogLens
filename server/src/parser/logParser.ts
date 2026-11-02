@@ -91,19 +91,50 @@ function computeSeverity(categories: Set<LineCategory>): Severity {
   return 'low';
 }
 
+interface NumberedLine {
+  content: string;
+  lineNumber: number;
+}
+
 export function parseLog(raw: string, options: ParseOptions = {}): ParseResult {
   const { maxLines = 100, maxChars = 6000, maxLineLength = 1000, fallbackTailLines = 20 } = options;
 
-  const allLines = raw.split(/\r?\n/);
-  const nonEmpty = allLines
-    .map((content, index) => ({ content: content.replace(/\s+$/, ''), lineNumber: index + 1 }))
-    .filter((line) => line.content.trim() !== '');
-
+  const nonEmpty = nonEmptyLines(raw);
   const totalLines = nonEmpty.length;
 
-  // 1. Keep every line that matches a keyword or looks like a stack frame.
+  // Keep every matching line. If none match, keep the tail instead: the actual failure
+  // is often the last thing printed.
+  const matched = keepMatchingLines(nonEmpty, maxLineLength);
+  const matchedCount = matched.length;
+  const candidates =
+    matchedCount === 0 && totalLines > 0
+      ? tailLines(nonEmpty, fallbackTailLines, maxLineLength)
+      : matched;
+
+  const { lines: relevant, truncated: lineCapped } = capLines(candidates, maxLines);
+  const { excerpt, truncated: charCapped } = capExcerpt(relevant, maxChars);
+  const severityHint = computeSeverity(new Set(relevant.map((line) => line.category)));
+
+  return {
+    totalLines,
+    matchedCount,
+    relevantLines: relevant,
+    excerpt,
+    severityHint,
+    truncated: lineCapped || charCapped,
+  };
+}
+
+function nonEmptyLines(raw: string): NumberedLine[] {
+  return raw
+    .split(/\r?\n/)
+    .map((content, index) => ({ content: content.replace(/\s+$/, ''), lineNumber: index + 1 }))
+    .filter((line) => line.content.trim() !== '');
+}
+
+function keepMatchingLines(lines: NumberedLine[], maxLineLength: number): ParsedLine[] {
   const matched: ParsedLine[] = [];
-  for (const line of nonEmpty) {
+  for (const line of lines) {
     const category = classify(line.content);
     if (category) {
       matched.push({
@@ -113,34 +144,32 @@ export function parseLog(raw: string, options: ParseOptions = {}): ParseResult {
       });
     }
   }
+  return matched;
+}
 
-  const matchedCount = matched.length;
+function tailLines(lines: NumberedLine[], count: number, maxLineLength: number): ParsedLine[] {
+  return lines.slice(-count).map((line) => ({
+    lineNumber: line.lineNumber,
+    content: truncate(line.content, maxLineLength),
+    category: 'context' as const,
+  }));
+}
 
-  // 2. Fallback: nothing matched, but there IS content — keep the tail, because
-  //    the actual failure is often the last thing printed.
-  let relevant: ParsedLine[] = matched;
-  if (matchedCount === 0 && totalLines > 0) {
-    relevant = nonEmpty.slice(-fallbackTailLines).map((line) => ({
-      lineNumber: line.lineNumber,
-      content: truncate(line.content, maxLineLength),
-      category: 'context' as const,
-    }));
-  }
+function capLines(
+  lines: ParsedLine[],
+  maxLines: number,
+): { lines: ParsedLine[]; truncated: boolean } {
+  return lines.length > maxLines
+    ? { lines: lines.slice(0, maxLines), truncated: true }
+    : { lines, truncated: false };
+}
 
-  // 3. Apply the line and character caps so the excerpt stays prompt-sized.
-  let truncated = false;
-  if (relevant.length > maxLines) {
-    relevant = relevant.slice(0, maxLines);
-    truncated = true;
-  }
-
-  let excerpt = relevant.map((line) => line.content).join('\n');
-  if (excerpt.length > maxChars) {
-    excerpt = excerpt.slice(0, maxChars);
-    truncated = true;
-  }
-
-  const severityHint = computeSeverity(new Set(relevant.map((line) => line.category)));
-
-  return { totalLines, matchedCount, relevantLines: relevant, excerpt, severityHint, truncated };
+function capExcerpt(
+  lines: ParsedLine[],
+  maxChars: number,
+): { excerpt: string; truncated: boolean } {
+  const excerpt = lines.map((line) => line.content).join('\n');
+  return excerpt.length > maxChars
+    ? { excerpt: excerpt.slice(0, maxChars), truncated: true }
+    : { excerpt, truncated: false };
 }

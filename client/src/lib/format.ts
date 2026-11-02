@@ -1,10 +1,10 @@
 import type { Severity } from './types';
 
 /** Ink colours for each severity, readable on the cream paper. */
-export const severityMeta: Record<Severity, { label: string; text: string; border: string }> = {
-  high: { label: 'High', text: 'text-pen', border: 'border-pen' },
-  medium: { label: 'Medium', text: 'text-amber', border: 'border-amber' },
-  low: { label: 'Low', text: 'text-blueink', border: 'border-blueink' },
+export const severityColors: Record<Severity, { text: string; border: string }> = {
+  high: { text: 'text-pen', border: 'border-pen' },
+  medium: { text: 'text-amber', border: 'border-amber' },
+  low: { text: 'text-blueink', border: 'border-blueink' },
 };
 
 /** Whether a log line is a failure, so the report can mark it with the highlighter. */
@@ -41,4 +41,9 @@ export function downloadMarkdown(filename: string, content: string): void {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+/** Number of lines in the editor; an empty text has none. */
+export function countLines(text: string): number {
+  return text === '' ? 0 : text.split('\n').length;
 }

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const COPIED_MESSAGE_MS = 1500;
+
 interface CopyButtonProps {
   text: string;
   label?: string;
@@ -7,6 +9,7 @@ interface CopyButtonProps {
   className?: string;
 }
 
+/** Copies the text to the clipboard and briefly shows that it worked. */
 export function CopyButton({
   text,
   label = 'Copy',
@@ -19,20 +22,15 @@ export function CopyButton({
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      setTimeout(() => setCopied(false), COPIED_MESSAGE_MS);
     } catch {
-      // Clipboard can be blocked (e.g. insecure context); fail silently.
+      // The clipboard can be blocked (for example on an insecure page); fail silently.
     }
-  }
-
-  let buttonLabel = label;
-  if (copied) {
-    buttonLabel = copiedLabel;
   }
 
   return (
     <button type="button" onClick={onCopy} className={className}>
-      {buttonLabel}
+      {copied ? copiedLabel : label}
     </button>
   );
 }

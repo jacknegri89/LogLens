@@ -10,7 +10,7 @@ import {
   getAnalysisById,
   listAnalysisSummaries,
 } from '../repositories/analysisRepository';
-import { createAnalysisBodySchema } from '../schemas/createAnalysis';
+import { createAnalysisBodySchema, type CreateAnalysisBody } from '../schemas/createAnalysis';
 import { analyzeLog } from '../services/analysisService';
 
 /**
@@ -53,16 +53,22 @@ analysesRouter.post('/', async (req: Request, res: Response) => {
   if (!parsed.success) {
     throw new AppError(400, parsed.error.issues[0]?.message ?? 'Invalid request body');
   }
-  const { rawLog, source, fileName } = parsed.data;
   const visitor = res.locals.visitor as Visitor;
 
   await enforceRateLimits(visitor);
-  const { report } = await analyzeLog(rawLog);
+  const saved = await analyzeAndSave(parsed.data, visitor);
 
-  const saved = await createAnalysis({
-    source,
-    fileName,
-    rawLog,
+  res.status(201).json(saved);
+});
+
+/** Runs the analysis on the submitted log and stores it for this visitor. */
+async function analyzeAndSave(input: CreateAnalysisBody, visitor: Visitor) {
+  const { report } = await analyzeLog(input.rawLog);
+
+  return createAnalysis({
+    source: input.source,
+    fileName: input.fileName,
+    rawLog: input.rawLog,
     owner: visitor.owner,
     clientHash: visitor.clientHash,
     title: report.title,
@@ -75,9 +81,7 @@ analysesRouter.post('/', async (req: Request, res: Response) => {
       bugReportMarkdown: report.bugReportMarkdown,
     },
   });
-
-  res.status(201).json(saved);
-});
+}
 
 // GET /api/analyses — the visitor's own history (lightweight summaries).
 analysesRouter.get('/', async (_req: Request, res: Response) => {

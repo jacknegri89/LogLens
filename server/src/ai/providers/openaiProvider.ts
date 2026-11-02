@@ -5,6 +5,9 @@ import { parseReport } from '../parseReport';
 import { buildUserPrompt, SYSTEM_PROMPT } from '../prompt';
 import type { AIReport } from '../schema';
 
+const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
+const OPENAI_TEMPERATURE = 0.2;
+
 /**
  * Talks to the OpenAI Chat Completions API using the built-in `fetch` (no SDK
  * dependency). `response_format: json_object` asks the model to reply with
@@ -14,21 +17,13 @@ export class OpenAIProvider implements AIProvider {
   readonly name = 'openai';
 
   async analyze(input: AnalyzeInput): Promise<AIReport> {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    const res = await fetch(OPENAI_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${env.OPENAI_API_KEY}`,
       },
-      body: JSON.stringify({
-        model: env.OPENAI_MODEL,
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: buildUserPrompt(input) },
-        ],
-      }),
+      body: JSON.stringify(buildRequestBody(input)),
     });
 
     if (!res.ok) {
@@ -36,7 +31,18 @@ export class OpenAIProvider implements AIProvider {
     }
 
     const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    const content = data.choices?.[0]?.message?.content ?? '';
-    return parseReport(content);
+    return parseReport(data.choices?.[0]?.message?.content ?? '');
   }
+}
+
+function buildRequestBody(input: AnalyzeInput) {
+  return {
+    model: env.OPENAI_MODEL,
+    temperature: OPENAI_TEMPERATURE,
+    response_format: { type: 'json_object' },
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: buildUserPrompt(input) },
+    ],
+  };
 }
