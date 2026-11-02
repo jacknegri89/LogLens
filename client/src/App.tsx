@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense, type ComponentType } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { Layout } from './components/Layout';
@@ -18,30 +18,9 @@ export function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route
-          path="/"
-          element={
-            <PageSuspense>
-              <AnalyzePage />
-            </PageSuspense>
-          }
-        />
-        <Route
-          path="/history"
-          element={
-            <PageSuspense>
-              <HistoryPage />
-            </PageSuspense>
-          }
-        />
-        <Route
-          path="/analyses/:id"
-          element={
-            <PageSuspense>
-              <AnalysisDetailPage />
-            </PageSuspense>
-          }
-        />
+        <Route path="/" element={<Suspended page={AnalyzePage} />} />
+        <Route path="/history" element={<Suspended page={HistoryPage} />} />
+        <Route path="/analyses/:id" element={<Suspended page={AnalysisDetailPage} />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
@@ -49,6 +28,10 @@ export function App() {
 }
 
 /** Pages load on demand; nothing is shown while their code arrives. */
-function PageSuspense({ children }: { children: ReactNode }) {
-  return <Suspense fallback={null}>{children}</Suspense>;
+function Suspended({ page: Page }: { page: ComponentType }) {
+  return (
+    <Suspense fallback={null}>
+      <Page />
+    </Suspense>
+  );
 }

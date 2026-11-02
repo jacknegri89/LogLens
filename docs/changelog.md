@@ -2,6 +2,12 @@
 
 Modifiche approvate, dalla più recente.
 
+## 2026-11-02 (audit)
+
+- Controllo del visitatore con test dedicato (`requireVisitorOwner`).
+- End-to-end eseguito anche nella CI su GitHub Actions.
+- `App` ed `EditorToolbar` spezzati, `useAnalysis` con un solo stato.
+
 ## 2026-11-02 (refactor)
 
 - Funzioni spezzate: il client usa hook e componenti piccoli (`useAnalysis`, `useLoad`, `usePointerLens`, `LogEditor`, `ReportView`).

@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import type { NextFunction, Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 import { env } from '../config/env';
 import { AppError } from '../middleware/errorHandler';
-import type { Visitor } from '../middleware/visitor';
+import { requireVisitorOwner, type Visitor } from '../middleware/visitor';
 import {
   countAnalysesInLastHour,
   createAnalysis,
@@ -20,13 +20,7 @@ import { analyzeLog } from '../services/analysisService';
  */
 export const analysesRouter = Router();
 
-// Without a visitor id, a request would read or write the shared "no owner" rows.
-analysesRouter.use((_req: Request, res: Response, next: NextFunction) => {
-  if ((res.locals.visitor as Visitor).owner === '') {
-    throw new AppError(400, 'Missing or invalid X-Visitor-Id header.');
-  }
-  next();
-});
+analysesRouter.use(requireVisitorOwner);
 
 /** Refuses the request when this client, or everyone together, used up the hourly limit. */
 async function enforceRateLimits(visitor: Visitor): Promise<void> {

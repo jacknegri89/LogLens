@@ -1,12 +1,9 @@
-import { useRef } from 'react';
-
 import { ANALYZE_TEXT } from '../content/analyze';
 import { useFileDrop } from '../hooks/useFileDrop';
 import { countLines } from '../lib/format';
 import { EditorBody } from './EditorBody';
 import { EditorHeader } from './EditorHeader';
 import { EditorToolbar } from './EditorToolbar';
-import { FileInput } from './FileInput';
 
 export interface LogEditorProps {
   text: string;
@@ -23,7 +20,6 @@ export interface LogEditorProps {
 
 /** The left half of the Analyze page: the log on green bar paper. Drop a file here too. */
 export function LogEditor(props: LogEditorProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { dragging, dropZone } = useFileDrop(props.onFileLoad);
   const dropClass = dragging ? 'outline-4 outline-marker outline-dashed -outline-offset-8' : '';
 
@@ -48,9 +44,8 @@ export function LogEditor(props: LogEditorProps) {
         loading={props.loading}
         onSubmit={props.onSubmit}
         onCancel={props.onCancel}
-        onOpenFile={() => fileInputRef.current?.click()}
+        onFileLoad={props.onFileLoad}
       />
-      <FileInput inputRef={fileInputRef} onFileLoad={props.onFileLoad} />
     </section>
   );
 }
