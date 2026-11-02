@@ -159,5 +159,4 @@ Complete: log parsing, AI analysis (OpenAI or Ollama), REST API, React frontend,
 
 ## License
 
-No open-source license — all rights reserved © 2026 Giacomo Negri.
-You're welcome to browse the code; please ask before reusing it.
+Released under the [MIT License](./LICENSE) © 2026 Giacomo Negri.
