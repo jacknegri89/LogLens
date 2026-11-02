@@ -26,8 +26,9 @@ GitHub Issue you can copy in one click.
 - **Severity & category** — every issue is classified (low / medium / high) and tagged
 - **Actionable report** — main problem, key log lines, probable causes, debug steps
 - **Copy-ready GitHub Issue** — one click to copy a formatted bug report
-- **History** — every analysis is saved; revisit it from a detail page
-- **Pluggable AI** — works with **OpenAI** or a **free local Ollama** model
+- **History** — every analysis is saved and revisitable; each visitor sees only their own (kept in their browser)
+- **Built-in AI** — a rules engine runs with no API key; **OpenAI** and a **free local Ollama** model can be switched on with one variable
+- **Demo limits** — optional per-visitor and global hourly limits for public instances
 
 ## Tech stack
 
@@ -35,8 +36,8 @@ GitHub Issue you can copy in one click.
 | -------- | --------------------------------- |
 | Frontend | React, TypeScript, Vite, Tailwind |
 | Backend  | Node.js, Express, TypeScript      |
-| Database | PostgreSQL via Supabase (Prisma)  |
-| AI       | OpenAI API **or** Ollama (local)  |
+| Database | PostgreSQL (Prisma), e.g. Neon    |
+| AI       | Rules engine, OpenAI or Ollama    |
 | Tests    | Vitest                            |
 | CI/CD    | GitHub Actions                    |
 
@@ -52,7 +53,8 @@ Prompt design lives in [`docs/prompts.md`](./docs/prompts.md).
 ### Prerequisites
 
 - Node.js `>= 20`
-- An OpenAI API key **or** a local [Ollama](https://ollama.com) install
+- A PostgreSQL database (free on [Neon](https://neon.tech) or [Supabase](https://supabase.com))
+- Optional: an OpenAI API key or a local [Ollama](https://ollama.com) install. The rules engine needs neither.
 
 ### Setup
 
@@ -67,8 +69,9 @@ cd LogLens
 cd server
 npm install
 cp .env.example .env
-# Edit .env: paste your Supabase (or any PostgreSQL) DATABASE_URL
-npm run prisma:migrate      # push schema to DB + seed example data
+# Edit .env: paste your PostgreSQL DATABASE_URL and DIRECT_URL
+npm run prisma:migrate      # create the tables (safe to run again)
+npm run db:seed             # optional: add example analyses to an empty database
 npm run dev                 # starts http://localhost:3001 with auto-reload
 ```
 
@@ -114,36 +117,36 @@ LogLens/
 ## Deploy on Vercel
 
 The whole app (React client + Express API) runs as one Vercel project, with
-PostgreSQL on Supabase. Both have a free tier.
+PostgreSQL on Neon through the Vercel integration. Both have a free tier.
 
-1. **Database.** Create a project on [supabase.com](https://supabase.com), then copy the
-   two connection strings (Settings → Database): the _transaction pooler_ (port 6543) and
-   the _session pooler_ (port 5432).
-2. **Create the tables once**, from your computer:
+1. **Import the repo** on [vercel.com](https://vercel.com) → _Add New → Project_.
+   Leave the build settings alone: `vercel.json` already contains them.
+2. **Add the database.** In the project, open _Storage_ (or _Integrations_) and add
+   **Neon**. Vercel creates `DATABASE_URL` and `DIRECT_URL` for you.
+3. **Environment variables** (Project → Settings → Environment Variables):
+
+   | Variable                | Value                                                            |
+   | ----------------------- | ---------------------------------------------------------------- |
+   | `AI_PROVIDER`           | `rules` (no key needed), `openai` or `ollama`                    |
+   | `OPENAI_API_KEY`        | your key, only when `AI_PROVIDER=openai`                         |
+   | `RATE_LIMIT_PER_HOUR`   | analyses allowed per visitor per hour, e.g. `5` (`0` = no limit) |
+   | `GLOBAL_LIMIT_PER_HOUR` | analyses allowed for everyone per hour, e.g. `100` (`0` = none)  |
+   | `VISITOR_SALT`          | any long random text, used to hash visitor addresses             |
+   | `CORS_ORIGIN`           | leave empty: client and API share the same domain                |
+
+4. **Create the tables once**, from your computer, with the Neon URLs in `server/.env`:
 
    ```bash
    cd server
-   cp .env.example .env     # paste DATABASE_URL and DIRECT_URL
    npm run prisma:migrate
    ```
 
-3. **Import the repo** on [vercel.com](https://vercel.com) → _Add New → Project_.
-   Leave the build settings alone: `vercel.json` already contains them.
-4. **Environment variables** (Project → Settings → Environment Variables):
+5. **Deploy.** Push to the branch connected to Vercel, or run `npm run build:vercel`
+   and deploy `.vercel/output` (see `server/scripts/build-vercel.mjs`).
 
-   | Variable         | Value                                             |
-   | ---------------- | ------------------------------------------------- |
-   | `DATABASE_URL`   | Supabase transaction pooler URI                   |
-   | `DIRECT_URL`     | Supabase session pooler URI                       |
-   | `AI_PROVIDER`    | `mock`, or `openai`                               |
-   | `OPENAI_API_KEY` | your key (only when `AI_PROVIDER=openai`)         |
-   | `CORS_ORIGIN`    | leave empty: client and API share the same domain |
-
-5. **Deploy.** `npm run build:vercel` builds the client and bundles the API into
-   `.vercel/output` (see `server/scripts/build-vercel.mjs`).
-
-> Note: the history page lists every saved analysis, so on a public demo anyone can see
-> what other visitors pasted. Do not paste real secrets into a public instance.
+> Privacy: each visitor's history is tied to a random id kept in their browser, and
+> visitor addresses are stored only as salted hashes. Still, do not paste real
+> secrets into a public instance.
 
 ## Examples
 
