@@ -1,5 +1,7 @@
 import type { RefObject } from 'react';
 
+import { MIN_EDITOR_ROWS } from '../lib/format';
+
 /**
  * Invisible copy of the text. It sizes the box and tells the gutter how tall each
  * wrapped line is, so the line numbers stay beside their lines.
@@ -7,14 +9,12 @@ import type { RefObject } from 'react';
 export function MirrorText({
   text,
   mirrorRef,
-  minRows,
 }: {
   text: string;
   mirrorRef: RefObject<HTMLDivElement | null>;
-  minRows: number;
 }) {
   const lines = text.split('\n');
-  while (lines.length < minRows) lines.push('');
+  while (lines.length < MIN_EDITOR_ROWS) lines.push('');
 
   return (
     <div
