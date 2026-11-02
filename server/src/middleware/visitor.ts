@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 
 import { env } from '../config/env';
+import { clientAddress } from './clientAddress';
 import { AppError } from './errorHandler';
 
 /** Who is calling: the browser's random id (owner) and a hash of its network address. */
@@ -32,10 +33,11 @@ export function hashAddress(address: string): string {
 
 function readAddress(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string' && forwarded !== '') {
-    return forwarded.split(',')[0]?.trim() ?? '';
-  }
-  return req.socket.remoteAddress ?? '';
+  return clientAddress(
+    typeof forwarded === 'string' ? forwarded : undefined,
+    req.socket.remoteAddress ?? '',
+    env.TRUST_PROXY,
+  );
 }
 
 /**

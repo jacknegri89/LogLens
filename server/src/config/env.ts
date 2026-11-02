@@ -25,10 +25,16 @@ const envSchema = z
     OPENAI_API_KEY: z.string().optional(),
     OPENAI_MODEL: z.string().default('gpt-4o-mini'),
 
-    // Public demo protection. 0 turns a limit off (the default for local use).
-    RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(0),
-    GLOBAL_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(0),
+    // Cost protection for AI calls. On by default: a public server must not run up
+    // an API bill for anyone who asks. 0 turns a limit off, for local use only.
+    RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(5),
+    GLOBAL_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(100),
     VISITOR_SALT: z.string().default('loglens'),
+    // Set to true only behind a reverse proxy (Vercel, nginx) that sets X-Forwarded-For.
+    TRUST_PROXY: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
 
     // Allowed CORS origin for the frontend. Defaults to * (all) in dev.
     CORS_ORIGIN: z.string().default('*'),
