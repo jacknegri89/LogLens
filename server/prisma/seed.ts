@@ -4,10 +4,8 @@ import type { AnalysisReport, Severity } from '../src/types/report';
 /**
  * Seed = example data for local development.
  *
- * Running this gives the history page something to show before the AI
- * pipeline exists, and it also proves the whole chain works
- * (env -> Prisma client -> SQLite). It is idempotent: it wipes the table
- * first, so re-running always leaves the same known state.
+ * It only fills an empty table. It never deletes rows, so running it against a
+ * database that already holds real analyses is safe.
  */
 
 interface SeedItem {
@@ -84,7 +82,11 @@ const items: SeedItem[] = [
 ];
 
 async function main() {
-  await prisma.analysis.deleteMany();
+  const existing = await prisma.analysis.count();
+  if (existing > 0) {
+    console.log(`Skipped seed: the database already has ${existing} analyses.`);
+    return;
+  }
 
   for (const item of items) {
     await prisma.analysis.create({

@@ -18,7 +18,7 @@ function friendlyError(err: unknown): string {
     msg = err.message;
   }
   if (/ECONNREFUSED|Failed to fetch|fetch failed|net::ERR_CONNECTION/i.test(msg)) {
-    return 'Cannot reach the analysis server. Make sure it is running on localhost:3001.';
+    return 'Cannot reach the analysis server. Check your connection and try again.';
   }
   return msg;
 }

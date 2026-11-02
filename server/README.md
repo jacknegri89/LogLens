@@ -1,14 +1,15 @@
 # server
 
 The LogLens backend: **Node.js + Express + TypeScript**, with **Prisma + PostgreSQL**
-(Supabase) for data access.
+(Neon on Vercel, or any PostgreSQL) for data access.
 
 ## Run
 
 ```bash
 npm install
 cp .env.example .env        # fill in your DATABASE_URL and DIRECT_URL
-npm run prisma:migrate      # push schema to the database + seed example data
+npm run prisma:migrate      # create the tables (safe to run again)
+npm run db:seed             # optional: example data, only if the table is empty
 npm run dev                 # http://localhost:3001 with auto-reload
 ```
 
@@ -27,17 +28,17 @@ curl http://localhost:3001/api/health
 | `npm run build`           | Compile to `dist/` (tsup)                        |
 | `npm start`               | Run the compiled server from `dist/`             |
 | `npm run typecheck`       | Type-check the project without emitting          |
-| `npm run prisma:migrate`  | Push schema to the database and run the seed     |
+| `npm run prisma:migrate`  | Create or update the tables (no data is deleted) |
 | `npm run prisma:generate` | Regenerate the Prisma client                     |
 | `npm run prisma:studio`   | Browse the data in the browser (like phpMyAdmin) |
-| `npm run db:seed`         | Re-run the seed script                           |
+| `npm run db:seed`         | Add example data, only when the table is empty   |
 | `npm test`                | Run the unit tests once                          |
 | `npm run test:watch`      | Run tests in watch mode                          |
 
 ## Database
 
 - **ORM:** Prisma. Schema lives in `prisma/schema.prisma`.
-- **Provider:** PostgreSQL (Supabase free tier works perfectly).
+- **Provider:** PostgreSQL (Neon free tier works well; Supabase works too).
 - **Browse the data:** `npm run prisma:studio` opens a GUI in the browser.
 - **Two connection URLs are needed** (see `.env.example`):
   - `DATABASE_URL` — transaction-mode pooler (port 6543, used by the app at runtime)
