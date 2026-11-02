@@ -21,10 +21,26 @@ export interface Rule {
   debugSteps: string[];
 }
 
+/** Scanner names and injection payloads that mark a request as an attack. */
+export const ATTACK_SIGNATURE =
+  /sqlmap|\bnikto\b|\bnmap\b|dirbuster|gobuster|acunetix|union(?:\s|%20|\+)+select|(?:'|%27)(?:\s|%20|\+)*or(?:\s|%20|\+)+\d+(?:=|%3d)\d+|sleep\(\d+\)|<script|\.\.\/\.\.\//i;
+
+const FAILURE_LINE = /error|exception|fatal|fail|refused|killed|timeout|denied|traceback/i;
+
+/** The innermost frame of a Python or Java traceback: where the failure really happened. */
+function lastFrame(excerpt: string): string {
+  const pythonFrames = [...excerpt.matchAll(/File "([^"]+)", line (\d+), in (\S+)/g)];
+  const last = pythonFrames.at(-1);
+  if (last) return `${last[1]}, line ${last[2]}, in ${last[3]}`;
+  const javaFrames = [...excerpt.matchAll(/^\s*at ([\w$.]+)\(([^)]+)\)/gm)];
+  const lastJava = javaFrames.at(-1);
+  if (lastJava) return `${lastJava[1]} (${lastJava[2]})`;
+  return 'the failing line of the log';
+}
+
 export const RULES: Rule[] = [
   {
-    pattern:
-      /sqlmap|\bnikto\b|\bnmap\b|dirbuster|gobuster|acunetix|union(?:\s|%20|\+)+select|(?:'|%27)(?:\s|%20|\+)*or(?:\s|%20|\+)+\d+(?:=|%3d)\d+|sleep\(\d+\)|<script|\.\.\/\.\.\//i,
+    pattern: ATTACK_SIGNATURE,
     category: 'Security Attack',
     severity: 'high',
     criticalOnServerError: true,
@@ -239,17 +255,10 @@ export const RULES: Rule[] = [
     pattern: /\bIndexError\b|(?:list|string|tuple) index out of range/i,
     category: 'Runtime',
     severity: 'high',
-    causesFor: (excerpt) => {
-      const frames = [...excerpt.matchAll(/File "([^"]+)", line (\d+), in (\S+)/g)];
-      const last = frames.at(-1);
-      const location = last
-        ? `${last[1]}, line ${last[2]}, in ${last[3]}`
-        : 'the failing line of the traceback';
-      return [
-        `An index is read beyond the end of a sequence at ${location}: the list, string or tuple is shorter than the code expects.`,
-        'The data source returned fewer items than expected, often an empty query or API result.',
-      ];
-    },
+    causesFor: (excerpt) => [
+      `An index is read beyond the end of a sequence at ${lastFrame(excerpt)}: the list, string or tuple is shorter than the code expects.`,
+      'The data source returned fewer items than expected, often an empty query or API result.',
+    ],
     causes: [],
     debugSteps: [
       'Open the file and line named in the last frame of the traceback and look at the index used there.',
@@ -384,12 +393,150 @@ export const RULES: Rule[] = [
       'Keep transactions short and always lock rows in the same order.',
     ],
   },
+  {
+    pattern: /failed password for|invalid user \S+ from|authentication failure;.*rhost=/i,
+    category: 'Security Attack',
+    severity: 'high',
+    causes: [
+      'Repeated login attempts with wrong passwords or unknown users: a brute-force or credential-guessing attack.',
+    ],
+    debugSteps: [
+      'List the source addresses of the failed attempts (grep "Failed password" /var/log/auth.log | sort | uniq -c).',
+      'Block the addresses that repeat, for example with fail2ban or a firewall rule.',
+      'Disable password login for SSH and use keys, and check that no account has an empty password.',
+    ],
+  },
+  {
+    pattern:
+      /\bbad gateway\b|service unavailable|gateway timeout|"\s50[234]\s|\bstatus[=:\s]+50[234]\b/i,
+    category: 'Infrastructure',
+    severity: 'high',
+    causes: [
+      'The proxy or load balancer could not get a valid answer from the application behind it: the app is down, overloaded or restarting.',
+    ],
+    debugSteps: [
+      'Check that the application process or container is running and healthy.',
+      'Read the application log at the same timestamp: the error that caused the 5xx is there.',
+      'Check the upstream timeout of the proxy against how long the request really takes.',
+    ],
+  },
+  {
+    pattern: /"\s5\d{2}\s|\bstatus[=:\s]+5\d{2}\b/i,
+    category: 'Server Error',
+    severity: 'high',
+    causes: [
+      'The application failed while handling this request and returned a server error.',
+      'The request reached code that throws or depends on a service that did not answer.',
+    ],
+    debugSteps: [
+      'Find the application log line for the same request (same time and path) to see the exception.',
+      'Reproduce the request with curl and check whether it fails every time or only sometimes.',
+      'Fix the failing code path, and return a clear error body instead of an empty 500.',
+    ],
+  },
+  {
+    pattern: /"\s429\s|too many requests|rate limit exceeded/i,
+    category: 'Rate Limit',
+    severity: 'low',
+    causes: [
+      'A client sent more requests than the rate limit allows, so the server refused the extra ones.',
+    ],
+    debugSteps: [
+      'Find the client (IP address or API key) that sends the requests and check whether it is expected.',
+      'Add a backoff with retry to the client, or raise the limit only for trusted clients.',
+    ],
+  },
+  {
+    pattern: /unhandledpromiserejection|unhandled promise rejection/i,
+    category: 'Runtime',
+    severity: 'high',
+    causes: [
+      'A Promise was rejected and nothing caught the rejection, so Node.js treats it as a crash.',
+    ],
+    debugSteps: [
+      'Open the first stack frame of the rejection and find the async call that has no catch or try/await.',
+      'Add a try/catch around that await or a .catch() that logs and handles the error.',
+    ],
+  },
+  {
+    pattern: /econnreset|socket hang up|connection reset by peer/i,
+    category: 'Network',
+    severity: 'medium',
+    causes: [
+      'The other side closed the connection while a request was still running: often a server restart, a timeout or a proxy cutting idle connections.',
+    ],
+    debugSteps: [
+      'Check whether the remote service restarted or crashed at the same time.',
+      'Compare the client timeout and the keep-alive timeout of the server or proxy.',
+      'Retry idempotent requests with a short backoff.',
+    ],
+  },
+  {
+    pattern:
+      /\bKeyError\b|\bValueError\b|\bAttributeError\b|\bZeroDivisionError\b|\bRecursionError\b/,
+    category: 'Runtime',
+    severity: 'high',
+    causesFor: (excerpt) => [
+      `The exception is raised at ${lastFrame(excerpt)} and was not handled there.`,
+      'The value at that line has a key, attribute or number that the code does not expect: often missing data or a wrong type.',
+    ],
+    causes: [],
+    debugSteps: [
+      'Open the file and line named in the last frame of the traceback.',
+      'Print the value that is used there (the key, the attribute owner or the divisor) just before the failing line.',
+      'Validate the input, or use a default, and decide what the caller gets when the data is missing.',
+    ],
+  },
+  {
+    pattern: /segmentation fault|segfault|sigsegv|core dumped/i,
+    category: 'Runtime',
+    severity: 'high',
+    causes: [
+      'The process accessed memory it does not own: a bad pointer, a use-after-free, or a native library used incorrectly.',
+    ],
+    debugSteps: [
+      'Run the program under a debugger (gdb or lldb) or with AddressSanitizer to find the faulting line.',
+      'Check the native libraries and their versions, and rebuild them if the ABI changed.',
+    ],
+  },
+  {
+    pattern: /access denied for user/i,
+    category: 'Database Connection Failure',
+    severity: 'high',
+    causesFor: (excerpt) => {
+      const user =
+        excerpt.match(/access denied for user '?([^'\s@]+)/i)?.[1] ?? 'the configured user';
+      return [
+        `Wrong credentials for user ${user} on MySQL: the server rejected the login.`,
+        'Because the login fails, the application cannot use the database and its requests fail.',
+      ];
+    },
+    causes: [],
+    debugSteps: [
+      'Compare the user and password in the configuration with the real credentials of the MySQL account.',
+      'Test the login by hand: mysql -h <host> -u <user> -p.',
+      'Check that the account is allowed to connect from the host the app runs on (the host part of the account name).',
+    ],
+  },
 ];
 
+/** The first line that reports a failure, or the last line when none does. */
+function firstFailureLine(excerpt: string): string {
+  const lines = excerpt.split('\n').filter((line) => line.trim() !== '');
+  return lines.find((line) => FAILURE_LINE.test(line)) ?? lines.at(-1) ?? '';
+}
+
+/**
+ * Used when no rule matches. It still says what the log shows: the failing line
+ * and where to look for the cause, instead of claiming the log is unknown.
+ */
 export const FALLBACK_RULE: Rule = {
   pattern: /./,
   category: 'Runtime',
-  causes: ['The log shows a failure, but it does not match any known pattern.'],
+  causesFor: (excerpt) => [
+    `The log records: "${firstFailureLine(excerpt)}". The cause is in the lines just before it, which show what the system was doing when it failed.`,
+  ],
+  causes: [],
   debugSteps: [
     'Read the first error line and the lines just before it: the cause is usually there.',
     'Reproduce the problem and compare the logs with a run that works.',
