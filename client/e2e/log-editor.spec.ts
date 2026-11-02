@@ -19,7 +19,9 @@ test('wrapped log lines keep one line number each and never scroll sideways', as
   expect(await gutter.nth(1).evaluate((el) => el.offsetHeight)).toBeGreaterThan(22);
 
   // Nothing is hidden to the right of the screen.
-  const scroller = page.locator('#log-input').locator('xpath=ancestor::div[contains(@class,"overflow-y-auto")]');
+  const scroller = page
+    .locator('#log-input')
+    .locator('xpath=ancestor::div[contains(@class,"overflow-y-auto")]');
   const overflow = await scroller.evaluate((el) => el.scrollWidth - el.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });
