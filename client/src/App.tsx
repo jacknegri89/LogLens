@@ -1,7 +1,8 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { Layout } from './components/Layout';
+import { NotFound } from './components/NotFound';
 
 const AnalyzePage = lazy(() =>
   import('./pages/AnalyzePage').then((m) => ({ default: m.AnalyzePage })),
@@ -20,25 +21,25 @@ export function App() {
         <Route
           path="/"
           element={
-            <Suspense fallback={null}>
+            <PageSuspense>
               <AnalyzePage />
-            </Suspense>
+            </PageSuspense>
           }
         />
         <Route
           path="/history"
           element={
-            <Suspense fallback={null}>
+            <PageSuspense>
               <HistoryPage />
-            </Suspense>
+            </PageSuspense>
           }
         />
         <Route
           path="/analyses/:id"
           element={
-            <Suspense fallback={null}>
+            <PageSuspense>
               <AnalysisDetailPage />
-            </Suspense>
+            </PageSuspense>
           }
         />
         <Route path="*" element={<NotFound />} />
@@ -47,13 +48,7 @@ export function App() {
   );
 }
 
-function NotFound() {
-  return (
-    <div className="py-16">
-      <p className="font-mono text-lg font-bold text-chalk">404</p>
-      <h1 className="mt-2 text-4xl font-extrabold uppercase [font-stretch:125%]">
-        This page <span className="marker">does not exist.</span>
-      </h1>
-    </div>
-  );
+/** Pages load on demand; nothing is shown while their code arrives. */
+function PageSuspense({ children }: { children: ReactNode }) {
+  return <Suspense fallback={null}>{children}</Suspense>;
 }

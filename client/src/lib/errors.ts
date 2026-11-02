@@ -1,0 +1,14 @@
+import { ERROR_TEXT } from '../content/errors';
+
+const UNREACHABLE_PATTERN = /ECONNREFUSED|Failed to fetch|fetch failed|net::ERR_CONNECTION/i;
+
+/** Turns a failed request into a sentence the visitor can act on. */
+export function friendlyError(err: unknown): string {
+  const message = err instanceof Error ? err.message : ERROR_TEXT.unknown;
+  return UNREACHABLE_PATTERN.test(message) ? ERROR_TEXT.unreachable : message;
+}
+
+/** The message of an error, or the fallback when it is not an Error. */
+export function errorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback;
+}
