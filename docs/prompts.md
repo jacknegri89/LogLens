@@ -13,15 +13,23 @@ structured** answer the app can render and store — not free-form text.
 3. **Validate.** The backend validates the JSON (with Zod) before saving. If it
    doesn't match, we retry once, then fail gracefully.
 
-## System prompt (draft)
+## System prompt
 
-```text
-You are LogLens, an assistant that analyzes software logs and stack traces for
-developers. Given a log excerpt, identify the single most important problem and
-respond ONLY with a JSON object matching the provided schema. Be concise,
-technical, and practical. Do not invent details that are not supported by the
-log. If severity is unclear, prefer "medium".
-```
+The source of truth is `server/src/ai/prompt.ts` (`SYSTEM_PROMPT`). In short:
+
+- **Taxonomy:** five severity levels (`informational`, `low`, `medium`, `high`,
+  `critical`) and a category label. Attacks and database/core-service failures
+  are never below `high`; a successful or ongoing attack is `critical`.
+- **Component inspection:** User-Agent (browser, legitimate bot, or scanner such
+  as sqlmap or nmap), request payload (SQLi, XSS, path traversal, command
+  injection), and the correlation of HTTP status and log level with severity.
+- **Root cause:** describe what happened in the system, not what the model is
+  missing. Generic answers ("does not match any known pattern") are forbidden.
+- **Next steps:** concrete commands, configuration or code (WAF/firewall rules,
+  Prepared Statements, JDBC pool checks).
+- **Language:** human-readable text in Italian; technical terms, commands and
+  log lines stay in their original form.
+- **Output:** JSON object only, validated with Zod before it is saved.
 
 ## User prompt (template)
 
@@ -39,7 +47,7 @@ LOG EXCERPT:
 ```jsonc
 {
   "title": "string — short summary of the main problem",
-  "severity": "low | medium | high",
+  "severity": "informational | low | medium | high | critical",
   "category": "string — e.g. Database, Network, Runtime, Build, Config",
   "keyLines": ["string — the most important raw log lines"],
   "causes": ["string — probable root causes"],

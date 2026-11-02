@@ -7,7 +7,7 @@ import { z } from 'zod';
  */
 export const aiReportSchema = z.object({
   title: z.string().min(1),
-  severity: z.enum(['low', 'medium', 'high']),
+  severity: z.enum(['informational', 'low', 'medium', 'high', 'critical']),
   category: z.string().min(1),
   keyLines: z.array(z.string()).default([]),
   causes: z.array(z.string()).default([]),

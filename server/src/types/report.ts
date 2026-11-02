@@ -1,5 +1,5 @@
 /** How serious the detected problem is. */
-export type Severity = 'low' | 'medium' | 'high';
+export type Severity = 'informational' | 'low' | 'medium' | 'high' | 'critical';
 
 /**
  * The structured part of an analysis that we store as JSON (the `report`

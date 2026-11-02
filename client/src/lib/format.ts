@@ -2,9 +2,11 @@ import type { Severity } from './types';
 
 /** Ink colours for each severity, readable on the cream paper. */
 export const severityColors: Record<Severity, { text: string; border: string }> = {
+  critical: { text: 'text-pen', border: 'border-pen' },
   high: { text: 'text-pen', border: 'border-pen' },
   medium: { text: 'text-amber', border: 'border-amber' },
   low: { text: 'text-blueink', border: 'border-blueink' },
+  informational: { text: 'text-blueink', border: 'border-blueink' },
 };
 
 /** Whether a log line is a failure, so the report can mark it with the highlighter. */
