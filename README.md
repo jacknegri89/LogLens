@@ -153,18 +153,9 @@ Try LogLens with the sample logs in [`examples/`](./examples/):
 - [`docker-error.log`](./examples/docker-error.log) — a Docker Compose startup failure
 - [`database-error.log`](./examples/database-error.log) — database connection & query errors
 
-## Roadmap
+## Status
 
-- [x] **Phase 0** — Project structure, CI skeleton, docs & examples
-- [x] **Phase 1** — Express + TypeScript backend
-- [x] **Phase 2** — Prisma schema & migrations
-- [x] **Phase 3** — Log parser
-- [x] **Phase 4** — AI analysis service (OpenAI / Ollama)
-- [x] **Phase 5** — Analysis API endpoints
-- [x] **Phase 6** — React + Tailwind frontend
-- [x] **Phase 7** — Tests (Vitest)
-- [x] **Phase 8** — Full CI/CD
-- [x] **Phase 9** — Screenshots, polish & docs
+Complete: log parsing, AI analysis (OpenAI or Ollama), REST API, React frontend, analysis history, unit and end-to-end tests, and CI on GitHub Actions.
 
 ## License
 
