@@ -158,7 +158,7 @@ Try LogLens with the sample logs in [`examples/`](./examples/):
 
 ## Status
 
-Complete: log parsing, AI analysis (OpenAI or Ollama), REST API, React frontend, analysis history, unit and end-to-end tests, and CI on GitHub Actions.
+Complete: log parsing, AI analysis (built-in rules engine, OpenAI or Ollama), REST API, React frontend, per-visitor analysis history, rate limits, unit tests, an end-to-end test for the log editor, and CI on GitHub Actions.
 
 ## License
 
