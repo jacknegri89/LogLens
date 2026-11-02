@@ -43,6 +43,14 @@ export function downloadMarkdown(filename: string, content: string): void {
   URL.revokeObjectURL(url);
 }
 
+/** The editor always shows at least this many rows, so it looks like a sheet. */
+export const MIN_EDITOR_ROWS = 20;
+
+/** Rows the editor shows for this text: at least the minimum, so the sheet looks full. */
+export function editorRows(text: string): number {
+  return Math.max(countLines(text), MIN_EDITOR_ROWS);
+}
+
 /** Number of lines in the editor; an empty text has none. */
 export function countLines(text: string): number {
   return text === '' ? 0 : text.split('\n').length;
