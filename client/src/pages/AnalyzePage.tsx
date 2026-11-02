@@ -202,7 +202,11 @@ export function AnalyzePage() {
               </label>
               <div className="relative min-w-0 flex-1">
                 {/* Invisible copy of the text: it sizes the box and tells the gutter how tall each wrapped line is. */}
-                <div ref={mirrorRef} aria-hidden="true" className="invisible pl-4 whitespace-pre-wrap [overflow-wrap:anywhere]">
+                <div
+                  ref={mirrorRef}
+                  aria-hidden="true"
+                  className="invisible pl-4 whitespace-pre-wrap [overflow-wrap:anywhere]"
+                >
                   {mirrorLines.map((line, i) => (
                     <div key={i}>{line === '' ? ' ' : line}</div>
                   ))}
