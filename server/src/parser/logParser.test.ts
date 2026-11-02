@@ -161,4 +161,66 @@ describe('parseLog', () => {
     const r = parseLog('WARN: something minor');
     expect(r.severityHint).toBe('low');
   });
+
+  // ── Log types without the usual keywords ─────────────────────────────────
+
+  it('keeps Python traceback frames, which have no keyword', () => {
+    const log = [
+      'Traceback (most recent call last):',
+      '  File "app.py", line 12, in get_first',
+      '    return items[3]',
+      'IndexError: list index out of range',
+    ].join('\n');
+    const r = parseLog(log);
+    expect(r.relevantLines.map((line) => line.lineNumber)).toEqual([1, 2, 4]);
+    expect(r.relevantLines[1].category).toBe('stack');
+  });
+
+  it('keeps an access-log line with a 5xx status even without a keyword', () => {
+    const r = parseLog('203.0.113.7 - - [02/Nov/2026:10:14:02 +0000] "GET /shop HTTP/1.1" 502 612');
+    expect(r.matchedCount).toBe(1);
+    expect(r.relevantLines[0].category).toBe('server-error');
+    expect(r.severityHint).toBe('high');
+  });
+
+  it('classifies an attack request as attack even when the server answered 404', () => {
+    const r = parseLog(
+      '203.0.113.7 - - [02/Nov/2026:10:14:02 +0000] "GET /p?id=1 UNION SELECT password FROM users HTTP/1.1" 404 - "sqlmap/1.8"',
+    );
+    expect(r.relevantLines[0].category).toBe('attack');
+    expect(r.severityHint).toBe('high');
+  });
+
+  it('gives a 4xx status a low severity hint', () => {
+    const r = parseLog(
+      '203.0.113.9 - - [02/Nov/2026:10:14:05 +0000] "GET /old-page HTTP/1.1" 404 120',
+    );
+    expect(r.relevantLines[0].category).toBe('client-error');
+    expect(r.severityHint).toBe('low');
+  });
+
+  // ── Keeping the end of a long log ────────────────────────────────────────
+
+  it('keeps the last lines of a long log, where the root cause usually is', () => {
+    const noise = Array.from({ length: 150 }, (_, i) => `ERROR retry ${i}`);
+    const log = [
+      ...noise,
+      'Caused by: org.postgresql.util.PSQLException: password authentication failed',
+    ];
+    const r = parseLog(log.join('\n'), { maxLines: 10 });
+    expect(r.truncated).toBe(true);
+    expect(r.relevantLines.at(-1)?.content).toContain('PSQLException');
+  });
+
+  it('keeps the end of the excerpt when it is cut by maxChars', () => {
+    const log = [
+      'ERROR start',
+      ...Array.from({ length: 50 }, (_, i) => `ERROR filler ${i}`),
+      'FATAL root cause',
+    ];
+    const r = parseLog(log.join('\n'), { maxChars: 120 });
+    expect(r.excerpt.length).toBeLessThanOrEqual(120);
+    expect(r.excerpt).toContain('FATAL root cause');
+    expect(r.excerpt).toContain('lines omitted');
+  });
 });

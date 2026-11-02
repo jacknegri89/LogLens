@@ -1,3 +1,4 @@
+import { ATTACK_SIGNATURE } from '../content/rules';
 import type { Severity } from '../types/report';
 
 /**
@@ -12,7 +13,16 @@ import type { Severity } from '../types/report';
 
 /** Why a line was kept. `context` is used only for the no-match fallback. */
 export type LineCategory =
-  'error' | 'warning' | 'exception' | 'failure' | 'timeout' | 'stack' | 'context';
+  | 'error'
+  | 'warning'
+  | 'exception'
+  | 'failure'
+  | 'timeout'
+  | 'stack'
+  | 'attack'
+  | 'server-error'
+  | 'client-error'
+  | 'context';
 
 export interface ParsedLine {
   /** 1-based line number in the original log. */
@@ -52,14 +62,22 @@ export interface ParseOptions {
  * specific/severe categories are listed first.
  */
 const MATCHERS: { category: Exclude<LineCategory, 'context'>; pattern: RegExp }[] = [
-  { category: 'stack', pattern: /^\s*at\s+/ }, // "    at fn (file:line:col)"
+  {
+    category: 'stack',
+    // "    at fn (file:line:col)", Python "  File "app.py", line 12", "Caused by: ..."
+    pattern:
+      /^\s*at\s+|^\s*File "[^"]+", line \d+|^\s*Traceback \(most recent call last\)|^\s*caused by:/i,
+  },
+  { category: 'attack', pattern: ATTACK_SIGNATURE },
   { category: 'exception', pattern: /exception/i },
   { category: 'error', pattern: /error|fatal|panic/i }, // also catches TypeError, ERROR, ...
+  { category: 'server-error', pattern: /"\s5\d{2}\s|\bstatus[=:\s]+5\d{2}\b/i }, // access log: "GET / HTTP/1.1" 502
   { category: 'timeout', pattern: /\btimeout\b|timed out/i },
   {
     category: 'failure',
     pattern: /\bfail(?:ed|ure|s)?\b|oomkilled|out of memory|\bkilled\b|segfault|core dumped/i,
   },
+  { category: 'client-error', pattern: /"\s4\d{2}\s|\bstatus[=:\s]+4\d{2}\b/i },
   { category: 'warning', pattern: /\bwarn(?:ing)?\b/i },
 ];
 
@@ -80,7 +98,8 @@ function truncate(text: string, max: number): string {
 }
 
 function computeSeverity(categories: Set<LineCategory>): Severity {
-  if (categories.has('error') || categories.has('exception')) return 'high';
+  const high = ['error', 'exception', 'attack', 'server-error'] as const;
+  if (high.some((category) => categories.has(category))) return 'high';
   if (categories.has('failure') || categories.has('timeout')) return 'medium';
   return 'low';
 }
@@ -149,21 +168,32 @@ function tailLines(lines: NumberedLine[], count: number, maxLineLength: number):
   }));
 }
 
+/**
+ * When there are too many lines we keep the start and the end, not only the start:
+ * the root cause ("Caused by", the last traceback frame) is usually at the bottom.
+ */
 function capLines(
   lines: ParsedLine[],
   maxLines: number,
 ): { lines: ParsedLine[]; truncated: boolean } {
-  return lines.length > maxLines
-    ? { lines: lines.slice(0, maxLines), truncated: true }
-    : { lines, truncated: false };
+  if (lines.length <= maxLines) return { lines, truncated: false };
+  const headCount = Math.ceil(maxLines / 2);
+  const tailCount = maxLines - headCount;
+  const tail = tailCount > 0 ? lines.slice(-tailCount) : [];
+  return { lines: [...lines.slice(0, headCount), ...tail], truncated: true };
 }
+
+const OMITTED_MARKER = '\n... (lines omitted) ...\n';
 
 function capExcerpt(
   lines: ParsedLine[],
   maxChars: number,
 ): { excerpt: string; truncated: boolean } {
   const excerpt = lines.map((line) => line.content).join('\n');
-  return excerpt.length > maxChars
-    ? { excerpt: excerpt.slice(0, maxChars), truncated: true }
-    : { excerpt, truncated: false };
+  if (excerpt.length <= maxChars) return { excerpt, truncated: false };
+  const budget = Math.max(0, maxChars - OMITTED_MARKER.length);
+  const headLength = Math.ceil(budget / 2);
+  const tailLength = budget - headLength;
+  const tail = tailLength > 0 ? excerpt.slice(-tailLength) : '';
+  return { excerpt: excerpt.slice(0, headLength) + OMITTED_MARKER + tail, truncated: true };
 }

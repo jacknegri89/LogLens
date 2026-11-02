@@ -149,6 +149,73 @@ describe('RulesProvider', () => {
     expect(report.causes[0]).toContain('app.py, line 12, in get_first');
   });
 
+  it('names the frame where a Python KeyError happened', async () => {
+    const report = await provider.analyze({
+      excerpt: [
+        'Traceback (most recent call last):',
+        '  File "app.py", line 9, in load',
+        "    return config['user_id']",
+        "KeyError: 'user_id'",
+      ].join('\n'),
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Runtime');
+    expect(report.severity).toBe('high');
+    expect(report.causes[0]).toContain('app.py, line 9, in load');
+  });
+
+  it('treats a 502 from the proxy as an infrastructure failure, not a client error', async () => {
+    const report = await provider.analyze({
+      excerpt: '203.0.113.7 - - [02/Nov/2026:10:14:02 +0000] "GET /shop HTTP/1.1" 502 612',
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Infrastructure');
+    expect(report.severity).toBe('high');
+  });
+
+  it('recognises an unhandled Node.js promise rejection', async () => {
+    const report = await provider.analyze({
+      excerpt: 'UnhandledPromiseRejection: Error: boom',
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Runtime');
+    expect(report.severity).toBe('high');
+  });
+
+  it('names the user of a refused MySQL login', async () => {
+    const report = await provider.analyze({
+      excerpt:
+        "ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)",
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Database Connection Failure');
+    expect(report.causes[0]).toContain('root');
+  });
+
+  it('flags repeated failed SSH logins as a brute-force attack', async () => {
+    const report = await provider.analyze({
+      excerpt: 'sshd[812]: Failed password for root from 203.0.113.5 port 22 ssh2',
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Security Attack');
+    expect(report.severity).toBe('high');
+  });
+
+  it('never answers that a log is unknown, and points at the failing line', async () => {
+    const report = await provider.analyze({
+      excerpt: 'INFO start\nERROR cache: write failed for key session:42',
+      severityHint: 'high',
+    });
+
+    expect(report.causes[0]).toContain('ERROR cache: write failed for key session:42');
+    expect(JSON.stringify(report)).not.toMatch(/known pattern/i);
+  });
+
   it('recognises a full disk and a failing image pull', async () => {
     const disk = await provider.analyze({
       excerpt: 'ERROR write /data: no space left on device',
