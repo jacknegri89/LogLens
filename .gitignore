@@ -49,3 +49,7 @@ docs/superpowers/
 
 .vercel
 .env*
+
+# Playwright
+client/test-results/
+client/playwright-report/
