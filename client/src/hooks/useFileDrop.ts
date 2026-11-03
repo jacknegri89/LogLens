@@ -1,22 +1,41 @@
 import { useState, type DragEvent } from 'react';
 
-/** Tracks a file being dragged over the editor, and hands over the file that is dropped. */
-export function useFileDrop(onFileDrop: (file: File) => void) {
-  const [dragging, setDragging] = useState(false);
+type ZoneEvent = DragEvent<HTMLElement>;
+type DraggingSetter = (dragging: boolean) => void;
+type FileHandler = (file: File) => void;
 
-  const dropZone = {
-    onDragOver: (event: DragEvent<HTMLElement>) => {
+function carriesFiles(event: ZoneEvent): boolean {
+  return Array.from(event.dataTransfer.types).includes('Files');
+}
+
+/** Moving onto a child element also fires dragleave: only leaving the zone counts. */
+function leftZone(event: ZoneEvent): boolean {
+  return !event.currentTarget.contains(event.relatedTarget as Node | null);
+}
+
+function createDropZone(setDragging: DraggingSetter, onFileDrop: FileHandler) {
+  return {
+    onDragOver: (event: ZoneEvent) => {
+      if (!carriesFiles(event)) return;
       event.preventDefault();
       setDragging(true);
     },
-    onDragLeave: () => setDragging(false),
-    onDrop: (event: DragEvent<HTMLElement>) => {
+    onDragLeave: (event: ZoneEvent) => {
+      if (leftZone(event)) setDragging(false);
+    },
+    onDrop: (event: ZoneEvent) => {
+      if (!carriesFiles(event)) return;
       event.preventDefault();
       setDragging(false);
       const file = event.dataTransfer.files?.[0];
       if (file) onFileDrop(file);
     },
   };
+}
 
-  return { dragging, dropZone };
+/** Tracks a file being dragged over the editor, and hands over the file that is dropped. */
+export function useFileDrop(onFileDrop: FileHandler) {
+  const [dragging, setDragging] = useState(false);
+
+  return { dragging, dropZone: createDropZone(setDragging, onFileDrop) };
 }

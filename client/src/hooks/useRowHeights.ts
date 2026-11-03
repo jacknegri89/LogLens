@@ -13,7 +13,7 @@ export function useRowHeights(mirrorRef: RefObject<HTMLDivElement | null>, text:
 
     function measure() {
       const next = Array.from(mirror!.children, (row) => (row as HTMLElement).offsetHeight);
-      setHeights((prev) => (prev.join() === next.join() ? prev : next));
+      setHeights((previous) => (previous.join() === next.join() ? previous : next));
     }
 
     measure();

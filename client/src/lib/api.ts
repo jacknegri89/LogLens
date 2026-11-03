@@ -1,4 +1,4 @@
-import type { AnalysisRecord, AnalysisSummary } from './types';
+import type { AnalysisRecord, AnalysisSummary, SharedAnalysis } from './types';
 import { getVisitorId } from './visitor';
 
 // Empty base -> calls "/api/..." on the same origin. In dev, Vite proxies that
@@ -7,15 +7,15 @@ import { getVisitorId } from './visitor';
 const BASE = import.meta.env.VITE_API_URL ?? '';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const response = await fetch(`${BASE}${path}`, {
     headers: { 'Content-Type': 'application/json', 'X-Visitor-Id': getVisitorId() },
     ...init,
   });
 
-  if (!res.ok) {
-    let message = `Request failed (${res.status})`;
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
     try {
-      const body = (await res.json()) as { error?: { message?: string } };
+      const body = (await response.json()) as { error?: { message?: string } };
       if (body.error?.message) message = body.error.message;
     } catch {
       // Response had no JSON body; keep the generic message.
@@ -23,7 +23,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(message);
   }
 
-  return res.json() as Promise<T>;
+  return response.json() as Promise<T>;
 }
 
 export interface CreateAnalysisInput {
@@ -42,4 +42,14 @@ export const api = {
   listAnalyses: () => request<AnalysisSummary[]>('/api/analyses'),
   deleteAnalyses: () => request<{ deleted: number }>('/api/analyses', { method: 'DELETE' }),
   getAnalysis: (id: string) => request<AnalysisRecord>(`/api/analyses/${id}`),
+  setFeedback: (id: string, helpful: boolean | null) =>
+    request<{ helpful: boolean | null }>(`/api/analyses/${id}/feedback`, {
+      method: 'PUT',
+      body: JSON.stringify({ helpful }),
+    }),
+  createShare: (id: string) =>
+    request<{ shareToken: string }>(`/api/analyses/${id}/share`, { method: 'POST' }),
+  revokeShare: (id: string) =>
+    request<{ revoked: true }>(`/api/analyses/${id}/share`, { method: 'DELETE' }),
+  getShared: (token: string) => request<SharedAnalysis>(`/api/shared/${encodeURIComponent(token)}`),
 };

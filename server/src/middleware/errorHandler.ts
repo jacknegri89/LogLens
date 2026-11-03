@@ -19,16 +19,16 @@ export class AppError extends Error {
  * handler ONLY if it has these four parameters, so `next` must stay even
  * though it is unused. Register this AFTER all routes.
  */
-export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(error: unknown, _req: Request, res: Response, _next: NextFunction) {
   let statusCode = 500;
   let message = 'Internal Server Error';
 
-  if (err instanceof AppError) {
-    statusCode = err.statusCode;
-    message = err.message;
+  if (error instanceof AppError) {
+    statusCode = error.statusCode;
+    message = error.message;
   } else {
     // Unexpected errors are bugs — log the full error so we can debug them.
-    console.error(err);
+    console.error(error);
   }
 
   res.status(statusCode).json({

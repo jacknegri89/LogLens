@@ -1,6 +1,7 @@
 import { getAIProvider } from '../ai';
 import type { AIReport } from '../ai/schema';
 import { AppError } from '../middleware/errorHandler';
+import { detectFormat } from '../parser/detectFormat';
 import { parseLog } from '../parser/logParser';
 
 export interface AnalyzeOutcome {
@@ -31,7 +32,7 @@ export async function analyzeLog(rawLog: string): Promise<AnalyzeOutcome> {
   });
 
   return {
-    report,
+    report: { ...report, format: detectFormat(rawLog) },
     meta: {
       provider: provider.name,
       totalLines: parsed.totalLines,

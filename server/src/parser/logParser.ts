@@ -116,27 +116,21 @@ export function parseLog(raw: string, options: ParseOptions = {}): ParseResult {
   const { maxLines = 100, maxChars = 6000, maxLineLength = 1000, fallbackTailLines = 20 } = options;
 
   const nonEmpty = nonEmptyLines(raw);
-  const totalLines = nonEmpty.length;
-
+  const matched = keepMatchingLines(nonEmpty, maxLineLength);
   // Keep every matching line. If none match, keep the tail instead: the actual failure
   // is often the last thing printed.
-  const matched = keepMatchingLines(nonEmpty, maxLineLength);
-  const matchedCount = matched.length;
   const candidates =
-    matchedCount === 0 && totalLines > 0
-      ? tailLines(nonEmpty, fallbackTailLines, maxLineLength)
-      : matched;
+    matched.length === 0 ? tailLines(nonEmpty, fallbackTailLines, maxLineLength) : matched;
 
   const { lines: relevant, truncated: lineCapped } = capLines(candidates, maxLines);
   const { excerpt, truncated: charCapped } = capExcerpt(relevant, maxChars);
-  const severityHint = computeSeverity(new Set(relevant.map((line) => line.category)));
 
   return {
-    totalLines,
-    matchedCount,
+    totalLines: nonEmpty.length,
+    matchedCount: matched.length,
     relevantLines: relevant,
     excerpt,
-    severityHint,
+    severityHint: computeSeverity(new Set(relevant.map((line) => line.category))),
     truncated: lineCapped || charCapped,
   };
 }

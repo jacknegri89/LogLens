@@ -1,12 +1,15 @@
 import { Link, useParams } from 'react-router-dom';
 
 import { ErrorNotice } from '../components/ErrorNotice';
+import { FeedbackBlock } from '../components/FeedbackBlock';
 import { OriginalLog } from '../components/OriginalLog';
 import { ReportView } from '../components/ReportView';
+import { ShareBlock } from '../components/ShareBlock';
 import { DETAIL_TEXT } from '../content/detail';
 import { ERROR_TEXT } from '../content/errors';
 import { useLoad } from '../hooks/useLoad';
 import { api } from '../lib/api';
+import type { AnalysisRecord } from '../lib/types';
 
 export function AnalysisDetailPage() {
   const { id } = useParams();
@@ -30,12 +33,19 @@ export function AnalysisDetailPage() {
         <p className="caret mt-10 text-lg text-chalk">{DETAIL_TEXT.loading}</p>
       )}
 
-      {analysis && (
-        <div className="mt-10 space-y-12">
-          <ReportView analysis={analysis} />
-          <OriginalLog rawLog={analysis.rawLog} />
-        </div>
-      )}
+      {analysis && <AnalysisDetail analysis={analysis} />}
+    </div>
+  );
+}
+
+function AnalysisDetail({ analysis }: { analysis: AnalysisRecord }) {
+  return (
+    <div className="mt-10 space-y-12">
+      <ReportView analysis={analysis}>
+        <FeedbackBlock analysisId={analysis.id} initialHelpful={analysis.helpful} />
+        <ShareBlock analysisId={analysis.id} initialToken={analysis.shareToken} />
+      </ReportView>
+      <OriginalLog rawLog={analysis.rawLog} />
     </div>
   );
 }

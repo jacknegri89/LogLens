@@ -66,29 +66,41 @@ we validate it with Zod before using it. Prompt design lives in
 ```text
 src/
 ├── index.ts                          # entry point: starts the HTTP server
+├── vercel.ts                         # entry point on Vercel (no listen())
 ├── app.ts                            # builds the Express app
 ├── config/
 │   └── env.ts                        # validated env vars (Zod + dotenv)
 ├── db/
 │   └── prisma.ts                     # shared Prisma client (singleton)
 ├── parser/
-│   └── logParser.ts                  # pure function: extract relevant lines
+│   ├── logParser.ts                  # pure function: extract relevant lines
+│   └── lineFields.ts                 # time, level, address, hex code, event id of one line
 ├── ai/
 │   ├── AIProvider.ts                 # the provider interface
 │   ├── schema.ts                     # Zod schema for the AI report
-│   ├── prompt.ts                     # system + user prompts
+│   ├── prompt.ts                     # system + user prompts, random boundary per request
 │   ├── parseReport.ts                # parse + validate the AI's JSON
+│   ├── guardReport.ts                # check the report against the log it came from
 │   ├── index.ts                      # factory: pick provider from env
-│   └── providers/                    # mock, openai, ollama
+│   └── providers/                    # mock, rules, hybrid, openai, ollama
+├── content/
+│   └── rules.ts                      # rules engine: known failures and their advice
 ├── services/
 │   └── analysisService.ts            # parse -> AI -> validated report
 ├── repositories/
 │   └── analysisRepository.ts         # all Analysis database queries
+├── schemas/
+│   ├── createAnalysis.ts             # body of POST /api/analyses
+│   └── feedback.ts                   # body of PUT /api/analyses/:id/feedback
 ├── types/
 │   └── report.ts                     # report types
 ├── routes/
-│   └── health.ts                     # GET /api/health
+│   ├── analyses.ts                   # /api/analyses (needs X-Visitor-Id)
+│   ├── health.ts                     # GET /api/health
+│   └── shared.ts                     # GET /api/shared/:token (secret link, read-only)
 └── middleware/
+    ├── clientAddress.ts              # caller address, trusted behind a proxy only with TRUST_PROXY
+    ├── visitor.ts                    # visitor id header and owner check
     ├── errorHandler.ts               # centralized error handling
     └── notFound.ts                   # 404 JSON fallback
 
@@ -97,14 +109,24 @@ prisma/
 └── seed.ts                           # example data for local dev
 ```
 
+Tests (`*.test.ts`) sit next to the file they cover.
+
 ## API
 
-| Method | Path                | Description                            |
-| ------ | ------------------- | -------------------------------------- |
-| `GET`  | `/api/health`       | Liveness check                         |
-| `POST` | `/api/analyses`     | Analyze a log and save the result      |
-| `GET`  | `/api/analyses`     | History (lightweight summaries)        |
-| `GET`  | `/api/analyses/:id` | A single analysis with its full report |
+| Method   | Path                         | Description                                                      |
+| -------- | ---------------------------- | ---------------------------------------------------------------- |
+| `GET`    | `/api/health`                | Liveness check                                                   |
+| `POST`   | `/api/analyses`              | Analyze a log and save the result                                |
+| `GET`    | `/api/analyses`              | History of this visitor (lightweight summaries)                  |
+| `DELETE` | `/api/analyses`              | Delete this visitor's history                                    |
+| `GET`    | `/api/analyses/:id`          | A single analysis with its full report                           |
+| `PUT`    | `/api/analyses/:id/feedback` | Mark it useful (`true`), not useful (`false`), or clear (`null`) |
+| `POST`   | `/api/analyses/:id/share`    | Create the secret read-only link (or return the existing one)    |
+| `DELETE` | `/api/analyses/:id/share`    | Revoke the secret link                                           |
+| `GET`    | `/api/shared/:token`         | Read-only report behind a secret link, without the raw log       |
+
+Every `/api/analyses` route needs the `X-Visitor-Id` header, or it answers `400`.
+The `/api/shared/:token` route needs no header: the token is the permission.
 
 `POST /api/analyses` body:
 

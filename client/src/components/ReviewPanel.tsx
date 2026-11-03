@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ANALYZE_TEXT } from '../content/analyze';
 import type { AnalysisStatus } from '../hooks/useAnalysis';
 import type { AnalysisRecord } from '../lib/types';
+import { AnalysisProgress } from './AnalysisProgress';
 import { ErrorNotice } from './ErrorNotice';
 import { ReportView } from './ReportView';
 
@@ -21,9 +22,7 @@ export function ReviewPanel({
       className="min-w-0 bg-felt-2 p-7 lg:max-h-[40.5rem] lg:overflow-y-auto"
       aria-live="polite"
     >
-      {status === 'loading' && (
-        <p className="caret text-lg text-chalk">{ANALYZE_TEXT.readingLog}</p>
-      )}
+      {status === 'loading' && <AnalysisProgress />}
       {status === 'error' && <ErrorNotice title={ANALYZE_TEXT.failedTitle} message={error} />}
       {status === 'idle' && result && <ResultView analysis={result} />}
       {status === 'idle' && !result && <ReviewEmpty />}
@@ -33,7 +32,7 @@ export function ReviewPanel({
 
 function ResultView({ analysis }: { analysis: AnalysisRecord }) {
   return (
-    <div>
+    <div className="report-reveal">
       <ReportView analysis={analysis} />
       <Link
         to={`/analyses/${analysis.id}`}

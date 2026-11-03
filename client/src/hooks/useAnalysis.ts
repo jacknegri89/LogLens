@@ -14,6 +14,20 @@ interface AnalysisState {
 
 const IDLE: AnalysisState = { status: 'idle', error: '', result: null };
 
+/** The state a finished request leads to, or null when the visitor cancelled it. */
+async function requestAnalysis(
+  input: CreateAnalysisInput,
+  signal: AbortSignal,
+): Promise<AnalysisState | null> {
+  try {
+    const result = await api.createAnalysis(input, signal);
+    return { status: 'idle', error: '', result };
+  } catch (error) {
+    if (isAbort(error)) return null;
+    return { status: 'error', error: friendlyError(error), result: null };
+  }
+}
+
 /** Sends a log for analysis and keeps the state of the last request. */
 export function useAnalysis() {
   const [state, setState] = useState<AnalysisState>(IDLE);
@@ -23,14 +37,9 @@ export function useAnalysis() {
     const controller = new AbortController();
     abortRef.current = controller;
     setState({ status: 'loading', error: '', result: null });
-    try {
-      const result = await api.createAnalysis(input, controller.signal);
-      setState({ status: 'idle', error: '', result });
-    } catch (err) {
-      if (!isAbort(err)) setState({ status: 'error', error: friendlyError(err), result: null });
-    } finally {
-      abortRef.current = null;
-    }
+    const outcome = await requestAnalysis(input, controller.signal);
+    if (outcome) setState(outcome);
+    abortRef.current = null;
   }
 
   function cancel() {
@@ -42,6 +51,6 @@ export function useAnalysis() {
   return { ...state, run, cancel };
 }
 
-function isAbort(err: unknown): boolean {
-  return err instanceof Error && err.name === 'AbortError';
+function isAbort(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError';
 }

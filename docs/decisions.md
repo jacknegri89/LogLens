@@ -2,6 +2,36 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-03 — Condivisione con link segreto, senza account
+
+- **Decisione:** `POST /api/analyses/:id/share` crea un token casuale di 24 byte in `shareToken`. `GET /api/shared/:token` mostra il report in sola lettura, senza il log grezzo e senza il proprietario. `DELETE` revoca il link.
+- **Motivo:** il demo non ha login, ma un report va mostrato senza esporre la cronologia né il log incollato. Il token è il permesso, quindi revocarlo chiude l'accesso.
+- **Scartato:** account con login (troppo per un demo) e l'ID della riga come link (non è un segreto e non si può revocare).
+
+## 2026-11-03 — Il voto utile è un booleano nullo su `Analysis`
+
+- **Decisione:** la colonna `helpful` vale `true` (utile), `false` (non utile) o `null` (nessun voto). `PUT /api/analyses/:id/feedback` accetta `{ "helpful": true | false | null }`.
+- **Motivo:** un voto per analisi non richiede join né una tabella in più.
+- **Scartato:** una tabella `Feedback` separata (una migrazione e un join per un solo valore) e il commento libero (testo incollato da gestire e proteggere, non richiesto).
+
+## 2026-11-03 — Schema: SQL manuale su Neon, non ancora in produzione
+
+- **Decisione:** su Neon va eseguito questo SQL, prima del deploy che usa le nuove colonne. In produzione non è ancora applicato.
+
+  ```sql
+  ALTER TABLE "Analysis" ADD COLUMN "helpful" BOOLEAN, ADD COLUMN "shareToken" TEXT;
+  CREATE UNIQUE INDEX "Analysis_shareToken_key" ON "Analysis"("shareToken");
+  ```
+
+- **Motivo:** il progetto non ha la cartella `migrations`. `npm run prisma:migrate` esegue `prisma db push`, che farebbe la stessa modifica: usarlo solo dopo aver visto la differenza.
+- **Scartato:** aggiungere ora una cartella `migrations`, un passo in più fuori da questa modifica.
+
+## 2026-11-03 — Il report si verifica dopo l'AI, non solo con il prompt
+
+- **Decisione:** `guardReport` alza la severità almeno al livello di un attacco riconosciuto o dell'hint `high`, e tiene solo le evidenze che compaiono nel log. Il prompt racchiude il log tra due righe di confine casuali per ogni richiesta.
+- **Motivo:** un log può contenere istruzioni rivolte al modello ("ignora le regole"). La difesa non può dipendere solo dal modello, che può ubbidire.
+- **Scartato:** fidarsi del solo prompt, e filtrare il log prima dell'AI, che cambierebbe il testo che l'utente ha incollato.
+
 ## 2026-11-03 — Il demo usa `hybrid`: regole prima, OpenAI per i log sconosciuti
 
 - **Decisione:** `AI_PROVIDER=hybrid` risponde con le regole quando un log è riconosciuto, e chiama OpenAI solo per il resto. Sostituisce la voce del 2026-11-01 sul demo.
@@ -52,7 +82,14 @@ Ogni voce: data, decisione, motivo, alternative scartate.
 
 ## 2026-11-02 — Eccezioni alle regole di qualità
 
-- **Funzioni sopra 20 righe:** i componenti JSX con molte righe di markup restano tra 21 e 33 righe. Spezzarli oltre questo punto renderebbe più difficile seguire la struttura della pagina. La logica resta sotto 20 righe, salvo `useAnalysis` (21).
+- **Funzioni sopra 20 righe:** i componenti JSX con molte righe di markup restano tra 21 e 33 righe. Spezzarli oltre questo punto renderebbe più difficile seguire la struttura della pagina. La logica resta sotto 20 righe.
 - **`errorHandler` con 4 parametri:** Express riconosce un middleware di errore solo se ha esattamente quattro argomenti.
 - **`console.log` di avvio:** è il messaggio "server running" in `server/src/index.ts`, utile in locale.
 - **Testi di errore del server:** restano nel codice, perché compaiono solo come messaggi di risposta, non come testo dell'interfaccia.
+
+## 2026-11-03 — Eccezioni aggiuntive
+
+- **`req` e `res` nei gestori Express:** sono i nomi del framework, lo stesso vale per i parametri dei middleware.
+- **`console.log` e `console.error` in `server/prisma/seed.ts`, `server/scripts/build-vercel.mjs` e `server/src/middleware/errorHandler.ts`:** i primi due sono script da riga di comando, il terzo registra gli errori inattesi.
+
+- 2026-11-03 — Client: `vitest` come devDependency (la stessa versione del server) per i test unitari di `anonymize.ts`; Playwright resta solo per `client/e2e/`, e `vitest.config.ts` cerca solo `src/**/*.test.ts`.

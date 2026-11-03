@@ -4,7 +4,8 @@ import { ReviewPanel } from '../components/ReviewPanel';
 import { useAnalyzePage } from '../hooks/useAnalyzePage';
 
 export function AnalyzePage() {
-  const { log, analysis, canSubmit, submit, failingLines } = useAnalyzePage();
+  const { log, analysis, canSubmit, submit, failingLines, anonymize, anonymizedCounts } =
+    useAnalyzePage();
 
   return (
     <div>
@@ -21,6 +22,9 @@ export function AnalyzePage() {
           onFileLoad={log.loadFile}
           onSubmit={submit}
           onCancel={analysis.cancel}
+          anonymize={anonymize.enabled}
+          onAnonymizeChange={anonymize.change}
+          anonymizedCounts={anonymizedCounts}
         />
         <ReviewPanel status={analysis.status} error={analysis.error} result={analysis.result} />
       </div>

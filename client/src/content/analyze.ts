@@ -13,7 +13,15 @@ export const ANALYZE_TEXT = {
   openFileButton: 'Open file',
   cancelButton: 'Cancel',
   shortcutHint: 'Ctrl + Enter to analyze',
+  anonymizeLabel: 'Anonymize before sending',
+  anonymizeHint: 'IPs, e-mails, secrets and user names are replaced in your browser first.',
+  anonymizedNothing: 'Anonymize was on: nothing sensitive found.',
+  anonymizedNotice: (replaced: Record<string, number>) => anonymizedNotice(replaced),
   readingLog: 'Reading the log',
+  analysisStages: ['Reading', 'Matching rules', 'Writing the report'],
+  dropTitle: 'Drop the log to read it',
+  dropHint: 'A .log or .txt file, plain text',
+  fileChipLines: (count: number) => `${count} lines`,
   failedTitle: 'Analysis failed',
   openFullPage: 'Open full page',
   reviewTitle: 'Review',
@@ -26,3 +34,21 @@ export const ANALYZE_TEXT = {
     issue: 'A GitHub issue ready to copy',
   },
 };
+
+const REPLACED_LABELS: Record<string, [singular: string, plural: string]> = {
+  IP: ['IP', 'IPs'],
+  EMAIL: ['e-mail', 'e-mails'],
+  SECRET: ['secret', 'secrets'],
+  USER: ['user name', 'user names'],
+};
+
+/** "Anonymized: 3 IPs, 1 e-mail, 2 secrets replaced" */
+function anonymizedNotice(replaced: Record<string, number>): string {
+  const parts = Object.entries(REPLACED_LABELS)
+    .filter(([kind]) => replaced[kind] > 0)
+    .map(
+      ([kind, [singular, plural]]) =>
+        `${replaced[kind]} ${replaced[kind] === 1 ? singular : plural}`,
+    );
+  return parts.length ? `Anonymized: ${parts.join(', ')} replaced` : ANALYZE_TEXT.anonymizedNothing;
+}
