@@ -65,13 +65,15 @@ function ReviewEmpty() {
     items.issue,
   ];
   return (
-    <div className="evidence-card evidence-tilt-right mx-auto mt-4 max-w-md">
+    <div className="evidence-card evidence-card-plain evidence-tilt-right mx-auto mt-4 max-w-md">
       <span className="pin" aria-hidden="true" />
       <h2 className="text-[1.6rem] leading-tight font-black uppercase [font-stretch:125%]">
         {text.reviewTitle}
       </h2>
-      <p className="mt-6 font-mono text-[15px] leading-7 text-ink-soft">{text.reviewEmpty}</p>
-      <ul className="font-mono text-[15px] leading-7">
+      <p className="mt-5 font-mono text-[15px] leading-relaxed text-pretty text-ink-soft">
+        {text.reviewEmpty}
+      </p>
+      <ul className="mt-3 space-y-3 font-mono text-[15px] leading-relaxed">
         {entries.map((entry, index) => (
           <li key={entry} className="flex items-start gap-3 py-0.5">
             <span className="evidence-tag mt-1">{text.evidenceTag(index + 1)}</span>

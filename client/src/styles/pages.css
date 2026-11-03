@@ -760,34 +760,56 @@
   }
 }
 
-/* Language switch in the header: two toggle buttons, the chosen one marked like the open nav tab. */
+/* Language switch in the header. A marker pill glides under the chosen language, so the change is
+   seen as a move, not as two buttons swapping colours. */
 .language-switch {
-  display: inline-flex;
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
   flex-shrink: 0;
-  border: 1px solid var(--color-chalk-dim);
+  border: 2px solid var(--color-chalk-dim);
+  border-radius: 999px;
+  padding: 2px;
+}
+.language-pill {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  border-radius: 999px;
+  background: var(--color-marker);
+  box-shadow: 0 2px 0 var(--color-ink);
+  transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+.language-switch[data-language='it'] .language-pill {
+  transform: translateX(100%);
 }
 .language-option {
-  min-width: 2rem;
-  padding: 0.3rem 0.4rem;
+  position: relative;
+  min-width: 2.6rem;
+  min-height: 2.2rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  line-height: 1.25;
+  letter-spacing: 0.1em;
   color: var(--color-chalk);
-  transition: color 0.12s;
-}
-.language-option + .language-option {
-  border-left: 1px solid var(--color-chalk-dim);
+  transition: color 0.25s;
 }
 .language-option:hover {
   color: var(--color-paper);
 }
 .language-option[aria-pressed='true'] {
-  background: var(--color-marker);
   color: var(--color-ink);
 }
-
+.language-option:active {
+  transform: scale(0.94);
+}
+.language-switch .language-option[aria-pressed='true'] {
+  animation: language-pop 0.35s 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
 /* Remove under a history card: it sits on the felt, outside the card link. */
 .case-entry {
   display: flex;
@@ -873,37 +895,55 @@
   color: var(--color-ink-soft);
 }
 
-/* Language change: a band of marker yellow sweeps the page, then the new choice pops in the switch. */
-.language-sweep {
+/* Language change: an ink stamp with the new language's code slams onto the page, then fades.
+   The text changes on the impact (see LanguageSwitch), so the visitor sees the stamp land on the new words. */
+.language-stamp {
   position: fixed;
-  inset: 0;
+  top: 42%;
+  left: 50%;
   z-index: 60;
   pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--color-marker) 35%,
-    var(--color-marker) 65%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: language-sweep 0.7s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+  translate: -50% -50%;
+  padding: 0.12em 0.45em 0.08em;
+  border: 4px double var(--color-pen);
+  color: var(--color-pen);
+  font-family: var(--font-sans);
+  font-size: clamp(3.5rem, 14vw, 7rem);
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  background: rgb(241 233 210 / 0.9);
+  mix-blend-mode: multiply;
+  mask-image: var(--noise-stamp);
+  mask-size: 120px 120px;
+  animation: language-stamp 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
-.language-switch .language-option[aria-pressed='true'] {
-  animation: language-pop 0.35s 0.2s cubic-bezier(0.3, 1.6, 0.5, 1) both;
-}
-@keyframes language-sweep {
+@keyframes language-stamp {
   0% {
-    transform: translateX(-100%);
-    opacity: 1;
+    opacity: 0;
+    scale: 2.6;
+    rotate: -18deg;
   }
-  55% {
-    transform: translateX(0);
+  28% {
+    opacity: 1;
+    scale: 0.94;
+    rotate: -7deg;
+  }
+  36% {
+    scale: 1.02;
+    rotate: -8deg;
+  }
+  44% {
+    scale: 1;
+    rotate: -7deg;
+  }
+  70% {
     opacity: 1;
   }
   100% {
-    transform: translateX(100%);
     opacity: 0;
+    scale: 1.08;
   }
 }
 @keyframes language-pop {
@@ -915,7 +955,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .language-sweep {
+  .language-stamp {
     display: none;
   }
   .language-switch .language-option[aria-pressed='true'] {

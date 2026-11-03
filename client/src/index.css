@@ -173,6 +173,19 @@
     box-shadow: var(--shadow-paper);
   }
 
+  /* `.evidence-card-plain`: the same card without the ruled lines, for running text that must sit
+     straight on the page. Ruled lines only line up with text that has a fixed height. */
+  .evidence-card-plain {
+    background-image: linear-gradient(var(--color-pen) 0 0), var(--noise-dark);
+    background-size:
+      100% 2px,
+      auto;
+    background-position:
+      0 3.1rem,
+      0 0;
+    background-repeat: no-repeat, repeat;
+  }
+
   /* `.evidence-tilt-left` / `.evidence-tilt-right`: a card dropped slightly crooked. */
   .evidence-tilt-left {
     rotate: -1.1deg;
