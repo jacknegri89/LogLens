@@ -7,6 +7,8 @@ export interface EditorToolbarProps {
   loading: boolean;
   onSubmit: () => void;
   onCancel: () => void;
+  onClear: () => void;
+  canClear: boolean;
   onFileLoad: (file: File) => void;
   anonymize: boolean;
   onAnonymizeChange: (enabled: boolean) => void;
@@ -20,6 +22,8 @@ export function EditorToolbar({
   loading,
   onSubmit,
   onCancel,
+  onClear,
+  canClear,
   onFileLoad,
   anonymize,
   onAnonymizeChange,
@@ -29,6 +33,7 @@ export function EditorToolbar({
     <div className="flex flex-wrap items-center gap-4 border-t-2 border-ink px-5 py-4">
       <AnalyzeButton canSubmit={canSubmit} onSubmit={onSubmit} />
       <OpenFileButton onFileLoad={onFileLoad} />
+      {canClear && <ClearButton onClear={onClear} />}
       <AnonymizeToggle checked={anonymize} onChange={onAnonymizeChange} />
       {loading && <CancelButton onCancel={onCancel} />}
       <span className="ml-auto text-xs text-ink-soft">{ANALYZE_TEXT.shortcutHint}</span>
@@ -48,6 +53,18 @@ function AnalyzeButton({ canSubmit, onSubmit }: { canSubmit: boolean; onSubmit: 
       className="btn-ink px-6 py-2.5 text-sm font-bold tracking-wide uppercase disabled:cursor-not-allowed disabled:opacity-40"
     >
       {ANALYZE_TEXT.analyzeButton}
+    </button>
+  );
+}
+
+function ClearButton({ onClear }: { onClear: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClear}
+      className="btn-paper px-5 py-2.5 text-sm font-bold tracking-wide uppercase"
+    >
+      {ANALYZE_TEXT.clearButton}
     </button>
   );
 }

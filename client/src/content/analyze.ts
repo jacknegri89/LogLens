@@ -11,6 +11,7 @@ export const ANALYZE_TEXT = {
   editorPlaceholder: 'Paste a log or stack trace here, or drop a .log file.',
   analyzeButton: 'Analyze log',
   openFileButton: 'Open file',
+  clearButton: 'Clear',
   cancelButton: 'Cancel',
   shortcutHint: 'Ctrl + Enter to analyze',
   anonymizeLabel: 'Anonymize before sending',
