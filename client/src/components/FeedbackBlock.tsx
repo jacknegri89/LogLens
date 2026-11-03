@@ -1,7 +1,7 @@
 import { FEEDBACK_TEXT } from '../content/feedback';
 import { useFeedback } from '../hooks/useFeedback';
 import { ACTION_BUTTON_CLASS } from '../lib/styles';
-import { ReportSection } from './ReportSection';
+import { ToolDrawer } from './ToolDrawer';
 
 interface FeedbackBlockProps {
   analysisId: string;
@@ -13,8 +13,12 @@ export function FeedbackBlock({ analysisId, initialHelpful }: FeedbackBlockProps
   const { helpful, saving, error, choose } = useFeedback(analysisId, initialHelpful);
 
   return (
-    <ReportSection title={FEEDBACK_TEXT.title}>
-      <div className="flex flex-wrap gap-3">
+    <ToolDrawer
+      title={FEEDBACK_TEXT.title}
+      hint={FEEDBACK_TEXT.hint}
+      className="report-drawer-verdict"
+    >
+      <div className="report-drawer-actions">
         <button
           type="button"
           aria-pressed={helpful === true}
@@ -35,10 +39,10 @@ export function FeedbackBlock({ analysisId, initialHelpful }: FeedbackBlockProps
         </button>
       </div>
       {error && (
-        <p role="alert" className="mt-3 border-l-4 border-marker pl-4 text-chalk">
+        <p role="alert" className="report-drawer-error">
           {error}
         </p>
       )}
-    </ReportSection>
+    </ToolDrawer>
   );
 }

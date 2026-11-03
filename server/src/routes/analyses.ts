@@ -100,6 +100,7 @@ function pickStoredReport(report: AIReport) {
     format: report.format,
     findings: report.findings,
     overview: report.overview,
+    timeline: report.timeline,
   };
 }
 

@@ -20,11 +20,8 @@ export function AnalysisDetailPage() {
   );
 
   return (
-    <div className="max-w-3xl pt-4">
-      <Link
-        to="/history"
-        className="font-bold underline decoration-2 underline-offset-4 hover:bg-marker hover:text-ink"
-      >
+    <div className="report-page">
+      <Link to="/history" className="report-back-link">
         {DETAIL_TEXT.backLink}
       </Link>
 
@@ -40,7 +37,7 @@ export function AnalysisDetailPage() {
 
 function AnalysisDetail({ analysis }: { analysis: AnalysisRecord }) {
   return (
-    <div className="mt-10 space-y-12">
+    <div className="report-page-body">
       <ReportView analysis={analysis}>
         <FeedbackBlock analysisId={analysis.id} initialHelpful={analysis.helpful} />
         <ShareBlock analysisId={analysis.id} initialToken={analysis.shareToken} />

@@ -77,8 +77,16 @@ function animate(stage: HTMLDivElement, state: LensState): () => void {
     if (!state.pointerInside) driftTo(stage, time);
     state.frame = requestAnimationFrame(step);
   };
-  state.frame = requestAnimationFrame(step);
-  return () => cancelAnimationFrame(state.frame);
+  // The browser already stops frames in a hidden tab; this also stops them off screen.
+  const observer = new IntersectionObserver(([entry]) => {
+    cancelAnimationFrame(state.frame);
+    if (entry.isIntersecting) state.frame = requestAnimationFrame(step);
+  });
+  observer.observe(stage);
+  return () => {
+    observer.disconnect();
+    cancelAnimationFrame(state.frame);
+  };
 }
 
 function driftTo(stage: HTMLDivElement, time: number): void {

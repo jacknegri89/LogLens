@@ -6,15 +6,17 @@ import {
   type CausalRelation,
   type EventMatcher,
 } from '../content/correlations';
-import type { Finding } from '../types/report';
+import type { Finding, TimelineEntry } from '../types/report';
 import {
   buildTimeline,
   describeEvents,
   hasTimes,
+  MAX_TITLE_IN_SENTENCE,
   shortenText,
   splitLines,
   type TimelineEvent,
 } from './eventTimeline';
+import { buildTimelineEntries } from './incidentTimeline';
 import { findLoginEscalation, type LoginEscalation } from './loginEscalation';
 import { describeSharedEntities } from './sharedEntities';
 
@@ -26,6 +28,8 @@ export interface Correlation {
   rootCause: Finding | null;
   /** True when failed logins from an address are followed by an accepted login from it. */
   compromisedLogin: boolean;
+  /** The events in time order with root, effect or independent role. Empty with fewer than two events. */
+  timeline: TimelineEntry[];
 }
 
 interface Link {
@@ -41,7 +45,6 @@ interface Chain {
   consequences: TimelineEvent[];
 }
 
-const MAX_TITLE_IN_SENTENCE = 45;
 const MAX_CONSEQUENCES_NAMED = 2;
 
 function matchesAny(matchers: EventMatcher[], finding: Finding): boolean {
@@ -166,6 +169,7 @@ export function correlateIncident(excerpt: string, findings: Finding[]): Correla
     overview: assembleOverview(escalation, chains, timeline, lines),
     rootCause: chains[0]?.root.finding ?? null,
     compromisedLogin: escalation !== null,
+    timeline: buildTimelineEntries(timeline, chains),
   };
 }
 

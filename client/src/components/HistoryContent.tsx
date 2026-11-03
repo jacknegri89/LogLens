@@ -20,7 +20,7 @@ export function HistoryContent({ items, clearHistory }: HistoryContentProps) {
         <ErrorNotice
           title={HISTORY_TEXT.clearFailed}
           message={clearHistory.error}
-          className="mt-6"
+          className="mt-8"
         />
       )}
     </>

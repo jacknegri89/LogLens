@@ -10,6 +10,18 @@ export interface Finding {
   owasp?: string;
 }
 
+/** One event of the incident in time order; `causedBy` is the index of the root entry in the same array. */
+export interface TimelineEntry {
+  /** Time as written in the evidence line, absent when the line has none. */
+  time?: string;
+  title: string;
+  category: string;
+  severity: Severity;
+  role: 'root' | 'effect' | 'independent';
+  evidence: string;
+  causedBy?: number;
+}
+
 export interface AnalysisReport {
   keyLines: string[];
   causes: string[];
@@ -21,6 +33,8 @@ export interface AnalysisReport {
   findings?: Finding[];
   /** Big picture of the incident: root cause versus symptoms, order of events, shared addresses. */
   overview?: string[];
+  /** Cause-to-effect chain of the events, from the correlation layer; only present with at least two findings. */
+  timeline?: TimelineEntry[];
 }
 
 /** Full analysis (matches GET /api/analyses/:id). */

@@ -11,6 +11,16 @@ export const findingSchema = z.object({
   owasp: z.string().min(1).max(100).optional(),
 });
 
+export const timelineEntrySchema = z.object({
+  time: z.string().min(1).max(100).optional(),
+  title: z.string().min(1).max(300),
+  category: z.string().min(1).max(100),
+  severity: severitySchema,
+  role: z.enum(['root', 'effect', 'independent']),
+  evidence: z.string().min(1).max(300),
+  causedBy: z.number().int().min(0).max(7).optional(),
+});
+
 /**
  * The exact shape we require back from the AI. We validate every AI response
  * against this with Zod, so the rest of the app can trust the data instead of
@@ -27,6 +37,7 @@ export const aiReportSchema = z.object({
   format: z.string().min(1).max(100).optional(),
   findings: z.array(findingSchema).max(5).optional(),
   overview: z.array(z.string().min(1).max(400)).max(6).optional(),
+  timeline: z.array(timelineEntrySchema).max(8).optional(),
 });
 
 export type AIReport = z.infer<typeof aiReportSchema>;

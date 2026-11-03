@@ -17,7 +17,7 @@ export interface TimelineEvent {
 
 const ISO_TIME = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:[.,](\d+))?(Z|[+-]\d{2}:?\d{2})?$/;
 const CLOCK_TIME = /\d{2}:\d{2}:\d{2}/;
-const MAX_TITLE_IN_SENTENCE = 40;
+export const MAX_TITLE_IN_SENTENCE = 70;
 
 /** The non-empty lines of an excerpt, the same way the findings read them. */
 export function splitLines(excerpt: string): string[] {
@@ -81,8 +81,13 @@ export function buildTimeline(lines: string[], findings: Finding[]): TimelineEve
   return sortChronologically(events);
 }
 
+/** Cuts at the last whole word that fits, so a sentence never ends in half a word. */
 export function shortenText(text: string, maxLength: number): string {
-  return text.length <= maxLength ? text : `${text.slice(0, maxLength - 3)}...`;
+  if (text.length <= maxLength) return text;
+  const room = text.slice(0, maxLength - 3);
+  const lastSpace = room.lastIndexOf(' ');
+  const kept = lastSpace > maxLength / 2 ? room.slice(0, lastSpace) : room;
+  return `${kept}...`;
 }
 
 /** The date is shown only when the events do not all happen on the same day. */

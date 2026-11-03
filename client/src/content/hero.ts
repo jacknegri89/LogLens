@@ -20,4 +20,8 @@ export const PRINTOUT: PrintLine[] = [
   { text: '09:14:22 INFO  health check passed', failing: false },
   { text: '09:14:26 DEBUG cache hit ratio 0.91', failing: false },
   { text: '09:14:30 INFO  scheduled job finished', failing: false },
+  { text: '09:14:34 DEBUG GET /api/history 200 12ms', failing: false },
+  { text: '09:14:39 INFO  backup snapshot uploaded', failing: false },
+  { text: '09:14:41 DEBUG gc pause 3ms, heap 188MB', failing: false },
+  { text: '09:14:45 INFO  health check passed', failing: false },
 ];

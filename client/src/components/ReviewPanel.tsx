@@ -7,7 +7,10 @@ import { AnalysisProgress } from './AnalysisProgress';
 import { ErrorNotice } from './ErrorNotice';
 import { ReportView } from './ReportView';
 
-/** The right half of the Analyze page: the review, written in red pen. */
+/**
+ * The right half of the Analyze page: the case folder beside the sheet. From lg up it
+ * is exactly as tall as the sheet and scrolls inside, so the desk never grows uneven.
+ */
 export function ReviewPanel({
   status,
   error,
@@ -18,14 +21,18 @@ export function ReviewPanel({
   result: AnalysisRecord | null;
 }) {
   return (
-    <section
-      className="min-w-0 bg-felt-2 p-7 lg:max-h-[40.5rem] lg:overflow-y-auto"
-      aria-live="polite"
-    >
-      {status === 'loading' && <AnalysisProgress />}
-      {status === 'error' && <ErrorNotice title={ANALYZE_TEXT.failedTitle} message={error} />}
-      {status === 'idle' && result && <ResultView analysis={result} />}
-      {status === 'idle' && !result && <ReviewEmpty />}
+    <section className="case-folder min-w-0 lg:relative" aria-label={ANALYZE_TEXT.exhibitReview}>
+      <div className="p-6 sm:p-7 lg:absolute lg:inset-0 lg:overflow-y-auto" aria-live="polite">
+        <p className="evidence-label text-chalk" aria-hidden="true">
+          {ANALYZE_TEXT.exhibitReview}
+        </p>
+        <div className="mt-6">
+          {status === 'loading' && <AnalysisProgress />}
+          {status === 'error' && <ErrorNotice title={ANALYZE_TEXT.failedTitle} message={error} />}
+          {status === 'idle' && result && <ResultView analysis={result} />}
+          {status === 'idle' && !result && <ReviewEmpty />}
+        </div>
+      </div>
     </section>
   );
 }
@@ -44,21 +51,31 @@ function ResultView({ analysis }: { analysis: AnalysisRecord }) {
   );
 }
 
+/** Before any analysis: a pinned index card listing what the review will hold. */
 function ReviewEmpty() {
   const items = ANALYZE_TEXT.reviewItems;
+  const entries = [
+    `${items.failingLines} ${items.failingLinesRest}`,
+    items.severity,
+    items.causes,
+    items.issue,
+  ];
   return (
-    <div>
-      <h2 className="text-2xl font-extrabold tracking-tight uppercase [font-stretch:125%]">
+    <div className="evidence-card evidence-tilt-right mx-auto mt-4 max-w-md">
+      <span className="pin" aria-hidden="true" />
+      <h2 className="text-[1.6rem] leading-tight font-black uppercase [font-stretch:125%]">
         {ANALYZE_TEXT.reviewTitle}
       </h2>
-      <p className="mt-3 text-lg text-chalk">{ANALYZE_TEXT.reviewEmpty}</p>
-      <ul className="mt-5 space-y-3 text-lg">
-        <li>
-          <span className="marker">{items.failingLines}</span> {items.failingLinesRest}
-        </li>
-        <li>{items.severity}</li>
-        <li>{items.causes}</li>
-        <li>{items.issue}</li>
+      <p className="mt-6 font-mono text-[15px] leading-7 text-ink-soft">
+        {ANALYZE_TEXT.reviewEmpty}
+      </p>
+      <ul className="font-mono text-[15px] leading-7">
+        {entries.map((entry, index) => (
+          <li key={entry} className="flex items-start gap-3 py-0.5">
+            <span className="evidence-tag mt-1">{ANALYZE_TEXT.evidenceTag(index + 1)}</span>
+            <span>{entry}</span>
+          </li>
+        ))}
       </ul>
     </div>
   );

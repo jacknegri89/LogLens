@@ -1,15 +1,16 @@
-/** The incident overview as short sentences, one arrow each, in the same list style as the causes. */
+/**
+ * The case summary: the overview sentences typed on a pinned sheet, in their order
+ * (root cause first, then what followed), the first one set as the lead.
+ */
 export function BigPicture({ sentences }: { sentences: string[] }) {
   return (
-    <ul className="space-y-3 text-[17px] leading-relaxed">
-      {sentences.map((sentence, i) => (
-        <li key={i} className="flex gap-3">
-          <span className="font-extrabold text-marker" aria-hidden="true">
-            →
-          </span>
-          <span>{sentence}</span>
-        </li>
-      ))}
-    </ul>
+    <div className="report-summary evidence-sheet">
+      <span className="pin" aria-hidden="true" />
+      <ol className="report-summary-list">
+        {sentences.map((sentence, index) => (
+          <li key={index}>{sentence}</li>
+        ))}
+      </ol>
+    </div>
   );
 }

@@ -30,13 +30,13 @@ export function EditorToolbar({
   anonymizedCounts,
 }: EditorToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-4 border-t-2 border-ink px-5 py-4">
+    <div className="flex flex-wrap items-center gap-4 border-t-2 border-ink bg-band/50 px-5 py-4">
       <AnalyzeButton canSubmit={canSubmit} onSubmit={onSubmit} />
       <OpenFileButton onFileLoad={onFileLoad} />
       {canClear && <ClearButton onClear={onClear} />}
       <AnonymizeToggle checked={anonymize} onChange={onAnonymizeChange} />
       {loading && <CancelButton onCancel={onCancel} />}
-      <span className="ml-auto text-xs text-ink-soft">{ANALYZE_TEXT.shortcutHint}</span>
+      <span className="ml-auto font-mono text-xs text-ink-soft">{ANALYZE_TEXT.shortcutHint}</span>
       <div role="status" className="basis-full text-sm font-bold empty:hidden">
         {anonymizedCounts && ANALYZE_TEXT.anonymizedNotice(anonymizedCounts)}
       </div>
