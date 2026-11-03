@@ -3,7 +3,7 @@ import { AppError } from '../../middleware/errorHandler';
 import type { AIProvider, AnalyzeInput } from '../AIProvider';
 import { guardReport } from '../guardReport';
 import { parseReport } from '../parseReport';
-import { buildUserPrompt, SYSTEM_PROMPT } from '../prompt';
+import { buildSystemPrompt, buildUserPrompt } from '../prompt';
 import type { AIReport } from '../schema';
 
 const OLLAMA_TEMPERATURE = 0.2;
@@ -30,7 +30,7 @@ function buildRequestBody(input: AnalyzeInput) {
     stream: false,
     options: { temperature: OLLAMA_TEMPERATURE },
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: buildSystemPrompt(input.language) },
       { role: 'user', content: buildUserPrompt(input) },
     ],
   };

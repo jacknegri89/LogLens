@@ -2,10 +2,11 @@ import {
   CAUSAL_RELATIONS,
   MAX_OVERVIEW_ITEMS,
   MAX_OVERVIEW_LENGTH,
-  OVERVIEW_TEXT,
   type CausalRelation,
   type EventMatcher,
 } from '../content/correlations';
+import { overviewText, relationExplanation } from '../content/localized';
+import { DEFAULT_LANGUAGE, type Language } from '../types/language';
 import type { Finding, TimelineEntry } from '../types/report';
 import {
   buildTimeline,
@@ -103,18 +104,19 @@ function nameEvent(event: TimelineEvent): string {
   return shortenText(event.finding.title, MAX_TITLE_IN_SENTENCE);
 }
 
-function nameConsequences(consequences: TimelineEvent[]): string {
+function nameConsequences(consequences: TimelineEvent[], language: Language): string {
   const named = consequences.slice(0, MAX_CONSEQUENCES_NAMED).map(nameEvent);
   const rest = consequences.length - named.length;
   return rest > 0
-    ? `${named.join('; ')} ${OVERVIEW_TEXT.moreConsequences(rest)}`
+    ? `${named.join('; ')} ${overviewText(language).moreConsequences(rest)}`
     : named.join('; ');
 }
 
-function describeChain(chain: Chain): string {
+function describeChain(chain: Chain, language: Language): string {
   const cause = `${nameEvent(chain.root)} (${chain.root.finding.category})`;
-  const consequences = nameConsequences(chain.consequences);
-  return OVERVIEW_TEXT.rootCause(cause, consequences, chain.relation.explanation);
+  const consequences = nameConsequences(chain.consequences, language);
+  const explanation = relationExplanation(chain.relation, language);
+  return overviewText(language).rootCause(cause, consequences, explanation);
 }
 
 /** The events that belong to a chain, once each, in time order. */
@@ -123,15 +125,14 @@ function chainEvents(chains: Chain[], timeline: TimelineEvent[]): TimelineEvent[
   return timeline.filter((event) => members.has(event));
 }
 
-function describeOrder(events: TimelineEvent[]): string {
+function describeOrder(events: TimelineEvent[], language: Language): string {
   const phrases = describeEvents(events);
-  return hasTimes(events)
-    ? OVERVIEW_TEXT.orderWithTime(phrases)
-    : OVERVIEW_TEXT.orderWithoutTime(phrases);
+  const text = overviewText(language);
+  return hasTimes(events) ? text.orderWithTime(phrases) : text.orderWithoutTime(phrases);
 }
 
-function describeEscalation(escalation: LoginEscalation): string {
-  return OVERVIEW_TEXT.bruteForceSucceeded(
+function describeEscalation(escalation: LoginEscalation, language: Language): string {
+  return overviewText(language).bruteForceSucceeded(
     escalation.failedLogins,
     escalation.address,
     escalation.user,
@@ -144,12 +145,13 @@ function assembleOverview(
   chains: Chain[],
   timeline: TimelineEvent[],
   lines: string[],
+  language: Language,
 ): string[] {
   return [
-    ...(escalation ? [describeEscalation(escalation)] : []),
-    ...chains.map(describeChain),
-    ...(chains.length > 0 ? [describeOrder(chainEvents(chains, timeline))] : []),
-    ...describeSharedEntities(lines, timeline),
+    ...(escalation ? [describeEscalation(escalation, language)] : []),
+    ...chains.map((chain) => describeChain(chain, language)),
+    ...(chains.length > 0 ? [describeOrder(chainEvents(chains, timeline), language)] : []),
+    ...describeSharedEntities(lines, timeline, language),
   ]
     .map((sentence) => shortenText(sentence, MAX_OVERVIEW_LENGTH))
     .slice(0, MAX_OVERVIEW_ITEMS);
@@ -160,13 +162,17 @@ function assembleOverview(
  * addresses and users, and a login that follows a brute force. It is pure and deterministic,
  * and it only states what the log shows together with the relations in `content/correlations.ts`.
  */
-export function correlateIncident(excerpt: string, findings: Finding[]): Correlation {
+export function correlateIncident(
+  excerpt: string,
+  findings: Finding[],
+  language: Language = DEFAULT_LANGUAGE,
+): Correlation {
   const lines = splitLines(excerpt);
   const timeline = buildTimeline(lines, findings);
   const chains = findChains(timeline, findLinks(timeline));
   const escalation = findLoginEscalation(lines);
   return {
-    overview: assembleOverview(escalation, chains, timeline, lines),
+    overview: assembleOverview(escalation, chains, timeline, lines, language),
     rootCause: chains[0]?.root.finding ?? null,
     compromisedLogin: escalation !== null,
     timeline: buildTimelineEntries(timeline, chains),
@@ -174,6 +180,10 @@ export function correlateIncident(excerpt: string, findings: Finding[]): Correla
 }
 
 /** The overview sentences alone, or an empty list when there is nothing to connect. */
-export function correlateEvents(excerpt: string, findings: Finding[]): string[] {
-  return correlateIncident(excerpt, findings).overview;
+export function correlateEvents(
+  excerpt: string,
+  findings: Finding[],
+  language: Language = DEFAULT_LANGUAGE,
+): string[] {
+  return correlateIncident(excerpt, findings, language).overview;
 }

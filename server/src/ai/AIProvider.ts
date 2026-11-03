@@ -1,3 +1,4 @@
+import type { Language } from '../types/language';
 import type { Severity } from '../types/report';
 import type { AIReport } from './schema';
 
@@ -5,6 +6,8 @@ import type { AIReport } from './schema';
 export interface AnalyzeInput {
   excerpt: string;
   severityHint: Severity;
+  /** The language of the report text. English when missing. */
+  language?: Language;
 }
 
 /**

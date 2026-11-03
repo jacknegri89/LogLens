@@ -1,22 +1,24 @@
 import { useState } from 'react';
 
 import { SHARE_TEXT } from '../content/share';
+import { useText } from '../i18n/useText';
 import { api } from '../lib/api';
-import { errorMessage } from '../lib/errors';
+import { useFailure } from './useFailure';
 
 /** Creates or revokes the read-only link of an analysis and keeps the current token. */
 export function useShareLink(analysisId: string, initialToken: string | null) {
   const [shareToken, setShareToken] = useState(initialToken);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const text = useText(SHARE_TEXT);
+  const { error, fail, clearFailure } = useFailure();
 
   async function change(action: () => Promise<string | null>, failure: string) {
     setBusy(true);
-    setError('');
+    clearFailure();
     try {
       setShareToken(await action());
     } catch (err: unknown) {
-      setError(errorMessage(err, failure));
+      fail(err, failure);
     } finally {
       setBusy(false);
     }
@@ -35,7 +37,7 @@ export function useShareLink(analysisId: string, initialToken: string | null) {
     shareToken,
     busy,
     error,
-    create: () => change(createToken, SHARE_TEXT.createFailed),
-    stop: () => change(revokeToken, SHARE_TEXT.stopFailed),
+    create: () => change(createToken, text.createFailed),
+    stop: () => change(revokeToken, text.stopFailed),
   };
 }

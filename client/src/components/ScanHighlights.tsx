@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 
 import { ANALYZE_TEXT } from '../content/analyze';
+import { useText } from '../i18n/useText';
 import type { ScanRow } from '../lib/scanRows';
 
 /** Delay between two lines lighting up, so they read as a sequence. */
@@ -23,13 +24,12 @@ function rowStyle(row: ScanRow, order: number): CSSProperties {
  * other, and each gets a numbered evidence tag (E1, E2...) stamped at its end.
  */
 export function ScanHighlights({ rows }: { rows: ScanRow[] }) {
+  const text = useText(ANALYZE_TEXT);
   return (
     <div className="pointer-events-none absolute inset-0" aria-hidden="true">
       {rows.map((row, order) => (
         <span key={`${row.top}-${order}`} className="scan-row" style={rowStyle(row, order)}>
-          <span className="evidence-tag evidence-tag-stamp">
-            {ANALYZE_TEXT.evidenceTag(order + 1)}
-          </span>
+          <span className="evidence-tag evidence-tag-stamp">{text.evidenceTag(order + 1)}</span>
         </span>
       ))}
     </div>

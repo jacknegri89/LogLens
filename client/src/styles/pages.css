@@ -16,25 +16,8 @@
 .history-heading {
   padding-top: 1rem;
 }
-.history-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--color-chalk);
-}
-.history-eyebrow::before {
-  content: '';
-  width: 2.5rem;
-  height: 2px;
-  background: var(--color-marker);
-}
 .history-title {
-  margin-top: 0.9rem;
+  margin-top: 0;
   font-size: clamp(2.75rem, 11.5vw, 8.5rem);
   font-weight: 800;
   line-height: 0.88;
@@ -653,7 +636,7 @@
   color: var(--color-chalk);
 }
 .lost-title {
-  margin-top: 0.9rem;
+  margin-top: 0;
   font-size: clamp(2.5rem, 9vw, 5.5rem);
   font-weight: 800;
   line-height: 0.92;
@@ -775,4 +758,32 @@
   .case-card:focus-visible .case-open::after {
     transform: rotate(45deg);
   }
+}
+
+/* Language switch in the header: two toggle buttons, the chosen one marked like the open nav tab. */
+.language-switch {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1px solid var(--color-chalk-dim);
+}
+.language-option {
+  min-width: 2rem;
+  padding: 0.3rem 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  color: var(--color-chalk);
+  transition: color 0.12s;
+}
+.language-option + .language-option {
+  border-left: 1px solid var(--color-chalk-dim);
+}
+.language-option:hover {
+  color: var(--color-paper);
+}
+.language-option[aria-pressed='true'] {
+  background: var(--color-marker);
+  color: var(--color-ink);
 }

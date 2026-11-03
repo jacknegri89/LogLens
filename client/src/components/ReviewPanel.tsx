@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { ANALYZE_TEXT } from '../content/analyze';
+import { useText } from '../i18n/useText';
 import type { AnalysisStatus } from '../hooks/useAnalysis';
 import type { AnalysisRecord } from '../lib/types';
 import { AnalysisProgress } from './AnalysisProgress';
@@ -20,15 +21,16 @@ export function ReviewPanel({
   error: string;
   result: AnalysisRecord | null;
 }) {
+  const text = useText(ANALYZE_TEXT);
   return (
-    <section className="case-folder min-w-0 lg:relative" aria-label={ANALYZE_TEXT.exhibitReview}>
+    <section className="case-folder min-w-0 lg:relative" aria-label={text.exhibitReview}>
       <div className="p-6 sm:p-7 lg:absolute lg:inset-0 lg:overflow-y-auto" aria-live="polite">
         <p className="evidence-label text-chalk" aria-hidden="true">
-          {ANALYZE_TEXT.exhibitReview}
+          {text.exhibitReview}
         </p>
         <div className="mt-6">
           {status === 'loading' && <AnalysisProgress />}
-          {status === 'error' && <ErrorNotice title={ANALYZE_TEXT.failedTitle} message={error} />}
+          {status === 'error' && <ErrorNotice title={text.failedTitle} message={error} />}
           {status === 'idle' && result && <ResultView analysis={result} />}
           {status === 'idle' && !result && <ReviewEmpty />}
         </div>
@@ -38,6 +40,7 @@ export function ReviewPanel({
 }
 
 function ResultView({ analysis }: { analysis: AnalysisRecord }) {
+  const text = useText(ANALYZE_TEXT);
   return (
     <div className="report-reveal">
       <ReportView analysis={analysis} />
@@ -45,7 +48,7 @@ function ResultView({ analysis }: { analysis: AnalysisRecord }) {
         to={`/analyses/${analysis.id}`}
         className="mt-8 inline-block font-bold underline decoration-2 underline-offset-4 hover:bg-marker hover:text-ink"
       >
-        {ANALYZE_TEXT.openFullPage}
+        {text.openFullPage}
       </Link>
     </div>
   );
@@ -53,7 +56,8 @@ function ResultView({ analysis }: { analysis: AnalysisRecord }) {
 
 /** Before any analysis: a pinned index card listing what the review will hold. */
 function ReviewEmpty() {
-  const items = ANALYZE_TEXT.reviewItems;
+  const text = useText(ANALYZE_TEXT);
+  const items = text.reviewItems;
   const entries = [
     `${items.failingLines} ${items.failingLinesRest}`,
     items.severity,
@@ -64,15 +68,13 @@ function ReviewEmpty() {
     <div className="evidence-card evidence-tilt-right mx-auto mt-4 max-w-md">
       <span className="pin" aria-hidden="true" />
       <h2 className="text-[1.6rem] leading-tight font-black uppercase [font-stretch:125%]">
-        {ANALYZE_TEXT.reviewTitle}
+        {text.reviewTitle}
       </h2>
-      <p className="mt-6 font-mono text-[15px] leading-7 text-ink-soft">
-        {ANALYZE_TEXT.reviewEmpty}
-      </p>
+      <p className="mt-6 font-mono text-[15px] leading-7 text-ink-soft">{text.reviewEmpty}</p>
       <ul className="font-mono text-[15px] leading-7">
         {entries.map((entry, index) => (
           <li key={entry} className="flex items-start gap-3 py-0.5">
-            <span className="evidence-tag mt-1">{ANALYZE_TEXT.evidenceTag(index + 1)}</span>
+            <span className="evidence-tag mt-1">{text.evidenceTag(index + 1)}</span>
             <span>{entry}</span>
           </li>
         ))}

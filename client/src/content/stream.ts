@@ -1,3 +1,5 @@
+import { defineText } from '../i18n/defineText';
+
 /**
  * Decorative log lines that scroll behind the Analyze headline. They are made up,
  * use documentation-only IP ranges (RFC 5737) and never come from a real system.
@@ -7,9 +9,11 @@ export interface StreamTemplate {
   flagged: boolean;
 }
 
-export const STREAM_TEXT = {
-  flagTag: 'possible break-in attempt',
-};
+/** The log lines are the same in every language, like real output; only the tag is translated. */
+export const STREAM_TEXT = defineText({
+  en: { flagTag: 'possible break-in attempt' },
+  it: { flagTag: 'possibile tentativo di intrusione' },
+});
 
 /** First timestamp of the stream, in seconds after midnight (03:12:40). */
 export const STREAM_START_SECONDS = 11_560;

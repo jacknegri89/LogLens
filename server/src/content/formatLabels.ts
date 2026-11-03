@@ -11,3 +11,5 @@ export const FORMAT_LABEL = {
   syslog: 'Syslog',
   plainText: 'Plain text',
 } as const;
+
+export type FormatKey = keyof typeof FORMAT_LABEL;

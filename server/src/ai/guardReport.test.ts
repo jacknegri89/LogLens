@@ -125,4 +125,13 @@ describe('guardReport text cleaning', () => {
 
     expect(report.bugReportMarkdown).toContain('**Severità:** high');
   });
+
+  it('rewrites the English severity line of the issue too', () => {
+    const report = guardReport(
+      { ...baseReport, bugReportMarkdown: '# T\n\n**Severity:** informational\n' },
+      input,
+    );
+
+    expect(report.bugReportMarkdown).toContain('**Severity:** high');
+  });
 });

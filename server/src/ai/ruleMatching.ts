@@ -1,4 +1,6 @@
+import { reportText } from '../content/localized';
 import { FALLBACK_RULE, RULES, type Rule } from '../content/rules';
+import { DEFAULT_LANGUAGE, type Language } from '../types/language';
 import type { Severity } from '../types/report';
 
 const SERVER_ERROR = /"\s5\d{2}\b|\bstatus[=:\s]+5\d{2}\b|HTTP\/\d(?:\.\d)?"?\s+5\d{2}\b/i;
@@ -24,11 +26,12 @@ export function raiseSeverity(current: Severity, floor: Severity): Severity {
 }
 
 /** Drops a leading "timestamp LEVEL" prefix so the title reads as a plain message. */
-export function makeTitle(keyLines: string[]): string {
+export function makeTitle(keyLines: string[], language: Language = DEFAULT_LANGUAGE): string {
+  const text = reportText(language);
   const first = keyLines[0] ?? '';
   const request = first.match(ACCESS_LOG_REQUEST);
   if (request) {
-    return `${request[1]} ${request[2]} returned ${request[3]}`.slice(0, MAX_TITLE_LENGTH);
+    return text.requestTitle(request[1], request[2], request[3]).slice(0, MAX_TITLE_LENGTH);
   }
   const withoutTimestamp = first.replace(
     /^(?:\d{4}-\d{2}-\d{2}[T ])?\d{2}:\d{2}:\d{2}(?:[.,]\d+)?Z?\s+/,
@@ -38,5 +41,5 @@ export function makeTitle(keyLines: string[]): string {
     /^(?:INFO|WARN|WARNING|ERROR|DEBUG|FATAL)\s+/i,
     '',
   );
-  return withoutPrefix.trim().slice(0, MAX_TITLE_LENGTH) || 'Unknown issue';
+  return withoutPrefix.trim().slice(0, MAX_TITLE_LENGTH) || text.unknownIssue;
 }

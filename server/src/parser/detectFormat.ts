@@ -1,4 +1,6 @@
-import { FORMAT_LABEL } from '../content/formatLabels';
+import type { FormatKey } from '../content/formatLabels';
+import { formatLabel } from '../content/localized';
+import { DEFAULT_LANGUAGE, type Language } from '../types/language';
 
 const MAX_SAMPLE_LINES = 30;
 /** Share of the sampled lines that must look alike for a line-based format. */
@@ -54,19 +56,19 @@ const SYSLOG_LINE =
   /^(?:<\d+>)?[A-Z][a-z]{2}\s+\d{1,2} \d{2}:\d{2}:\d{2} \S+ [\w./-]+(?:\[\d+\])?: |^<\d+>\d \d{4}-\d{2}-\d{2}T/;
 
 /** Most specific first: the first test that passes names the format. */
-const FORMAT_TESTS: { label: string; test: LinesTest }[] = [
-  { label: FORMAT_LABEL.jsonLines, test: isJsonLines },
-  { label: FORMAT_LABEL.windowsEvent, test: anyLine(WINDOWS_EVENT) },
-  { label: FORMAT_LABEL.pythonTraceback, test: anyLine(PYTHON_TRACEBACK) },
-  { label: FORMAT_LABEL.javaStackTrace, test: anyLine(JAVA_STACK_TRACE) },
-  { label: FORMAT_LABEL.nodeError, test: anyLine(NODE_ERROR) },
+const FORMAT_TESTS: { key: FormatKey; test: LinesTest }[] = [
+  { key: 'jsonLines', test: isJsonLines },
+  { key: 'windowsEvent', test: anyLine(WINDOWS_EVENT) },
+  { key: 'pythonTraceback', test: anyLine(PYTHON_TRACEBACK) },
+  { key: 'javaStackTrace', test: anyLine(JAVA_STACK_TRACE) },
+  { key: 'nodeError', test: anyLine(NODE_ERROR) },
   {
-    label: FORMAT_LABEL.dockerKubernetes,
+    key: 'dockerKubernetes',
     test: (lines) => mostLines(CONTAINER_TIMESTAMP)(lines) || anyLine(KUBERNETES_SIGNAL)(lines),
   },
-  { label: FORMAT_LABEL.postgres, test: anyLine(POSTGRES_LINE) },
-  { label: FORMAT_LABEL.accessLog, test: mostLines(ACCESS_LOG_LINE) },
-  { label: FORMAT_LABEL.syslog, test: mostLines(SYSLOG_LINE) },
+  { key: 'postgres', test: anyLine(POSTGRES_LINE) },
+  { key: 'accessLog', test: mostLines(ACCESS_LOG_LINE) },
+  { key: 'syslog', test: mostLines(SYSLOG_LINE) },
 ];
 
 function sampleLines(rawLog: string): string[] {
@@ -78,12 +80,12 @@ function sampleLines(rawLog: string): string[] {
 
 /**
  * Names the family a log belongs to, from its first lines. Pure and deterministic:
- * the same text always gets the same label, and "Plain text" is the answer when
- * nothing recognisable shows up.
+ * the same text always gets the same label (in the language asked for), and plain text is
+ * the answer when nothing recognisable shows up.
  */
-export function detectFormat(rawLog: string): string {
+export function detectFormat(rawLog: string, language: Language = DEFAULT_LANGUAGE): string {
   const lines = sampleLines(rawLog);
-  if (lines.length === 0) return FORMAT_LABEL.plainText;
+  if (lines.length === 0) return formatLabel('plainText', language);
   const match = FORMAT_TESTS.find(({ test }) => test(lines));
-  return match?.label ?? FORMAT_LABEL.plainText;
+  return formatLabel(match?.key ?? 'plainText', language);
 }

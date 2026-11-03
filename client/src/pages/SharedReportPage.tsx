@@ -3,17 +3,19 @@ import { useParams } from 'react-router-dom';
 import { ReportView } from '../components/ReportView';
 import { SharedBanner } from '../components/SharedBanner';
 import { SharedUnavailable } from '../components/SharedUnavailable';
-import { SHARE_TEXT } from '../content/share';
+import { SHARED_PAGE_TEXT } from '../content/sharedPage';
 import { useLoad } from '../hooks/useLoad';
+import { useText } from '../i18n/useText';
 import { api } from '../lib/api';
 
 /** Public page of a shared report: read-only, with no feedback and no share controls. */
 export function SharedReportPage() {
+  const text = useText(SHARED_PAGE_TEXT);
   const { token } = useParams();
   const { data: analysis, error } = useLoad(
     () => api.getShared(token ?? ''),
     [token],
-    SHARE_TEXT.unavailableFallback,
+    text.unavailableFallback,
   );
 
   if (error) return <SharedUnavailable message={error} />;
@@ -23,7 +25,7 @@ export function SharedReportPage() {
       <SharedBanner />
       {!analysis && (
         <p role="status" className="caret mt-10 text-lg text-chalk">
-          {SHARE_TEXT.loading}
+          {text.loading}
         </p>
       )}
       {analysis && (

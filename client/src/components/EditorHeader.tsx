@@ -1,4 +1,5 @@
 import { ANALYZE_TEXT } from '../content/analyze';
+import { useText } from '../i18n/useText';
 import { ExampleButtons } from './ExampleButtons';
 import { FileChip } from './FileChip';
 
@@ -14,10 +15,11 @@ export function EditorHeader({
   lineCount: number;
   onPickExample: (content: string) => void;
 }) {
+  const text = useText(ANALYZE_TEXT);
   return (
     <div className="border-b-2 border-ink px-5 pt-6 pb-3">
       <p className="evidence-label text-pen-deep" aria-hidden="true">
-        {ANALYZE_TEXT.exhibitLog}
+        {text.exhibitLog}
       </p>
       {/* No wrapping from sm up: a long file name truncates instead of pushing the editor down. */}
       <div className="mt-2.5 flex flex-wrap items-center justify-between gap-3 sm:flex-nowrap">
@@ -26,8 +28,8 @@ export function EditorHeader({
             <FileChip name={fileName} size={fileSize} lineCount={lineCount} />
           ) : (
             <span className="font-mono text-sm font-bold">
-              {ANALYZE_TEXT.untitledLog}
-              {lineCount > 0 && ANALYZE_TEXT.lineCountSuffix(lineCount)}
+              {text.untitledLog}
+              {lineCount > 0 && text.lineCountSuffix(lineCount)}
             </span>
           )}
         </div>

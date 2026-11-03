@@ -2,16 +2,89 @@
  * Knowledge base of the rules engine: the failures it recognises and the advice
  * shown to the reader. Everything a visitor reads here lives in this file, so the
  * wording can change without touching the engine in `rulesProvider.ts`.
+ *
+ * English is the source of truth: the patterns, ids and categories are written once, here.
+ * Every other language is a parallel text table (`rules.it.ts`) keyed by the rule id, so a rule
+ * without a translation does not compile.
  */
-import { extractLineFields } from '../parser/lineFields';
 import type { Severity } from '../types/report';
+import type { LogDetails } from './logDetails';
+
+/** The stable name of each rule. A translation table has one entry per id. */
+export type RuleId =
+  | 'injection-attack'
+  | 'postgres-password-failed'
+  | 'image-pull-or-crash-loop'
+  | 'dns-resolution'
+  | 'disk-full'
+  | 'certificate-verification'
+  | 'cors-blocked'
+  | 'hydration-mismatch'
+  | 'java-null-pointer'
+  | 'database-unreachable'
+  | 'connection-refused'
+  | 'port-in-use'
+  | 'out-of-memory'
+  | 'null-property-access'
+  | 'type-error'
+  | 'index-error'
+  | 'duplicate-key'
+  | 'not-null-violation'
+  | 'timeout'
+  | 'module-not-found'
+  | 'permission-denied'
+  | 'file-not-found'
+  | 'unauthorized'
+  | 'syntax-error'
+  | 'stack-overflow'
+  | 'connection-pool-exhausted'
+  | 'failed-login-attempts'
+  | 'bad-gateway'
+  | 'server-error'
+  | 'rate-limited'
+  | 'unhandled-promise-rejection'
+  | 'connection-reset'
+  | 'python-exception'
+  | 'segmentation-fault'
+  | 'mysql-access-denied'
+  | 'tls-certificate'
+  | 'redis-rejected-command'
+  | 'docker-daemon'
+  | 'native-panic'
+  | 'dotnet-exception'
+  | 'php-fatal-error'
+  | 'ruby-nil-method'
+  | 'nginx-error'
+  | 'service-failed-to-start'
+  | 'pod-evicted'
+  | 'sqlite-locked'
+  | 'missing-table-or-column'
+  | 'too-many-open-files'
+  | 'host-unreachable'
+  | 'connection-aborted'
+  | 'cloud-access-denied'
+  | 'invalid-json-body'
+  | 'unhandled-exception'
+  | 'client-error'
+  | 'fallback';
+
+/** What the reader is told about a rule: the only part of a rule that changes with the language. */
+export interface RuleText {
+  causes: string[];
+  /** Builds the causes from the log when its details make the cause specific. Replaces `causes`. */
+  causesFor?: (details: LogDetails) => string[];
+  debugSteps: string[];
+}
 
 /**
  * One known kind of failure: how to recognise it in a log, and what to tell the
- * reader about it. Rules are checked in order, the first match wins.
+ * reader about it (in English; see `rules.it.ts` for the other languages).
+ * Rules are checked in order, the first match wins.
  */
-export interface Rule {
+export interface Rule extends RuleText {
+  id: RuleId;
   pattern: RegExp;
+  /** A technical label that stays in English in every language: the correlation table relies on it. */
   category: string;
   severity?: Severity;
   /** Raises the severity to critical when the log also shows a server error (5xx). */
@@ -20,10 +93,6 @@ export interface Rule {
   mitre?: string;
   /** OWASP Top 10 (2021) category, set only where the rule maps to one. */
   owasp?: string;
-  causes: string[];
-  /** Builds the causes from the log when its details make the cause specific. Replaces `causes`. */
-  causesFor?: (excerpt: string) => string[];
-  debugSteps: string[];
 }
 
 /** Scanner names and injection payloads that mark a request as an attack. */
@@ -33,16 +102,7 @@ export const ATTACK_SIGNATURE =
 export const FAILURE_LINE =
   /\berror\b|[a-z]Error\b|exception|\bfatal\b|\bpanic\b|\bfail(?:ed|ure|s)?\b|refused|killed|\btimeout\b|timed out|denied|traceback/i;
 
-/** The innermost frame of a Python or Java traceback: where the failure really happened. */
-function lastFrame(excerpt: string): string {
-  const pythonFrames = [...excerpt.matchAll(/File "([^"]+)", line (\d+), in (\S+)/g)];
-  const last = pythonFrames.at(-1);
-  if (last) return `${last[1]}, line ${last[2]}, in ${last[3]}`;
-  const javaFrames = [...excerpt.matchAll(/^\s*at ([\w$.]+)\(([^)]+)\)/gm)];
-  const lastJava = javaFrames.at(-1);
-  if (lastJava) return `${lastJava[1]} (${lastJava[2]})`;
-  return 'the failing line of the log';
-}
+const FAILING_LINE = 'the failing line of the log';
 
 const CLIENT_ERROR_MEANING: Record<string, string> = {
   '400': 'the request is malformed or has invalid parameters.',
@@ -54,6 +114,7 @@ const CLIENT_ERROR_MEANING: Record<string, string> = {
 
 export const RULES: Rule[] = [
   {
+    id: 'injection-attack',
     pattern: ATTACK_SIGNATURE,
     category: 'Security Attack',
     severity: 'high',
@@ -72,11 +133,12 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'postgres-password-failed',
     pattern: /password authentication failed for user/i,
     category: 'Database Connection Failure',
     severity: 'high',
-    causesFor: (excerpt) => {
-      const user = excerpt.match(/for user "?([^"\s]+)"?/i)?.[1] ?? 'the configured user';
+    causesFor: ({ postgresUser }) => {
+      const user = postgresUser ?? 'the configured user';
       return [
         `Wrong credentials for user ${user} on PostgreSQL: the server rejected the password (FATAL: password authentication failed).`,
         'Because the login fails, the connection pool cannot open any connection and the requests that need the database fail.',
@@ -91,6 +153,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'image-pull-or-crash-loop',
     pattern:
       /imagepullbackoff|errimagepull|crashloopbackoff|back-off restarting|failed to pull image/i,
     category: 'Infrastructure',
@@ -106,6 +169,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'dns-resolution',
     pattern:
       /\benotfound\b|getaddrinfo|could not resolve host|name or service not known|temporary failure in name resolution/i,
     category: 'Network',
@@ -121,6 +185,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'disk-full',
     pattern: /no space left on device|enospc|disk quota exceeded/i,
     category: 'Infrastructure',
     severity: 'high',
@@ -135,6 +200,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'certificate-verification',
     pattern:
       /unable to verify the first certificate|self[- ]signed certificate|certificate has expired|cert_has_expired|ssl routines|unable_to_verify_leaf_signature/i,
     category: 'Network',
@@ -151,6 +217,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'cors-blocked',
     pattern: /blocked by cors policy|no 'access-control-allow-origin'/i,
     category: 'Network',
     severity: 'low',
@@ -165,6 +232,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'hydration-mismatch',
     pattern: /hydration failed|text content does not match|hydrat/i,
     category: 'Runtime',
     severity: 'low',
@@ -178,6 +246,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'java-null-pointer',
     pattern: /nullpointerexception/i,
     category: 'Runtime',
     severity: 'high',
@@ -192,6 +261,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'database-unreachable',
     pattern:
       /can't reach database server|(econnrefused|connection refused)[^\n]*(postgres|mysql|mongo|redis|database|:5432|:3306|:27017|:6379)/i,
     category: 'Database',
@@ -209,6 +279,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'connection-refused',
     pattern: /econnrefused|connection refused/i,
     category: 'Network',
     severity: 'high',
@@ -223,6 +294,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'port-in-use',
     pattern: /eaddrinuse|address already in use/i,
     category: 'Network',
     severity: 'medium',
@@ -237,6 +309,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'out-of-memory',
     pattern: /out of memory|outofmemoryerror|oomkilled|heap out of memory|exit code 137/i,
     category: 'Infrastructure',
     severity: 'high',
@@ -253,6 +326,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'null-property-access',
     pattern:
       /cannot read propert(y|ies) of (undefined|null)|undefined is not an object|is not a function/i,
     category: 'Runtime',
@@ -269,17 +343,14 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'type-error',
     pattern: /\bTypeError\b/,
     category: 'Runtime',
     severity: 'high',
-    causesFor: (excerpt) => {
-      const message =
-        excerpt.match(/TypeError: ([^\n]+)/)?.[1]?.trim() ?? 'a value of the wrong type';
-      return [
-        `A call received a value of the wrong type: ${message}.`,
-        'The value comes from input or data whose type the code does not check before using it.',
-      ];
-    },
+    causesFor: ({ typeErrorMessage }) => [
+      `A call received a value of the wrong type: ${typeErrorMessage ?? 'a value of the wrong type'}.`,
+      'The value comes from input or data whose type the code does not check before using it.',
+    ],
     causes: [],
     debugSteps: [
       'Open the file and line named in the message or in the last stack frame.',
@@ -288,11 +359,12 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'index-error',
     pattern: /\bIndexError\b|(?:list|string|tuple) index out of range/i,
     category: 'Runtime',
     severity: 'high',
-    causesFor: (excerpt) => [
-      `An index is read beyond the end of a sequence at ${lastFrame(excerpt)}: the list, string or tuple is shorter than the code expects.`,
+    causesFor: ({ lastFrame }) => [
+      `An index is read beyond the end of a sequence at ${lastFrame ?? FAILING_LINE}: the list, string or tuple is shorter than the code expects.`,
       'The data source returned fewer items than expected, often an empty query or API result.',
     ],
     causes: [],
@@ -303,6 +375,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'duplicate-key',
     pattern: /duplicate key|unique constraint|unique violation|sqlite_constraint_unique/i,
     category: 'Database',
     severity: 'medium',
@@ -317,16 +390,14 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'not-null-violation',
     pattern: /violates (?:not-null|not null) constraint|null value in column/i,
     category: 'Database',
     severity: 'high',
-    causesFor: (excerpt) => {
-      const column = excerpt.match(/column "([^"]+)"/i)?.[1] ?? 'a required column';
-      return [
-        `The INSERT or UPDATE writes NULL into ${column}, which the table does not allow.`,
-        'The code builds the row without a value for this field, often because the input was missing or an earlier step failed.',
-      ];
-    },
+    causesFor: ({ nullColumn }) => [
+      `The INSERT or UPDATE writes NULL into ${nullColumn ?? 'a required column'}, which the table does not allow.`,
+      'The code builds the row without a value for this field, often because the input was missing or an earlier step failed.',
+    ],
     causes: [],
     debugSteps: [
       'Find the code that builds the row and check that every NOT NULL column receives a value.',
@@ -335,6 +406,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'timeout',
     pattern: /etimedout|timed out|timeout(?!_)|deadline exceeded/i,
     category: 'Network',
     severity: 'medium',
@@ -350,6 +422,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'module-not-found',
     pattern: /cannot find module|module not found|err_module_not_found|no module named/i,
     category: 'Build',
     severity: 'medium',
@@ -364,6 +437,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'permission-denied',
     pattern: /eacces|permission denied|eperm/i,
     category: 'Permissions',
     severity: 'medium',
@@ -378,6 +452,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'file-not-found',
     pattern: /enoent|no such file or directory/i,
     category: 'Filesystem',
     severity: 'medium',
@@ -392,6 +467,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'unauthorized',
     pattern: /unauthorized|forbidden|\b401\b|\b403\b|invalid token|jwt expired/i,
     category: 'Authentication',
     severity: 'medium',
@@ -406,6 +482,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'syntax-error',
     pattern: /syntaxerror|unexpected token|unexpected end of json/i,
     category: 'Runtime',
     severity: 'medium',
@@ -420,6 +497,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'stack-overflow',
     pattern: /maximum call stack|stack overflow/i,
     category: 'Runtime',
     severity: 'high',
@@ -434,6 +512,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'connection-pool-exhausted',
     pattern:
       /deadlock detected|too many connections|remaining connection slots|pool (?:is )?exhausted|timeout (?:acquiring|waiting for) (?:a )?connection/i,
     category: 'Database',
@@ -449,6 +528,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'failed-login-attempts',
     pattern: /failed password for|invalid user \S+ from|authentication failure;.*rhost=/i,
     category: 'Security Attack',
     severity: 'high',
@@ -464,6 +544,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'bad-gateway',
     pattern:
       /\bbad gateway\b|service unavailable|gateway timeout|"\s50[234]\s|\bstatus[=:\s]+50[234]\b/i,
     category: 'Infrastructure',
@@ -478,6 +559,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'server-error',
     pattern: /"\s5\d{2}\s|\bstatus[=:\s]+5\d{2}\b/i,
     category: 'Server Error',
     severity: 'high',
@@ -492,6 +574,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'rate-limited',
     pattern: /"\s429\s|too many requests|rate limit exceeded/i,
     category: 'Rate Limit',
     severity: 'low',
@@ -504,6 +587,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'unhandled-promise-rejection',
     pattern: /unhandledpromiserejection|unhandled promise rejection/i,
     category: 'Runtime',
     severity: 'high',
@@ -516,6 +600,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'connection-reset',
     pattern: /econnreset|socket hang up|connection reset by peer/i,
     category: 'Network',
     severity: 'medium',
@@ -529,12 +614,13 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'python-exception',
     pattern:
       /\bKeyError\b|\bValueError\b|\bAttributeError\b|\bZeroDivisionError\b|\bRecursionError\b/,
     category: 'Runtime',
     severity: 'high',
-    causesFor: (excerpt) => [
-      `The exception is raised at ${lastFrame(excerpt)} and was not handled there.`,
+    causesFor: ({ lastFrame }) => [
+      `The exception is raised at ${lastFrame ?? FAILING_LINE} and was not handled there.`,
       'The value at that line has a key, attribute or number that the code does not expect: often missing data or a wrong type.',
     ],
     causes: [],
@@ -545,6 +631,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'segmentation-fault',
     pattern: /segmentation fault|segfault|sigsegv|core dumped/i,
     category: 'Runtime',
     severity: 'high',
@@ -557,12 +644,12 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'mysql-access-denied',
     pattern: /access denied for user/i,
     category: 'Database Connection Failure',
     severity: 'high',
-    causesFor: (excerpt) => {
-      const user =
-        excerpt.match(/access denied for user '?([^'\s@]+)/i)?.[1] ?? 'the configured user';
+    causesFor: ({ mysqlUser }) => {
+      const user = mysqlUser ?? 'the configured user';
       return [
         `Wrong credentials for user ${user} on MySQL: the server rejected the login.`,
         'Because the login fails, the application cannot use the database and its requests fail.',
@@ -576,6 +663,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'tls-certificate',
     pattern:
       /certificate has expired|self[- ]signed certificate|unable to verify the first certificate|ssl certificate problem|x509: certificate|cert_has_expired/i,
     category: 'Network',
@@ -592,6 +680,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'redis-rejected-command',
     pattern: /\bNOAUTH\b|\bWRONGPASS\b|OOM command not allowed|MISCONF Redis/,
     category: 'Database Connection Failure',
     severity: 'high',
@@ -605,6 +694,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'docker-daemon',
     pattern:
       /cannot connect to the docker daemon|docker: error response from daemon|docker daemon is not running/i,
     category: 'Infrastructure',
@@ -620,6 +710,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'native-panic',
     pattern: /^panic: |goroutine \d+ \[running\]|thread '[^']*' panicked at/im,
     category: 'Runtime',
     severity: 'high',
@@ -633,6 +724,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'dotnet-exception',
     pattern: /unhandled exception\.|system\.\w+exception|nullreferenceexception/i,
     category: 'Runtime',
     severity: 'high',
@@ -646,6 +738,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'php-fatal-error',
     pattern: /php fatal error|uncaught (?:exception|error)|call to undefined function/i,
     category: 'Runtime',
     severity: 'high',
@@ -659,6 +752,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'ruby-nil-method',
     pattern: /nomethoderror|undefined method `?\w+'? for nil/i,
     category: 'Runtime',
     severity: 'high',
@@ -670,6 +764,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'nginx-error',
     pattern: /\[error\] \d+#\d+|\[crit\] \d+#\d+|upstream prematurely closed/i,
     category: 'Infrastructure',
     severity: 'high',
@@ -683,6 +778,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'service-failed-to-start',
     pattern: /failed to start |main process exited, code=|job for \S+ failed/i,
     category: 'Infrastructure',
     severity: 'high',
@@ -696,6 +792,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'pod-evicted',
     pattern: /\bevicted\b|the node was low on resource|ephemeral-storage/i,
     category: 'Infrastructure',
     severity: 'medium',
@@ -709,6 +806,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'sqlite-locked',
     pattern: /database is locked|sqlite_busy/i,
     category: 'Database',
     severity: 'medium',
@@ -722,20 +820,15 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'missing-table-or-column',
     pattern:
       /relation "[^"]+" does not exist|column "[^"]+" does not exist|table '[^']+' doesn't exist|no such table|no such column/i,
     category: 'Database',
     severity: 'high',
-    causesFor: (excerpt) => {
-      const name = excerpt.match(
-        /(?:relation|column|table) ['"]?([^'"\s]+)['"]? (?:does not exist|doesn't exist)|no such (?:table|column): (\S+)/i,
-      );
-      const object = name?.[1] ?? name?.[2] ?? 'the table or column';
-      return [
-        `The query uses ${object}, which does not exist in the database the application connects to.`,
-        'The migration that creates it was not run there, or the app points to a different database.',
-      ];
-    },
+    causesFor: ({ missingObject }) => [
+      `The query uses ${missingObject ?? 'the table or column'}, which does not exist in the database the application connects to.`,
+      'The migration that creates it was not run there, or the app points to a different database.',
+    ],
     causes: [],
     debugSteps: [
       'Check that the migrations ran on this database, and that DATABASE_URL points to the right one.',
@@ -744,6 +837,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'too-many-open-files',
     pattern: /too many open files|emfile|enfile/i,
     category: 'Infrastructure',
     severity: 'high',
@@ -757,6 +851,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'host-unreachable',
     pattern: /ehostunreach|no route to host|enetunreach|network is unreachable/i,
     category: 'Network',
     severity: 'high',
@@ -770,6 +865,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'connection-aborted',
     pattern: /econnaborted|connection aborted|ssl handshake failed|handshake failure/i,
     category: 'Network',
     severity: 'medium',
@@ -783,6 +879,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'cloud-access-denied',
     pattern:
       /accessdenied|expiredtoken|the security token included in the request is expired|invalid_grant/i,
     category: 'Access Denied',
@@ -799,6 +896,7 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'invalid-json-body',
     pattern: /json parse error|invalid json|unexpected end of input|failed to decode json/i,
     category: 'Client Error',
     severity: 'medium',
@@ -812,16 +910,14 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'unhandled-exception',
     pattern: /exception in thread "|\b[\w$]+(?:\.[\w$]+)*(?:Exception|Error): /,
     category: 'Runtime',
     severity: 'high',
-    causesFor: (excerpt) => {
-      const exceptionName = excerpt.match(/([\w$]+(?:\.[\w$]+)*(?:Exception|Error)):/)?.[1];
-      return [
-        `The exception ${exceptionName ?? '(see the first line)'} was not caught and stopped the thread.`,
-        `It was raised at ${lastFrame(excerpt)} and was not handled there.`,
-      ];
-    },
+    causesFor: ({ exceptionName, lastFrame }) => [
+      `The exception ${exceptionName ?? '(see the first line)'} was not caught and stopped the thread.`,
+      `It was raised at ${lastFrame ?? FAILING_LINE} and was not handled there.`,
+    ],
     causes: [],
     debugSteps: [
       'Read the "Caused by" lines at the bottom: the innermost cause is the real problem.',
@@ -830,12 +926,12 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    id: 'client-error',
     pattern: /"\s4\d{2}\s|\bstatus[=:\s]+4\d{2}\b/i,
     category: 'Client Error',
     severity: 'low',
-    causesFor: (excerpt) => {
-      const code = excerpt.match(/"\s(4\d{2})\s|\bstatus[=:\s]+(4\d{2})\b/i);
-      const status = code?.[1] ?? code?.[2] ?? '4xx';
+    causesFor: ({ clientStatus }) => {
+      const status = clientStatus ?? '4xx';
       return [
         `The server answered ${status}: ${CLIENT_ERROR_MEANING[status] ?? 'it refused the request because of how the client made it.'}`,
         'Many such answers from one address in a short time mean a scanner or a broken client, not a user.',
@@ -850,28 +946,22 @@ export const RULES: Rule[] = [
   },
 ];
 
-/** The first line that reports a failure, or null when the excerpt has none. */
-function firstFailureLine(excerpt: string): string | null {
-  const lines = excerpt.split('\n').filter((line) => line.trim() !== '');
-  return lines.find((line) => FAILURE_LINE.test(line)) ?? null;
-}
-
 /**
  * Used when no rule matches. It quotes the failing line exactly and says so when
  * there is no failure at all, so the reader never gets a generic answer.
  */
 export const FALLBACK_RULE: Rule = {
+  id: 'fallback',
   pattern: /./,
   category: 'Runtime',
-  causesFor: (excerpt) => {
-    const line = firstFailureLine(excerpt);
-    if (line === null) {
+  causesFor: ({ failureLine, failureLineFields }) => {
+    if (failureLine === undefined) {
       return ['The excerpt holds normal activity only: no line in it reports a failure.'];
     }
-    const fields = extractLineFields(line);
+    const fields = failureLineFields.map(({ label, value }) => `${label} ${value}`);
     const fieldText = fields.length > 0 ? ` Read from the line: ${fields.join('; ')}.` : '';
     return [
-      `The failing line is: "${line}".${fieldText}`,
+      `The failing line is: "${failureLine}".${fieldText}`,
       'The rules hold no entry for this exact message, so the cause is in the code that writes it: search for this text to find the function.',
     ];
   },

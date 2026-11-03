@@ -1,4 +1,5 @@
 import { REPORT_TEXT } from '../content/report';
+import { useText } from '../i18n/useText';
 import { isFailure } from '../lib/format';
 
 /**
@@ -13,8 +14,9 @@ export function FailingLines({
   lines: string[];
   lineNumbers?: Map<string, number>;
 }) {
+  const text = useText(REPORT_TEXT);
   return (
-    <ol className="report-strips" tabIndex={0} aria-label={REPORT_TEXT.failingLinesLabel}>
+    <ol className="report-strips" tabIndex={0} aria-label={text.failingLinesLabel}>
       {lines.map((line, index) => (
         <li key={index} className="report-strip" data-failing={isFailure(line)}>
           <span className="report-strip-number">{lineNumbers?.get(line) ?? ''}</span>

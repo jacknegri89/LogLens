@@ -1,4 +1,6 @@
-import { causedByLabel, REPORT_TEXT, ROLE_LABEL } from '../content/report';
+import { REPORT_TEXT } from '../content/report';
+import type { TextOf } from '../i18n/defineText';
+import { useText } from '../i18n/useText';
 import type { TimelineEntry } from '../lib/types';
 import { SeverityBadge } from './SeverityBadge';
 
@@ -14,6 +16,7 @@ interface EvidenceCardProps {
  * is tied to the pin); a card with no link is only taped down, set apart from the chain.
  */
 export function EvidenceCard({ entry, index, rootIndex }: EvidenceCardProps) {
+  const text = useText(REPORT_TEXT);
   const pinned = entry.role !== 'independent';
   return (
     <li className="report-evidence evidence-card" data-role={entry.role}>
@@ -23,21 +26,25 @@ export function EvidenceCard({ entry, index, rootIndex }: EvidenceCardProps) {
         <span className="tape tape-top" aria-hidden="true" />
       )}
       <p className="report-evidence-top">
-        <span className="evidence-tag">{REPORT_TEXT.evidenceTag(index)}</span>
+        <span className="evidence-tag">{text.evidenceTag(index)}</span>
         {entry.time && <span className="report-evidence-time">{entry.time}</span>}
         <SeverityBadge severity={entry.severity} />
       </p>
       <h4 className="report-evidence-title">{entry.title}</h4>
       <p className="report-evidence-category">{entry.category}</p>
       <p className="report-evidence-line">{entry.evidence}</p>
-      <p className="report-evidence-role">{roleText(entry.role, rootIndex)}</p>
+      <p className="report-evidence-role">{roleText(text, entry.role, rootIndex)}</p>
     </li>
   );
 }
 
-function roleText(role: TimelineEntry['role'], rootIndex?: number): string {
+function roleText(
+  text: TextOf<typeof REPORT_TEXT>,
+  role: TimelineEntry['role'],
+  rootIndex?: number,
+): string {
   if (role === 'effect' && rootIndex !== undefined) {
-    return `${ROLE_LABEL.effect} · ${causedByLabel(rootIndex)}`;
+    return `${text.roleLabels.effect} · ${text.causedBy(rootIndex)}`;
   }
-  return ROLE_LABEL[role];
+  return text.roleLabels[role];
 }

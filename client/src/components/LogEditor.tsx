@@ -1,4 +1,5 @@
 import { ANALYZE_TEXT } from '../content/analyze';
+import { useText } from '../i18n/useText';
 import { useEditorReveal } from '../hooks/useEditorReveal';
 import { useFileDrop } from '../hooks/useFileDrop';
 import { countLines } from '../lib/format';
@@ -29,13 +30,14 @@ export interface LogEditorProps {
  * under the lamp. Drop a file here too.
  */
 export function LogEditor(props: LogEditorProps) {
+  const text = useText(ANALYZE_TEXT);
   const reveal = useEditorReveal(props.onFileLoad, props.onPickExample);
   const { dragging, dropZone } = useFileDrop(reveal.loadFile);
 
   return (
     <section
       id="case-file"
-      aria-label={ANALYZE_TEXT.exhibitLog}
+      aria-label={text.exhibitLog}
       className="evidence-sheet editor-sheet flex min-w-0 scroll-mt-8 flex-col"
       {...dropZone}
     >

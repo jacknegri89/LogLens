@@ -1,23 +1,25 @@
 import { useState } from 'react';
 
 import { FEEDBACK_TEXT } from '../content/feedback';
+import { useText } from '../i18n/useText';
 import { api } from '../lib/api';
-import { errorMessage } from '../lib/errors';
+import { useFailure } from './useFailure';
 
 /** The visitor's verdict on an analysis; choosing the same answer again clears it. */
 export function useFeedback(analysisId: string, initialHelpful: boolean | null) {
   const [helpful, setHelpful] = useState(initialHelpful);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const text = useText(FEEDBACK_TEXT);
+  const { error, fail, clearFailure } = useFailure();
 
   async function choose(verdict: boolean) {
     setSaving(true);
-    setError('');
+    clearFailure();
     try {
       const saved = await api.setFeedback(analysisId, helpful === verdict ? null : verdict);
       setHelpful(saved.helpful);
     } catch (err: unknown) {
-      setError(errorMessage(err, FEEDBACK_TEXT.saveFailed));
+      fail(err, text.saveFailed);
     } finally {
       setSaving(false);
     }

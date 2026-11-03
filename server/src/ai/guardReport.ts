@@ -70,7 +70,7 @@ export function guardReport(report: AIReport, input: AnalyzeInput): AIReport {
 /** The issue text, cleaned, with its severity line set to the severity the report really has. */
 function cleanMarkdown(markdown: string, severity: Severity, excerpt: string): string {
   return cleanText(markdown, excerpt).replace(
-    /^(\*{0,2}Severit[àa]\*{0,2}:?\*{0,2}\s*).*$/im,
+    /^(\*{0,2}Severit(?:y|à|a)\*{0,2}:?\*{0,2}\s*).*$/im,
     `$1${severity}`,
   );
 }
