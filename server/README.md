@@ -46,14 +46,16 @@ curl http://localhost:3001/api/health
 
 ## AI provider
 
-LogLens analyzes logs through a single `AIProvider` interface with three
+LogLens analyzes logs through a single `AIProvider` interface with five
 interchangeable implementations, selected by the `AI_PROVIDER` env var:
 
-| `AI_PROVIDER` | Engine                  | Setup                                  |
-| ------------- | ----------------------- | -------------------------------------- |
-| `mock`        | Canned plausible report | None — works offline (default)         |
-| `openai`      | OpenAI Chat Completions | Set `OPENAI_API_KEY`                   |
-| `ollama`      | Local Ollama model      | Install Ollama + `ollama pull <model>` |
+| `AI_PROVIDER` | Engine                                                 | Setup                                  |
+| ------------- | ------------------------------------------------------ | -------------------------------------- |
+| `mock`        | Canned plausible report                                | None — works offline (default)         |
+| `rules`       | Built-in rules engine                                  | None — no network, deterministic       |
+| `hybrid`      | Rules first, OpenAI only for logs no rule covers       | Set `OPENAI_API_KEY`                   |
+| `openai`      | OpenAI Chat Completions                                | Set `OPENAI_API_KEY`                   |
+| `ollama`      | Local Ollama model                                     | Install Ollama + `ollama pull <model>` |
 
 The flow: `parseLog` trims the log to an excerpt, the provider returns JSON, and
 we validate it with Zod before using it. Prompt design lives in

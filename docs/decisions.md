@@ -2,6 +2,18 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-03 — Il demo usa `hybrid`: regole prima, OpenAI per i log sconosciuti
+
+- **Decisione:** `AI_PROVIDER=hybrid` risponde con le regole quando un log è riconosciuto, e chiama OpenAI solo per il resto. Sostituisce la voce del 2026-11-01 sul demo.
+- **Motivo:** i log comuni restano gratuiti e deterministici, mentre i casi non coperti dalle regole ricevono una spiegazione vera invece del fallback.
+- **Scartato:** OpenAI per ogni log (costo sempre attivo) e il solo fallback a regole (risposte generiche sui casi nuovi).
+
+## 2026-11-03 — Il limite conta anche i tentativi falliti
+
+- **Decisione:** ogni richiesta valida viene registrata come tentativo prima della chiamata AI, in una tabella `AnalysisAttempt`. Le richieste rifiutate vengono rimosse dal conteggio.
+- **Motivo:** prima una chiamata fallita non consumava il limite, quindi poteva essere ripetuta senza fine a spese di OpenAI.
+- **Scartato:** contare solo le analisi riuscite, e un contatore in memoria (su Vercel non è condiviso tra istanze).
+
 ## 2026-11-02 — Il seed riempie solo una tabella vuota
 
 - **Decisione:** `prisma:migrate` crea solo le tabelle. Il seed (`db:seed`) aggiunge esempi solo se la tabella è vuota.

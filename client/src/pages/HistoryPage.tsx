@@ -5,9 +5,9 @@ import { ErrorNotice } from '../components/ErrorNotice';
 import { HistoryList } from '../components/HistoryList';
 import { ERROR_TEXT } from '../content/errors';
 import { HISTORY_TEXT } from '../content/history';
+import { useClearHistory } from '../hooks/useClearHistory';
 import { useLoad } from '../hooks/useLoad';
 import { api } from '../lib/api';
-import { errorMessage } from '../lib/errors';
 
 export function HistoryPage() {
   // Bumping this key loads the history again, for example after it was cleared.
@@ -17,23 +17,7 @@ export function HistoryPage() {
     [reloadKey],
     ERROR_TEXT.loadHistoryFallback,
   );
-  const [confirming, setConfirming] = useState(false);
-  const [clearing, setClearing] = useState(false);
-  const [clearError, setClearError] = useState('');
-
-  async function clearHistory() {
-    setClearing(true);
-    setClearError('');
-    try {
-      await api.deleteAnalyses();
-      setConfirming(false);
-      setReloadKey((key) => key + 1);
-    } catch (err: unknown) {
-      setClearError(errorMessage(err, HISTORY_TEXT.clearFailed));
-    } finally {
-      setClearing(false);
-    }
-  }
+  const clearHistory = useClearHistory(() => setReloadKey((key) => key + 1));
 
   return (
     <div>
@@ -47,16 +31,20 @@ export function HistoryPage() {
         <>
           <HistoryList items={items} />
           <ClearHistory
-            confirming={confirming}
-            clearing={clearing}
-            onStart={() => setConfirming(true)}
-            onCancel={() => setConfirming(false)}
-            onConfirm={clearHistory}
+            confirming={clearHistory.confirming}
+            clearing={clearHistory.clearing}
+            onStart={clearHistory.start}
+            onCancel={clearHistory.cancel}
+            onConfirm={clearHistory.clear}
           />
         </>
       )}
-      {clearError && (
-        <ErrorNotice title={HISTORY_TEXT.clearFailed} message={clearError} className="mt-6" />
+      {clearHistory.error && (
+        <ErrorNotice
+          title={HISTORY_TEXT.clearFailed}
+          message={clearHistory.error}
+          className="mt-6"
+        />
       )}
     </div>
   );

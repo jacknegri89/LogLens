@@ -2,6 +2,16 @@
 
 Modifiche approvate, dalla più recente.
 
+## 2026-11-03
+
+- Modalità `hybrid`: regole prima, OpenAI solo per i log che nessuna regola copre.
+- Il fallback cita la riga di errore esatta, o dice quando non c'è alcun errore.
+- Pulsante "Delete history" nello storico, con conferma; endpoint `DELETE /api/analyses` limitato al visitatore.
+- Il limite conta anche i tentativi falliti (tabella `AnalysisAttempt`).
+- Titoli leggibili per i log di accesso (`GET /percorso returned 500`).
+- Dipendenze aggiornate per le vulnerabilità: express, body-parser, morgan, zod, react-router-dom.
+- Refactor: `FAILURE_LINE` in un solo punto, rimosso `listAnalyses` inutilizzato, logica dello storico in `useClearHistory`.
+
 ## 2026-11-02 (audit)
 
 - Controllo del visitatore con test dedicato (`requireVisitorOwner`).
