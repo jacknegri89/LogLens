@@ -367,6 +367,29 @@ describe('RulesProvider', () => {
       'Exception in thread "main" java.lang.IllegalStateException: closed',
       'Runtime',
     ],
+    ['a locked SQLite file', 'sqlite3.OperationalError: database is locked', 'Database'],
+    [
+      'a missing PostgreSQL table',
+      'ERROR:  relation "orders" does not exist at character 15',
+      'Database',
+    ],
+    [
+      'too many open files',
+      'Error: EMFILE: too many open files, open "/app/data.json"',
+      'Infrastructure',
+    ],
+    ['an unreachable network host', 'connect EHOSTUNREACH 10.1.4.9:443', 'Network'],
+    ['a cut TLS handshake', 'Error: write EPROTO ssl handshake failure', 'Network'],
+    [
+      'an expired cloud credential',
+      'An error occurred (ExpiredToken): The security token included in the request is expired',
+      'Access Denied',
+    ],
+    [
+      'invalid JSON in a request',
+      '400 Bad Request: failed to decode json body, invalid json at offset 12',
+      'Client Error',
+    ],
   ])('recognises %s', async (_name, excerpt, expectedCategory) => {
     const report = await provider.analyze({ excerpt, severityHint: 'medium' });
 
