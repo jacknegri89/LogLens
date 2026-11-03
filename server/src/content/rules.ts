@@ -697,6 +697,107 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    pattern: /database is locked|sqlite_busy/i,
+    category: 'Database',
+    severity: 'medium',
+    causes: [
+      'Another connection holds a write lock on the SQLite file, usually a long transaction or a second process.',
+    ],
+    debugSteps: [
+      'Find the process that holds the file (lsof <file.db>) and check for transactions that are never committed.',
+      'Keep transactions short, and set a busy timeout in the driver.',
+      'Do not share one SQLite file between many writing processes; use PostgreSQL for that.',
+    ],
+  },
+  {
+    pattern:
+      /relation "[^"]+" does not exist|column "[^"]+" does not exist|table '[^']+' doesn't exist|no such table|no such column/i,
+    category: 'Database',
+    severity: 'high',
+    causesFor: (excerpt) => {
+      const name = excerpt.match(
+        /(?:relation|column|table) ['"]?([^'"\s]+)['"]? (?:does not exist|doesn't exist)|no such (?:table|column): (\S+)/i,
+      );
+      const object = name?.[1] ?? name?.[2] ?? 'the table or column';
+      return [
+        `The query uses ${object}, which does not exist in the database the application connects to.`,
+        'The migration that creates it was not run there, or the app points to a different database.',
+      ];
+    },
+    causes: [],
+    debugSteps: [
+      'Check that the migrations ran on this database, and that DATABASE_URL points to the right one.',
+      'Compare the schema of this database with the code (prisma migrate status, or the schema file).',
+      'Check the spelling of the table or column name in the query.',
+    ],
+  },
+  {
+    pattern: /too many open files|emfile|enfile/i,
+    category: 'Infrastructure',
+    severity: 'high',
+    causes: [
+      'The process opened more files or sockets than the system allows, usually because connections or file handles are not closed.',
+    ],
+    debugSteps: [
+      'Count the open handles of the process: lsof -p <pid> | wc -l.',
+      'Find code that opens files or connections in a loop and does not close them.',
+      'Raise the limit (ulimit -n) only after confirming that the handles are released.',
+    ],
+  },
+  {
+    pattern: /ehostunreach|no route to host|enetunreach|network is unreachable/i,
+    category: 'Network',
+    severity: 'high',
+    causes: [
+      'There is no network path to the target: wrong address, a firewall rule, or a route that is missing in this network.',
+    ],
+    debugSteps: [
+      'Ping and traceroute the target address from the same machine.',
+      'Check the firewall, security groups and the VPN or network the target lives in.',
+      'Check the address and port in the configuration.',
+    ],
+  },
+  {
+    pattern: /econnaborted|connection aborted|ssl handshake failed|handshake failure/i,
+    category: 'Network',
+    severity: 'medium',
+    causes: [
+      'The connection was cut during setup: a TLS version or cipher mismatch, a proxy in between, or a server that closed it.',
+    ],
+    debugSteps: [
+      'Test the TLS handshake by hand: openssl s_client -connect <host>:<port>.',
+      'Compare the TLS versions and ciphers the client and the server support.',
+      'Check whether a proxy or a firewall inspects the traffic.',
+    ],
+  },
+  {
+    pattern:
+      /accessdenied|expiredtoken|the security token included in the request is expired|invalid_grant/i,
+    category: 'Access Denied',
+    severity: 'high',
+    causes: [
+      'The cloud credentials are missing the permission for this action, or they have expired.',
+    ],
+    debugSteps: [
+      'Check which identity the request uses (aws sts get-caller-identity or the equivalent of your provider).',
+      'Compare the permissions of that identity with the action named in the error.',
+      'Refresh or rotate the expired credentials, and do not store long-lived keys in code.',
+    ],
+  },
+  {
+    pattern: /json parse error|invalid json|unexpected end of input|failed to decode json/i,
+    category: 'Client Error',
+    severity: 'medium',
+    causes: [
+      'The body sent to the server is not valid JSON: a truncated payload, a missing quote, or a wrong Content-Type.',
+    ],
+    debugSteps: [
+      'Print the raw body the client sent and validate it with a JSON linter.',
+      'Check that the Content-Type header is application/json when the body is JSON.',
+      'Return a clear 400 message from the server for invalid bodies.',
+    ],
+  },
+  {
     pattern: /exception in thread "|\b[\w$]+(?:\.[\w$]+)*(?:Exception|Error): /,
     category: 'Runtime',
     severity: 'high',
