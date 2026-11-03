@@ -55,3 +55,6 @@ client/test-results/
 client/playwright-report/
 test-results/
 playwright-report/
+
+# Browser tool logs
+.playwright-mcp/
