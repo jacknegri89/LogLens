@@ -106,7 +106,7 @@ LogLens/
 
 ## Screenshots
 
-> Captured on the live demo, which uses `AI_PROVIDER=rules` (built-in rules, no API key).
+> Captured on the live demo, which uses `AI_PROVIDER=hybrid`: the built-in rules answer first, and OpenAI only handles logs that no rule covers.
 
 | Paste a log or upload a file                  | Report with severity, key lines, causes and steps |
 | --------------------------------------------- | ------------------------------------------------- |
@@ -129,8 +129,8 @@ PostgreSQL on Neon through the Vercel integration. Both have a free tier.
    | ----------------------- | ------------------------------------------------------------------ |
    | `AI_PROVIDER`           | `rules` (no key needed), `hybrid` (rules first, OpenAI only for logs no rule covers), `openai` or `ollama`                      |
    | `OPENAI_API_KEY`        | your key, only when `AI_PROVIDER=openai` or `hybrid`                           |
-   | `RATE_LIMIT_PER_HOUR`   | analyses per client address per hour (default `5`, `0` = no limit) |
-   | `GLOBAL_LIMIT_PER_HOUR` | analyses for everyone per hour (default `100`, `0` = no limit)     |
+   | `RATE_LIMIT_PER_HOUR`   | analysis attempts per client address per hour, failed ones included (default `5`, `0` = no limit) |
+   | `GLOBAL_LIMIT_PER_HOUR` | analysis attempts for everyone per hour (default `100`, `0` = no limit)                            |
    | `TRUST_PROXY`           | `true` on Vercel, so the limit counts real visitors, not the proxy |
    | `VISITOR_SALT`          | any long random text, used to hash visitor addresses               |
    | `CORS_ORIGIN`           | leave empty: client and API share the same domain                  |
@@ -159,7 +159,7 @@ Try LogLens with the sample logs in [`examples/`](./examples/):
 
 ## Status
 
-Complete: log parsing, AI analysis (built-in rules engine, OpenAI or Ollama), REST API, React frontend, per-visitor analysis history, rate limits, unit tests, an end-to-end test for the log editor, and CI on GitHub Actions.
+Complete: log parsing, AI analysis (built-in rules engine, OpenAI or Ollama), REST API, React frontend, per-visitor analysis history (with delete), rate limits, unit tests, an end-to-end test for the log editor, and CI on GitHub Actions.
 
 ## License
 

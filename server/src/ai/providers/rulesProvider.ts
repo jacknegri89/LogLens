@@ -1,9 +1,8 @@
 import type { Severity } from '../../types/report';
-import { FALLBACK_RULE, RULES, type Rule } from '../../content/rules';
+import { FAILURE_LINE, FALLBACK_RULE, RULES, type Rule } from '../../content/rules';
 import type { AIProvider, AnalyzeInput } from '../AIProvider';
 import { aiReportSchema, type AIReport } from '../schema';
 
-const FAILURE_LINE = /error|exception|fatal|fail|refused|killed|timeout|denied/i;
 const SERVER_ERROR = /"\s5\d{2}\b|\bstatus[=:\s]+5\d{2}\b|HTTP\/\d(?:\.\d)?"?\s+5\d{2}\b/i;
 const MAX_KEY_LINES = 6;
 const MAX_TITLE_LENGTH = 100;

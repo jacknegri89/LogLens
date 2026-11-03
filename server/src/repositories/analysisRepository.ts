@@ -53,12 +53,6 @@ export async function createAnalysis(input: CreateAnalysisInput): Promise<Analys
   return toRecord(row);
 }
 
-/** Most recent analyses first, full records (rawLog + parsed report). */
-export async function listAnalyses(): Promise<AnalysisRecord[]> {
-  const rows = await prisma.analysis.findMany({ orderBy: { createdAt: 'desc' } });
-  return rows.map(toRecord);
-}
-
 /** A lightweight row for the history list: no rawLog, no full report. */
 export interface AnalysisSummary {
   id: string;

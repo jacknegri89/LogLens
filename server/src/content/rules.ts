@@ -25,7 +25,7 @@ export interface Rule {
 export const ATTACK_SIGNATURE =
   /sqlmap|\bnikto\b|\bnmap\b|dirbuster|gobuster|acunetix|union(?:\s|%20|\+)+select|(?:'|%27)(?:\s|%20|\+)*or(?:\s|%20|\+)+\d+(?:=|%3d)\d+|sleep\(\d+\)|<script|\.\.\/\.\.\//i;
 
-const FAILURE_LINE =
+export const FAILURE_LINE =
   /\berror\b|[a-z]Error\b|exception|\bfatal\b|\bfail(?:ed|ure|s)?\b|refused|killed|\btimeout\b|timed out|denied|traceback/i;
 
 /** The innermost frame of a Python or Java traceback: where the failure really happened. */
