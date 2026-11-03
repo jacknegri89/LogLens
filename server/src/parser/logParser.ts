@@ -22,6 +22,7 @@ export type LineCategory =
   | 'attack'
   | 'server-error'
   | 'client-error'
+  | 'login'
   | 'context';
 
 export interface ParsedLine {
@@ -82,6 +83,8 @@ const MATCHERS: { category: Exclude<LineCategory, 'context'>; pattern: RegExp }[
   },
   { category: 'client-error', pattern: /"\s4\d{2}\s|\bstatus[=:\s]+4\d{2}\b/i },
   { category: 'warning', pattern: /\bwarn(?:ing)?\b/i },
+  // A successful login is no failure, but after failed ones it can mean a break-in: keep it for the correlation.
+  { category: 'login', pattern: /\baccepted (?:password|publickey|keyboard-interactive)\b/i },
 ];
 
 function classify(line: string): Exclude<LineCategory, 'context'> | null {

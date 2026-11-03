@@ -26,6 +26,7 @@ export const aiReportSchema = z.object({
   bugReportMarkdown: z.string().min(1).max(12000),
   format: z.string().min(1).max(100).optional(),
   findings: z.array(findingSchema).max(5).optional(),
+  overview: z.array(z.string().min(1).max(400)).max(6).optional(),
 });
 
 export type AIReport = z.infer<typeof aiReportSchema>;

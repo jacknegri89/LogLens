@@ -2,6 +2,13 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-03 — Le diagnosi collegano gli eventi invece di elencarli
+
+- **Decisione:** il motore a regole correla i risultati di un log: una relazione "può causare" tra categorie (tabella in `content/correlations.ts`), ordine per timestamp ISO completo, indirizzi e utenti condivisi, escalation per login riuscito dopo tentativi falliti (soglia 3).
+- **Motivo:** ogni regola leggeva il log in isolamento, quindi un database rifiutato e l'errore di codice che ne deriva sembravano due bug separati.
+- **Scartato:** dedurre le relazioni dall'AI (non deterministico, e vale solo per i log sconosciuti); riordinare per orari senza anno (syslog) perché non reggono la mezzanotte.
+- **Limite:** la correlazione non c'è sul percorso OpenAI/Ollama; lì il prompt chiede al modello di separare causa radice e sintomi.
+
 ## 2026-11-03 — Condivisione con link segreto, senza account
 
 - **Decisione:** `POST /api/analyses/:id/share` crea un token casuale di 24 byte in `shareToken`. `GET /api/shared/:token` mostra il report in sola lettura, senza il log grezzo e senza il proprietario. `DELETE` revoca il link.

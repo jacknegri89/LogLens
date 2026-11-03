@@ -105,4 +105,10 @@ describe('parseReport server-only fields', () => {
     expect(report).not.toHaveProperty('format');
     expect(report).not.toHaveProperty('findings');
   });
+
+  it('drops the overview the model sent, because only the server correlates events', () => {
+    const sent = { ...VALID_REPORT, overview: ['The model says this is the root cause.'] };
+
+    expect(parseReport(JSON.stringify(sent))).not.toHaveProperty('overview');
+  });
 });

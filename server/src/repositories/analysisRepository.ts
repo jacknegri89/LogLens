@@ -180,6 +180,7 @@ export function toSharedReport(report: AnalysisReport): AnalysisReport {
     bugReportMarkdown: report.bugReportMarkdown,
     format: report.format,
     findings: report.findings,
+    overview: report.overview,
   };
 }
 

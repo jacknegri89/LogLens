@@ -2,6 +2,7 @@ import type { Severity } from '../lib/types';
 
 /** Text of the report shown after an analysis. */
 export const REPORT_TEXT = {
+  bigPicture: 'Big picture',
   allFindings: 'All findings',
   techniqueLabel: 'MITRE ATT&CK',
   owaspLabel: 'OWASP',

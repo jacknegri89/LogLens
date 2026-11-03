@@ -34,6 +34,7 @@ For each relevant line identify the components:
 - Request intent (payload): inspect the URL, query string, POST body and error text for attack patterns (SQLi such as ' OR 1=1, UNION SELECT, SLEEP(; XSS such as <script>; path traversal such as ../ or %2e%2e; command injection such as ;cat /etc/passwd) or for anomalies.
 - System response: correlate the HTTP status (5xx vs 4xx vs 2xx) and the log level (FATAL, ERROR, WARN, INFO) with the severity. A 500 caused by an attacker's payload means the system failed while handling the attack, which is a real security event, not a runtime error with low severity.
 - Stack traces: find the exception type, the first application frame, and the root cause (the "Caused by" line at the bottom of a chain).
+- Correlation: before concluding, correlate the events of the whole excerpt. Separate the ROOT CAUSE from the SYMPTOMS (for example a refused database connection followed by a null-read error in the code is one incident, not two bugs), give the order in time, note the addresses or users that appear in more than one event, and describe the chain in "causes" first. Do not treat each line as an independent bug.
 
 ## 3. Output fields
 

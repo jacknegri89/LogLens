@@ -18,6 +18,11 @@ export function pickSeverity(rule: Rule, text: string, severityHint: Severity): 
   return rule.severity ?? severityHint;
 }
 
+/** The higher of two severities: a finding can raise the severity of a report, never lower it. */
+export function raiseSeverity(current: Severity, floor: Severity): Severity {
+  return SEVERITY_ORDER.indexOf(floor) > SEVERITY_ORDER.indexOf(current) ? floor : current;
+}
+
 /** Drops a leading "timestamp LEVEL" prefix so the title reads as a plain message. */
 export function makeTitle(keyLines: string[]): string {
   const first = keyLines[0] ?? '';

@@ -241,3 +241,24 @@ describe('parseLog', () => {
     expect(result.excerpt).toContain('lines omitted');
   });
 });
+
+describe('parseLog successful logins', () => {
+  it('keeps an accepted login next to the failed ones, so a break-in can be seen', () => {
+    const log = [
+      'Nov  3 09:14:12 host sshd[1]: Failed password for root from 203.0.113.7 port 1 ssh2',
+      'Nov  3 09:14:13 host sshd[1]: Accepted password for root from 203.0.113.7 port 2 ssh2',
+    ].join('\n');
+
+    const result = parseLog(log);
+
+    expect(result.excerpt).toContain('Accepted password for root');
+  });
+
+  it('does not raise the severity for an accepted login on its own', () => {
+    const result = parseLog(
+      'Nov  3 09:14:13 host sshd[1]: Accepted publickey for deploy from 10.0.0.2',
+    );
+
+    expect(result.severityHint).toBe('low');
+  });
+});

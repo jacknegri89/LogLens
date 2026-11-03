@@ -19,6 +19,8 @@ export interface AnalysisReport {
   format?: string;
   /** Ranked most severe first; only present when the log has at least two distinct events. */
   findings?: Finding[];
+  /** Big picture of the incident: root cause versus symptoms, order of events, shared addresses. */
+  overview?: string[];
 }
 
 /** Full analysis (matches GET /api/analyses/:id). */
