@@ -20,6 +20,7 @@ import {
 import { createAnalysisBodySchema, type CreateAnalysisBody } from '../schemas/createAnalysis';
 import { feedbackBodySchema } from '../schemas/feedback';
 import { analyzeLog } from '../services/analysisService';
+import { parseLanguage, type Language } from '../types/language';
 
 /**
  * Routes for log analyses. Express 5 forwards rejected promises from async
@@ -66,16 +67,17 @@ analysesRouter.post('/', async (req: Request, res: Response) => {
     throw new AppError(400, parsed.error.issues[0]?.message ?? 'Invalid request body');
   }
   const visitor = res.locals.visitor as Visitor;
+  const language = parseLanguage(req.get('X-Language'));
 
   await reserveAttempt(visitor);
-  const saved = await analyzeAndSave(parsed.data, visitor);
+  const saved = await analyzeAndSave(parsed.data, visitor, language);
 
   res.status(201).json(saved);
 });
 
-/** Runs the analysis on the submitted log and stores it for this visitor. */
-async function analyzeAndSave(input: CreateAnalysisBody, visitor: Visitor) {
-  const { report } = await analyzeLog(input.rawLog);
+/** Runs the analysis on the submitted log, with the report in the visitor's language, and stores it. */
+async function analyzeAndSave(input: CreateAnalysisBody, visitor: Visitor, language: Language) {
+  const { report } = await analyzeLog(input.rawLog, language);
 
   return createAnalysis({
     source: input.source,

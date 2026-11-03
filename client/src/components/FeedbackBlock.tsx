@@ -1,4 +1,5 @@
 import { FEEDBACK_TEXT } from '../content/feedback';
+import { useText } from '../i18n/useText';
 import { useFeedback } from '../hooks/useFeedback';
 import { ACTION_BUTTON_CLASS } from '../lib/styles';
 import { ToolDrawer } from './ToolDrawer';
@@ -10,14 +11,11 @@ interface FeedbackBlockProps {
 
 /** Two toggle buttons: the visitor says whether the analysis helped. */
 export function FeedbackBlock({ analysisId, initialHelpful }: FeedbackBlockProps) {
+  const text = useText(FEEDBACK_TEXT);
   const { helpful, saving, error, choose } = useFeedback(analysisId, initialHelpful);
 
   return (
-    <ToolDrawer
-      title={FEEDBACK_TEXT.title}
-      hint={FEEDBACK_TEXT.hint}
-      className="report-drawer-verdict"
-    >
+    <ToolDrawer title={text.title} hint={text.hint} className="report-drawer-verdict">
       <div className="report-drawer-actions">
         <button
           type="button"
@@ -26,7 +24,7 @@ export function FeedbackBlock({ analysisId, initialHelpful }: FeedbackBlockProps
           onClick={() => choose(true)}
           className={ACTION_BUTTON_CLASS}
         >
-          {FEEDBACK_TEXT.useful}
+          {text.useful}
         </button>
         <button
           type="button"
@@ -35,7 +33,7 @@ export function FeedbackBlock({ analysisId, initialHelpful }: FeedbackBlockProps
           onClick={() => choose(false)}
           className={ACTION_BUTTON_CLASS}
         >
-          {FEEDBACK_TEXT.notUseful}
+          {text.notUseful}
         </button>
       </div>
       {error && (

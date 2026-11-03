@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 
 import { STREAM_TEXT } from '../content/stream';
+import { useText } from '../i18n/useText';
 import { useMotionPause } from '../hooks/useMotionPause';
 import { buildStreamLines, type StreamLine } from '../lib/logStream';
 
@@ -17,6 +18,7 @@ const COLUMNS = [0, 7, 12].map((offset) => startAt(STREAM_LINES, offset));
  * the lamp, scrolling up in three columns at different speeds. Hidden from screen readers.
  */
 export function HeroLogStream() {
+  const { flagTag } = useText(STREAM_TEXT);
   const wallRef = useRef<HTMLDivElement>(null);
   useMotionPause(wallRef);
 
@@ -24,7 +26,7 @@ export function HeroLogStream() {
     <div ref={wallRef} className="hero-wall" aria-hidden="true">
       <div className="hero-wall-plane">
         {COLUMNS.map((lines, index) => (
-          <WallColumn key={index} lines={lines} />
+          <WallColumn key={index} lines={lines} flagTag={flagTag} />
         ))}
       </div>
     </div>
@@ -32,8 +34,8 @@ export function HeroLogStream() {
 }
 
 /** Three identical copies back to back make the loop seamless. */
-function WallColumn({ lines }: { lines: StreamLine[] }) {
-  const copy = lines.map((line, index) => <WallRow key={index} line={line} />);
+function WallColumn({ lines, flagTag }: { lines: StreamLine[]; flagTag: string }) {
+  const copy = lines.map((line, index) => <WallRow key={index} line={line} flagTag={flagTag} />);
   return (
     <div className="hero-wall-column">
       <div className="hero-wall-track">
@@ -45,11 +47,11 @@ function WallColumn({ lines }: { lines: StreamLine[] }) {
   );
 }
 
-function WallRow({ line }: { line: StreamLine }) {
+function WallRow({ line, flagTag }: { line: StreamLine; flagTag: string }) {
   if (!line.flagged) return <div className="hero-wall-line">{line.text}</div>;
   return (
     <div className="hero-wall-line hero-wall-flagged">
-      <span className="hero-wall-tag">{STREAM_TEXT.flagTag}</span>
+      <span className="hero-wall-tag">{flagTag}</span>
       {line.text}
     </div>
   );

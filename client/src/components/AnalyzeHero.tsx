@@ -1,4 +1,5 @@
 import { ANALYZE_TEXT } from '../content/analyze';
+import { useText } from '../i18n/useText';
 import { HeroLogStream } from './HeroLogStream';
 import { LensStage } from './LensStage';
 
@@ -20,28 +21,28 @@ export function AnalyzeHero() {
 }
 
 function HeroCopy() {
+  const text = useText(ANALYZE_TEXT);
   return (
     <div>
-      <p className="evidence-label text-marker">{ANALYZE_TEXT.heroCaseLabel}</p>
       <h1 className="mt-5 text-[clamp(3rem,8.4vw,6.6rem)] leading-[0.86] font-black tracking-[-0.02em] uppercase [font-stretch:125%]">
-        {ANALYZE_TEXT.heroLines.map((line) => (
+        {text.heroLines.map((line) => (
           <span key={line} className="block">
             {line}{' '}
           </span>
         ))}
-        <span className="hero-marked">{ANALYZE_TEXT.heroMarked}</span>
+        <span className="hero-marked">{text.heroMarked}</span>
       </h1>
       <p className="mt-8 max-w-md text-lg leading-relaxed text-chalk [text-shadow:0_0_12px_var(--color-felt),0_0_3px_var(--color-felt)]">
-        {ANALYZE_TEXT.heroIntro}
+        {text.heroIntro}
       </p>
       <div className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3">
         <a
           href="#case-file"
           className="btn-ink px-6 py-3 text-sm font-bold tracking-wide uppercase [border-color:var(--color-paper)]"
         >
-          {ANALYZE_TEXT.heroCta}
+          {text.heroCta}
         </a>
-        <span className="font-mono text-sm text-chalk">{ANALYZE_TEXT.heroCtaHint}</span>
+        <span className="font-mono text-sm text-chalk">{text.heroCtaHint}</span>
       </div>
     </div>
   );

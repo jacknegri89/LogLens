@@ -1,6 +1,7 @@
 import type { RefObject } from 'react';
 
 import { ANALYZE_TEXT } from '../content/analyze';
+import { useText } from '../i18n/useText';
 import type { ScanRow } from '../lib/scanRows';
 import { LogTextarea } from './LogTextarea';
 import { MirrorText } from './MirrorText';
@@ -20,10 +21,11 @@ export function EditorTextBox({
   onTextChange: (text: string) => void;
   onSubmitShortcut: () => void;
 }) {
+  const labels = useText(ANALYZE_TEXT);
   return (
     <>
       <label htmlFor="log-input" className="sr-only">
-        {ANALYZE_TEXT.editorLabel}
+        {labels.editorLabel}
       </label>
       <div className="relative min-w-0 flex-1">
         <MirrorText text={text} mirrorRef={mirrorRef} />

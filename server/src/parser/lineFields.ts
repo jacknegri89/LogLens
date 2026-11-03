@@ -19,12 +19,20 @@ const FIELD_PATTERNS: { label: string; pattern: RegExp }[] = [
   { label: 'event id', pattern: /\b(?:event ?id|errno|error code|code)[=: ]+\w+/i },
 ];
 
+/** A measurable field of a log line: what it is (`label`, always English) and what it says. */
+export interface LineField {
+  label: string;
+  value: string;
+}
+
+export function extractLineFieldEntries(line: string): LineField[] {
+  return FIELD_PATTERNS.flatMap(({ label, pattern }) => {
+    const value = line.match(pattern)?.[0];
+    return value ? [{ label, value }] : [];
+  });
+}
+
 /** One "label value" entry per field found in the line, in a fixed order. */
 export function extractLineFields(line: string): string[] {
-  const found: string[] = [];
-  for (const { label, pattern } of FIELD_PATTERNS) {
-    const value = line.match(pattern)?.[0];
-    if (value) found.push(`${label} ${value}`);
-  }
-  return found;
+  return extractLineFieldEntries(line).map(({ label, value }) => `${label} ${value}`);
 }

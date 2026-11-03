@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#f1e9d2" />
-  <rect x="4" y="9" width="24" height="5" fill="#ffe45c" />
-  <rect x="5" y="20" width="14" height="2" fill="#17201c" opacity="0.35" />
-  <circle cx="14" cy="14" r="8" fill="none" stroke="#0f2a24" stroke-width="3.2" />
-  <line x1="20" y1="20" x2="27" y2="27" stroke="#0f2a24" stroke-width="3.6" stroke-linecap="round" />
+  <defs>
+    <clipPath id="lens"><circle cx="14" cy="14" r="7.4" /></clipPath>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#0f2a24" />
+  <circle cx="14" cy="14" r="7.4" fill="#16372f" />
+  <rect x="5" y="11.4" width="18" height="5.2" fill="#ffe45c" clip-path="url(#lens)" />
+  <circle cx="14" cy="14" r="8.6" fill="none" stroke="#f1e9d2" stroke-width="3" />
+  <line x1="20.6" y1="20.6" x2="27" y2="27" stroke="#ffe45c" stroke-width="4" stroke-linecap="round" />
 </svg>

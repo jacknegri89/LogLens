@@ -1,5 +1,6 @@
 import { ANALYZE_TEXT } from '../content/analyze';
 import { PRINTOUT, type PrintLine } from '../content/hero';
+import { useText } from '../i18n/useText';
 
 const FAILING_CLASS = 'bg-marker font-bold text-pen';
 
@@ -32,10 +33,9 @@ export function Printout({ magnified }: { magnified: boolean }) {
 }
 
 function PrintoutTag({ number }: { number: number | undefined }) {
+  const text = useText(ANALYZE_TEXT);
   if (number === undefined) return null;
   return (
-    <span className="evidence-tag printout-tag max-sm:hidden">
-      {ANALYZE_TEXT.evidenceTag(number)}
-    </span>
+    <span className="evidence-tag printout-tag max-sm:hidden">{text.evidenceTag(number)}</span>
   );
 }

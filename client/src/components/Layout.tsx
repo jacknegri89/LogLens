@@ -1,18 +1,21 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { LAYOUT_TEXT } from '../content/layout';
+import { useText } from '../i18n/useText';
+import { LanguageSwitch } from './LanguageSwitch';
 
 const NAV_TAB_CLASS = 'nav-tab text-xs font-bold tracking-[0.14em] uppercase sm:text-sm';
 
 /** The frame around every page: the lit desk, brand, navigation, the page, the footer. */
 export function Layout() {
+  const text = useText(LAYOUT_TEXT);
   return (
     <div className="desk flex min-h-dvh flex-col">
       <a
         href="#content"
         className="sr-only z-70 bg-marker px-3 py-2 font-bold text-ink focus:not-sr-only focus:absolute focus:top-3 focus:left-3"
       >
-        {LAYOUT_TEXT.skipToContent}
+        {text.skipToContent}
       </a>
       <SiteHeader />
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 sm:px-6">
@@ -24,27 +27,28 @@ export function Layout() {
 }
 
 function SiteHeader() {
+  const text = useText(LAYOUT_TEXT);
   return (
-    <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between gap-2 px-4 py-4 sm:px-6 sm:py-5">
+    <header className="relative z-10 mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-2 gap-y-3 px-4 py-4 sm:px-6 sm:py-5">
       <NavLink to="/" className="brand flex items-center gap-2.5">
         <BrandMark />
         <span className="flex flex-col">
           <span className="text-lg leading-none font-black tracking-tight uppercase sm:text-2xl [font-stretch:125%]">
-            {LAYOUT_TEXT.brand}
-          </span>
-          <span className="evidence-label mt-1 hidden text-[0.65rem] text-chalk-dim sm:block">
-            {LAYOUT_TEXT.brandTagline}
+            {text.brand}
           </span>
         </span>
       </NavLink>
-      <nav className="flex shrink-0 items-center sm:gap-2" aria-label={LAYOUT_TEXT.navLabel}>
-        <NavLink to="/" end className={NAV_TAB_CLASS}>
-          {LAYOUT_TEXT.analyze}
-        </NavLink>
-        <NavLink to="/history" className={NAV_TAB_CLASS}>
-          {LAYOUT_TEXT.history}
-        </NavLink>
-      </nav>
+      <div className="flex w-full items-center justify-between sm:w-auto sm:gap-4">
+        <nav className="flex items-center sm:gap-2" aria-label={text.navLabel}>
+          <NavLink to="/" end className={NAV_TAB_CLASS}>
+            {text.analyze}
+          </NavLink>
+          <NavLink to="/history" className={NAV_TAB_CLASS}>
+            {text.history}
+          </NavLink>
+        </nav>
+        <LanguageSwitch />
+      </div>
     </header>
   );
 }
@@ -62,11 +66,10 @@ function BrandMark() {
 }
 
 function SiteFooter() {
+  const text = useText(LAYOUT_TEXT);
   return (
     <footer className="mx-auto w-full max-w-6xl border-t border-dashed border-chalk-dim/40 px-4 py-6 sm:px-6">
-      <p className="max-w-3xl font-mono text-sm leading-relaxed text-chalk">
-        {LAYOUT_TEXT.footerPrivacy}
-      </p>
+      <p className="max-w-3xl font-mono text-sm leading-relaxed text-chalk">{text.footerPrivacy}</p>
     </footer>
   );
 }

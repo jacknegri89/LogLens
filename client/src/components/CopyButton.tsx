@@ -4,18 +4,13 @@ const COPIED_MESSAGE_MS = 1500;
 
 interface CopyButtonProps {
   text: string;
-  label?: string;
-  copiedLabel?: string;
+  label: string;
+  copiedLabel: string;
   className?: string;
 }
 
 /** Copies the text to the clipboard and briefly shows that it worked. */
-export function CopyButton({
-  text,
-  label = 'Copy',
-  copiedLabel = 'Copied',
-  className,
-}: CopyButtonProps) {
+export function CopyButton({ text, label, copiedLabel, className }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   async function onCopy() {

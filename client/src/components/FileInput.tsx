@@ -1,8 +1,11 @@
 import { useRef } from 'react';
+
 import { ANALYZE_TEXT } from '../content/analyze';
+import { useText } from '../i18n/useText';
 
 /** The "Open file" button and the hidden file picker behind it. */
 export function OpenFileButton({ onFileLoad }: { onFileLoad: (file: File) => void }) {
+  const text = useText(ANALYZE_TEXT);
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -12,7 +15,7 @@ export function OpenFileButton({ onFileLoad }: { onFileLoad: (file: File) => voi
         onClick={() => inputRef.current?.click()}
         className="btn-paper px-5 py-2.5 text-sm font-bold tracking-wide uppercase"
       >
-        {ANALYZE_TEXT.openFileButton}
+        {text.openFileButton}
       </button>
       <input
         ref={inputRef}

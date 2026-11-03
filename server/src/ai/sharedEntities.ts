@@ -1,4 +1,6 @@
-import { OVERVIEW_TEXT, SUSPICIOUS_CATEGORIES } from '../content/correlations';
+import { SUSPICIOUS_CATEGORIES } from '../content/correlations';
+import { overviewText } from '../content/localized';
+import type { Language } from '../types/language';
 import { pickRule } from './ruleMatching';
 import type { TimelineEvent } from './eventTimeline';
 
@@ -109,13 +111,14 @@ function countSuspiciousLines(lines: string[], address: string): number {
   }).length;
 }
 
-function describeAddress(shared: SharedEntity, lines: string[]): string {
+function describeAddress(shared: SharedEntity, lines: string[], language: Language): string {
   const categories = categoriesOf(shared);
+  const text = overviewText(language);
   if (allSuspicious(shared)) {
     const count = countSuspiciousLines(lines, shared.key);
-    return OVERVIEW_TEXT.sameAttacker(shared.shown, count, categories);
+    return text.sameAttacker(shared.shown, count, categories);
   }
-  return OVERVIEW_TEXT.sameHost(shared.shown, shared.events.length, categories);
+  return text.sameHost(shared.shown, shared.events.length, categories);
 }
 
 /**
@@ -123,11 +126,16 @@ function describeAddress(shared: SharedEntity, lines: string[]): string {
  * several findings. A user name is reported only among suspicious events: the same word can
  * be an operating system account in one line and a database account in another.
  */
-export function describeSharedEntities(lines: string[], timeline: TimelineEvent[]): string[] {
+export function describeSharedEntities(
+  lines: string[],
+  timeline: TimelineEvent[],
+  language: Language,
+): string[] {
   const address = findShared(timeline, 'address')[0];
   const user = findShared(timeline, 'user').find(allSuspicious);
+  const { sameUser } = overviewText(language);
   return [
-    ...(address ? [describeAddress(address, lines)] : []),
-    ...(user ? [OVERVIEW_TEXT.sameUser(user.shown, user.events.length, categoriesOf(user))] : []),
+    ...(address ? [describeAddress(address, lines, language)] : []),
+    ...(user ? [sameUser(user.shown, user.events.length, categoriesOf(user))] : []),
   ];
 }

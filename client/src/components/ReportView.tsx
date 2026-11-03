@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { REPORT_TEXT } from '../content/report';
+import { useText } from '../i18n/useText';
 import { findLineNumbers } from '../lib/format';
 import type { Finding, ReportSource, TimelineEntry } from '../lib/types';
 import { BigPicture } from './BigPicture';
@@ -24,6 +25,7 @@ interface ReportViewProps {
  * the evidence board with the red thread, the exhibits, the procedure, and the tool drawers.
  */
 export function ReportView({ analysis, children }: ReportViewProps) {
+  const text = useText(REPORT_TEXT);
   const { report } = analysis;
 
   return (
@@ -34,15 +36,15 @@ export function ReportView({ analysis, children }: ReportViewProps) {
       <FindingsSection findings={report.findings} />
       <FailingLinesSection analysis={analysis} />
       <div className="report-procedures">
-        <ReportSection title={REPORT_TEXT.probableCauses}>
+        <ReportSection title={text.probableCauses}>
           <CauseList causes={report.causes} />
         </ReportSection>
-        <ReportSection title={REPORT_TEXT.debugSteps}>
+        <ReportSection title={text.debugSteps}>
           <StepList steps={report.debugSteps} />
         </ReportSection>
       </div>
       <div className="report-drawers">
-        <ToolDrawer title={REPORT_TEXT.githubIssue} hint={REPORT_TEXT.githubIssueHint}>
+        <ToolDrawer title={text.githubIssue} hint={text.githubIssueHint}>
           <IssueActions id={analysis.id} markdown={report.bugReportMarkdown} />
         </ToolDrawer>
         {children}
@@ -52,40 +54,44 @@ export function ReportView({ analysis, children }: ReportViewProps) {
 }
 
 function FailingLinesSection({ analysis }: { analysis: ReportSource }) {
+  const text = useText(REPORT_TEXT);
   const { keyLines } = analysis.report;
   if (keyLines.length === 0) return null;
 
   const lineNumbers =
     analysis.rawLog === undefined ? undefined : findLineNumbers(analysis.rawLog, keyLines);
   return (
-    <ReportSection title={REPORT_TEXT.failingLines}>
+    <ReportSection title={text.failingLines}>
       <FailingLines lines={keyLines} lineNumbers={lineNumbers} />
     </ReportSection>
   );
 }
 
 function BigPictureSection({ overview }: { overview?: string[] }) {
+  const text = useText(REPORT_TEXT);
   if (!overview || overview.length === 0) return null;
   return (
-    <ReportSection title={REPORT_TEXT.bigPicture} className="report-section-summary">
+    <ReportSection title={text.bigPicture} className="report-section-summary">
       <BigPicture sentences={overview} />
     </ReportSection>
   );
 }
 
 function EvidenceBoardSection({ timeline }: { timeline?: TimelineEntry[] }) {
+  const text = useText(REPORT_TEXT);
   if (!timeline || timeline.length < 2) return null;
   return (
-    <ReportSection title={REPORT_TEXT.evidenceBoard} hint={REPORT_TEXT.evidenceBoardHint}>
+    <ReportSection title={text.evidenceBoard} hint={text.evidenceBoardHint}>
       <EvidenceBoard entries={timeline} />
     </ReportSection>
   );
 }
 
 function FindingsSection({ findings }: { findings?: Finding[] }) {
+  const text = useText(REPORT_TEXT);
   if (!findings || findings.length < 2) return null;
   return (
-    <ReportSection title={REPORT_TEXT.allFindings}>
+    <ReportSection title={text.allFindings}>
       <FindingsList findings={findings} />
     </ReportSection>
   );

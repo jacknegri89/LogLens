@@ -1,0 +1,58 @@
+/**
+ * Picks the text of the language the reader asked for. English lives next to the logic that
+ * uses it; every other language is a table with the same keys. `Record<TranslatedLanguage, ...>`
+ * makes a new language a compile error until each table below has an entry for it.
+ */
+import { DEFAULT_LANGUAGE, type Language, type TranslatedLanguage } from '../types/language';
+import {
+  OVERVIEW_TEXT,
+  type CausalRelation,
+  type OverviewText,
+  type RelationId,
+} from './correlations';
+import { OVERVIEW_TEXT_IT, RELATION_EXPLANATION_IT } from './correlations.it';
+import { FORMAT_LABEL, type FormatKey } from './formatLabels';
+import { FORMAT_LABEL_IT } from './formatLabels.it';
+import type { LogDetails } from './logDetails';
+import { REPORT_TEXT, type ReportText } from './reportText';
+import { REPORT_TEXT_IT } from './reportText.it';
+import type { Rule, RuleId, RuleText } from './rules';
+import { RULE_TEXT_IT } from './rules.it';
+
+const RULE_TEXT: Record<TranslatedLanguage, Record<RuleId, RuleText>> = { it: RULE_TEXT_IT };
+const RELATION_EXPLANATION: Record<TranslatedLanguage, Record<RelationId, string>> = {
+  it: RELATION_EXPLANATION_IT,
+};
+const OVERVIEW: Record<TranslatedLanguage, OverviewText> = { it: OVERVIEW_TEXT_IT };
+const FORMAT_LABELS: Record<TranslatedLanguage, Record<FormatKey, string>> = {
+  it: FORMAT_LABEL_IT,
+};
+const REPORT: Record<TranslatedLanguage, ReportText> = { it: REPORT_TEXT_IT };
+
+/** What the reader is told about a rule: causes and next steps. */
+export function ruleText(rule: Rule, language: Language): RuleText {
+  return language === DEFAULT_LANGUAGE ? rule : RULE_TEXT[language][rule.id];
+}
+
+/** The causes of a rule: the ones that quote the log when there are, else the fixed ones. */
+export function ruleCauses(text: RuleText, details: LogDetails): string[] {
+  return text.causesFor?.(details) ?? text.causes;
+}
+
+export function relationExplanation(relation: CausalRelation, language: Language): string {
+  return language === DEFAULT_LANGUAGE
+    ? relation.explanation
+    : RELATION_EXPLANATION[language][relation.id];
+}
+
+export function overviewText(language: Language): OverviewText {
+  return language === DEFAULT_LANGUAGE ? OVERVIEW_TEXT : OVERVIEW[language];
+}
+
+export function formatLabel(key: FormatKey, language: Language): string {
+  return language === DEFAULT_LANGUAGE ? FORMAT_LABEL[key] : FORMAT_LABELS[language][key];
+}
+
+export function reportText(language: Language): ReportText {
+  return language === DEFAULT_LANGUAGE ? REPORT_TEXT : REPORT[language];
+}

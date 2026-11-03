@@ -14,11 +14,19 @@ export interface EventMatcher {
   evidence?: RegExp;
 }
 
+/** The stable name of each relation. A translation table has one explanation per id. */
+export type RelationId =
+  | 'database-unavailable'
+  | 'service-unreachable'
+  | 'resource-exhausted'
+  | 'certificate-invalid'
+  | 'service-failed-to-run';
+
 export interface CausalRelation {
-  id: string;
+  id: RelationId;
   causes: EventMatcher[];
   effects: EventMatcher[];
-  /** Plain sentence that explains why the first event leads to the later ones. */
+  /** Plain sentence (in English) that explains why the first event leads to the later ones. */
   explanation: string;
 }
 
@@ -149,8 +157,23 @@ export const MIN_FAILED_LOGINS_BEFORE_SUCCESS = 3;
 export const MAX_OVERVIEW_ITEMS = 6;
 export const MAX_OVERVIEW_LENGTH = 400;
 
-/** Sentences of the overview. Titles are cut short before they get here, so every item stays brief. */
-export const OVERVIEW_TEXT = {
+/** The sentence patterns of the overview, one per kind of connection between events. */
+export interface OverviewText {
+  rootCause: (cause: string, consequences: string, explanation: string) => string;
+  orderWithTime: (events: string[]) => string;
+  orderWithoutTime: (events: string[]) => string;
+  sameAttacker: (address: string, count: number, categories: string) => string;
+  sameHost: (address: string, count: number, categories: string) => string;
+  sameUser: (user: string, count: number, categories: string) => string;
+  bruteForceSucceeded: (failedLogins: number, address: string, user: string) => string;
+  moreConsequences: (count: number) => string;
+}
+
+/**
+ * Sentences of the overview in English; `correlations.it.ts` has the same shape in Italian.
+ * Titles are cut short before they get here, so every item stays brief.
+ */
+export const OVERVIEW_TEXT: OverviewText = {
   rootCause: (cause: string, consequences: string, explanation: string): string =>
     `Probable root cause: ${cause}. ${explanation} Likely consequences: ${consequences}.`,
   orderWithTime: (events: string[]): string => `Order of events: ${events.join(', ')}.`,

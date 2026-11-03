@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 
 import { SeverityBadge } from './SeverityBadge';
 import { HISTORY_TEXT } from '../content/history';
-import { formatDate } from '../lib/format';
+import { useFormatDate } from '../hooks/useFormatDate';
+import { useText } from '../i18n/useText';
 import type { AnalysisSummary } from '../lib/types';
 
 /** The saved analyses as index cards in a drawer, newest first. */
@@ -24,11 +25,13 @@ interface HistoryCardProps {
 }
 
 function HistoryCard({ item, index, number }: HistoryCardProps) {
+  const text = useText(HISTORY_TEXT);
+  const formatDate = useFormatDate();
   return (
     <li className="case-entry" style={{ '--index': index } as CSSProperties}>
       <Link to={`/analyses/${item.id}`} className="case-card case-paper">
         <span className="case-tab" aria-hidden="true">
-          {HISTORY_TEXT.caseNumber(number)}
+          {text.caseNumber(number)}
         </span>
         <span className="case-card-head">
           <SeverityBadge severity={item.severity} />
@@ -41,7 +44,7 @@ function HistoryCard({ item, index, number }: HistoryCardProps) {
         </span>
         <span className="case-card-foot">
           <span className="case-category">{item.category}</span>
-          <span className="case-open">{HISTORY_TEXT.openCard}</span>
+          <span className="case-open">{text.openCard}</span>
         </span>
       </Link>
     </li>

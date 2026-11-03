@@ -1,4 +1,6 @@
 import type { AnalysisRecord, AnalysisSummary, SharedAnalysis } from './types';
+import { detectLanguage } from '../i18n/languages';
+import { RequestError } from './requestError';
 import { getVisitorId } from './visitor';
 
 // Empty base -> calls "/api/..." on the same origin. In dev, Vite proxies that
@@ -6,21 +8,28 @@ import { getVisitorId } from './visitor';
 // lives elsewhere.
 const BASE = import.meta.env.VITE_API_URL ?? '';
 
+/** The message the server sent, or an empty string when the response has no JSON body. */
+async function serverMessage(response: Response): Promise<string> {
+  try {
+    const body = (await response.json()) as { error?: { message?: string } };
+    return body.error?.message ?? '';
+  } catch {
+    return '';
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', 'X-Visitor-Id': getVisitorId() },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Visitor-Id': getVisitorId(),
+      'X-Language': detectLanguage(),
+    },
     ...init,
   });
 
   if (!response.ok) {
-    let message = `Request failed (${response.status})`;
-    try {
-      const body = (await response.json()) as { error?: { message?: string } };
-      if (body.error?.message) message = body.error.message;
-    } catch {
-      // Response had no JSON body; keep the generic message.
-    }
-    throw new Error(message);
+    throw new RequestError(response.status, await serverMessage(response));
   }
 
   return response.json() as Promise<T>;

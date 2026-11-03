@@ -1,44 +1,51 @@
 import { useRef, useState } from 'react';
 
 import { api, type CreateAnalysisInput } from '../lib/api';
-import { friendlyError } from '../lib/errors';
+import { useFailure } from './useFailure';
 import type { AnalysisRecord } from '../lib/types';
 
 export type AnalysisStatus = 'idle' | 'loading' | 'error';
 
 interface AnalysisState {
   status: AnalysisStatus;
-  error: string;
   result: AnalysisRecord | null;
 }
 
-const IDLE: AnalysisState = { status: 'idle', error: '', result: null };
+const IDLE: AnalysisState = { status: 'idle', result: null };
 
-/** The state a finished request leads to, or null when the visitor cancelled it. */
-async function requestAnalysis(
-  input: CreateAnalysisInput,
-  signal: AbortSignal,
-): Promise<AnalysisState | null> {
+/** How a finished request ended; null when the visitor cancelled it. */
+type Outcome = { result: AnalysisRecord } | { failure: unknown } | null;
+
+async function requestAnalysis(input: CreateAnalysisInput, signal: AbortSignal): Promise<Outcome> {
   try {
-    const result = await api.createAnalysis(input, signal);
-    return { status: 'idle', error: '', result };
-  } catch (error) {
-    if (isAbort(error)) return null;
-    return { status: 'error', error: friendlyError(error), result: null };
+    return { result: await api.createAnalysis(input, signal) };
+  } catch (failure) {
+    return isAbort(failure) ? null : { failure };
   }
 }
 
 /** Sends a log for analysis and keeps the state of the last request. */
 export function useAnalysis() {
   const [state, setState] = useState<AnalysisState>(IDLE);
+  const { error, fail, clearFailure } = useFailure();
   const abortRef = useRef<AbortController | null>(null);
+
+  function settle(outcome: Outcome) {
+    if (!outcome) return;
+    if ('failure' in outcome) {
+      fail(outcome.failure);
+      setState({ status: 'error', result: null });
+    } else {
+      setState({ status: 'idle', result: outcome.result });
+    }
+  }
 
   async function run(input: CreateAnalysisInput) {
     const controller = new AbortController();
     abortRef.current = controller;
-    setState({ status: 'loading', error: '', result: null });
-    const outcome = await requestAnalysis(input, controller.signal);
-    if (outcome) setState(outcome);
+    clearFailure();
+    setState({ status: 'loading', result: null });
+    settle(await requestAnalysis(input, controller.signal));
     abortRef.current = null;
   }
 
@@ -51,10 +58,11 @@ export function useAnalysis() {
   /** Stops a request that is running and forgets the last result. */
   function reset() {
     cancel();
+    clearFailure();
     setState(IDLE);
   }
 
-  return { ...state, run, cancel, reset };
+  return { ...state, error, run, cancel, reset };
 }
 
 function isAbort(error: unknown): boolean {

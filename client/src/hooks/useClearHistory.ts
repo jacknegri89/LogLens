@@ -1,22 +1,24 @@
 import { useState } from 'react';
 
 import { HISTORY_TEXT } from '../content/history';
+import { useText } from '../i18n/useText';
 import { api } from '../lib/api';
-import { errorMessage } from '../lib/errors';
+import { useFailure } from './useFailure';
 
 /** Deletes the whole history and keeps the progress and the failure message of the request. */
 function useDeleteHistory() {
+  const text = useText(HISTORY_TEXT);
+  const { error, fail, clearFailure } = useFailure();
   const [clearing, setClearing] = useState(false);
-  const [error, setError] = useState('');
 
   async function deleteAll(): Promise<boolean> {
     setClearing(true);
-    setError('');
+    clearFailure();
     try {
       await api.deleteAnalyses();
       return true;
     } catch (failure: unknown) {
-      setError(errorMessage(failure, HISTORY_TEXT.clearFailed));
+      fail(failure, text.clearFailed);
       return false;
     } finally {
       setClearing(false);

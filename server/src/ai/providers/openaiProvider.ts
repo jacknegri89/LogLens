@@ -3,7 +3,7 @@ import { AppError } from '../../middleware/errorHandler';
 import type { AIProvider, AnalyzeInput } from '../AIProvider';
 import { guardReport } from '../guardReport';
 import { parseReport } from '../parseReport';
-import { buildUserPrompt, SYSTEM_PROMPT } from '../prompt';
+import { buildSystemPrompt, buildUserPrompt } from '../prompt';
 import type { AIReport } from '../schema';
 
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
@@ -59,7 +59,7 @@ function buildRequestBody(input: AnalyzeInput) {
     max_tokens: OPENAI_MAX_TOKENS,
     response_format: { type: 'json_object' },
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: buildSystemPrompt(input.language) },
       { role: 'user', content: buildUserPrompt(input) },
     ],
   };

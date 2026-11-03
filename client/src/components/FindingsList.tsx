@@ -1,4 +1,5 @@
 import { REPORT_TEXT } from '../content/report';
+import { useText } from '../i18n/useText';
 import type { Finding } from '../lib/types';
 import { SeverityBadge } from './SeverityBadge';
 
@@ -32,11 +33,12 @@ function FindingRow({ finding }: { finding: Finding }) {
 }
 
 function FindingTags({ technique, owasp }: { technique?: string; owasp?: string }) {
+  const text = useText(REPORT_TEXT);
   if (!technique && !owasp) return null;
   return (
     <p className="report-tags">
-      {technique && <ReferenceTag label={REPORT_TEXT.techniqueLabel} value={technique} />}
-      {owasp && <ReferenceTag label={REPORT_TEXT.owaspLabel} value={owasp} />}
+      {technique && <ReferenceTag label={text.techniqueLabel} value={technique} />}
+      {owasp && <ReferenceTag label={text.owaspLabel} value={owasp} />}
     </p>
   );
 }

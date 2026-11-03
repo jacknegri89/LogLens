@@ -3,6 +3,7 @@ import type { AIReport } from '../ai/schema';
 import { AppError } from '../middleware/errorHandler';
 import { detectFormat } from '../parser/detectFormat';
 import { parseLog } from '../parser/logParser';
+import { DEFAULT_LANGUAGE, type Language } from '../types/language';
 
 export interface AnalyzeOutcome {
   report: AIReport;
@@ -19,7 +20,10 @@ export interface AnalyzeOutcome {
  * report. There is no database here on purpose; persistence is wired in the
  * API layer (Phase 5), which keeps this function easy to test.
  */
-export async function analyzeLog(rawLog: string): Promise<AnalyzeOutcome> {
+export async function analyzeLog(
+  rawLog: string,
+  language: Language = DEFAULT_LANGUAGE,
+): Promise<AnalyzeOutcome> {
   if (rawLog.trim() === '') {
     throw new AppError(400, 'Log text is empty.');
   }
@@ -29,10 +33,11 @@ export async function analyzeLog(rawLog: string): Promise<AnalyzeOutcome> {
   const report = await provider.analyze({
     excerpt: parsed.excerpt,
     severityHint: parsed.severityHint,
+    language,
   });
 
   return {
-    report: { ...report, format: detectFormat(rawLog) },
+    report: { ...report, format: detectFormat(rawLog, language) },
     meta: {
       provider: provider.name,
       totalLines: parsed.totalLines,

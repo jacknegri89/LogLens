@@ -1,3 +1,4 @@
+import type { Language } from '../i18n/languages';
 import type { Severity } from './types';
 
 /** Ink colours for each severity, readable on the cream paper. */
@@ -30,8 +31,14 @@ export function findLineNumbers(rawLog: string, keyLines: string[]): Map<string,
   return found;
 }
 
-export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+const DATE_LOCALES: Record<Language, string> = { en: 'en-GB', it: 'it-IT' };
+
+/** A date and time written the way the page language writes them. */
+export function formatDate(iso: string, language: Language): string {
+  return new Date(iso).toLocaleString(DATE_LOCALES[language], {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
 }
 
 /** The public address of a shared report. */
