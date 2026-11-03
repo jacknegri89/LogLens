@@ -181,6 +181,7 @@ export function toSharedReport(report: AnalysisReport): AnalysisReport {
     format: report.format,
     findings: report.findings,
     overview: report.overview,
+    timeline: report.timeline,
   };
 }
 

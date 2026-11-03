@@ -28,6 +28,20 @@ describe('toSharedReport', () => {
     expect(toSharedReport({ ...report, overview }).overview).toEqual(overview);
   });
 
+  it('passes the timeline through', () => {
+    const timeline = [
+      {
+        title: 'boom',
+        category: 'Runtime',
+        severity: 'high',
+        role: 'root',
+        evidence: 'ERROR boom',
+      },
+    ] as const;
+
+    expect(toSharedReport({ ...report, timeline: [...timeline] }).timeline).toEqual(timeline);
+  });
+
   it('stays valid for an older report that has neither', () => {
     const { format: _format, findings: _findings, ...older } = report;
 

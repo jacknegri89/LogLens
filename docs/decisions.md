@@ -2,6 +2,13 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-03 — Grafica "stanza delle prove" al posto dell'aspetto precedente
+
+- **Decisione:** stessa palette (feltro, carta, evidenziatore, penna rossa), composizione nuova: carte inclinate con nastro e spillo, timbri, filo rosso SVG tra gli eventi collegati. Quattro momenti animati (lente dell'hero, scansione, filo rosso, timbro) e nient'altro oltre agli stati hover.
+- **Motivo:** il filo rosso mostra la correlazione tra eventi, che è la funzione che distingue LogLens; la grafica precedente non aveva modo di mostrarla.
+- **Scartato:** una nuova palette neon da terminale (aspetto da template) e una libreria di animazioni (peso e dipendenza).
+- **Eccezione alle regole:** quattro animazioni invece di "una o due", richieste esplicitamente; tutte disattivate con `prefers-reduced-motion`.
+
 ## 2026-11-03 — Le diagnosi collegano gli eventi invece di elencarli
 
 - **Decisione:** il motore a regole correla i risultati di un log: una relazione "può causare" tra categorie (tabella in `content/correlations.ts`), ordine per timestamp ISO completo, indirizzi e utenti condivisi, escalation per login riuscito dopo tentativi falliti (soglia 3).

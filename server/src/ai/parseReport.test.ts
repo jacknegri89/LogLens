@@ -111,4 +111,11 @@ describe('parseReport server-only fields', () => {
 
     expect(parseReport(JSON.stringify(sent))).not.toHaveProperty('overview');
   });
+
+  it('drops the timeline the model sent, because only the server correlates events', () => {
+    const entry = { title: 'x', category: 'y', severity: 'low', role: 'root', evidence: 'z' };
+    const sent = { ...VALID_REPORT, timeline: [entry] };
+
+    expect(parseReport(JSON.stringify(sent))).not.toHaveProperty('timeline');
+  });
 });

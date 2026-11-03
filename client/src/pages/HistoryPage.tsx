@@ -4,8 +4,8 @@ import { EmptyHistory } from '../components/EmptyHistory';
 import { ErrorNotice } from '../components/ErrorNotice';
 import { HistoryContent } from '../components/HistoryContent';
 import { HistoryHeading } from '../components/HistoryHeading';
+import { HistoryLoading } from '../components/HistoryLoading';
 import { ERROR_TEXT } from '../content/errors';
-import { HISTORY_TEXT } from '../content/history';
 import { useClearHistory } from '../hooks/useClearHistory';
 import { useLoad } from '../hooks/useLoad';
 import { api } from '../lib/api';
@@ -24,9 +24,7 @@ export function HistoryPage() {
     <div>
       <HistoryHeading count={items?.length ?? null} />
       {error && <ErrorNotice title={ERROR_TEXT.historyFailed} message={error} className="mt-10" />}
-      {items === null && !error && (
-        <p className="caret mt-10 text-lg text-chalk">{HISTORY_TEXT.loading}</p>
-      )}
+      {items === null && !error && <HistoryLoading />}
       {items && items.length === 0 && <EmptyHistory />}
       {items && items.length > 0 && <HistoryContent items={items} clearHistory={clearHistory} />}
     </div>

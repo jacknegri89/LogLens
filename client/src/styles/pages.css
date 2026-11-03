@@ -1,0 +1,778 @@
+/*
+ * History, shared page and 404. Owned by the pages designer.
+ * The history is a case-file drawer: index cards on felt, each one a saved analysis.
+ * Motion is transform and opacity only; the reduced-motion block at the end turns it all off.
+ */
+
+:root {
+  /* Red ink darkened until it reads on cream paper (5.9:1); the plain pen colour only reaches 4.4:1. */
+  --pen-ink: color-mix(in srgb, var(--color-pen) 80%, black);
+  --paper-shadow:
+    0 1px 0 rgb(255 255 255 / 0.55) inset, 0 1px 2px rgb(0 0 0 / 0.4),
+    0 6px 10px -4px rgb(0 0 0 / 0.5), 0 16px 26px -10px rgb(0 0 0 / 0.55);
+}
+
+/* Heading: huge type, the count hangs from it like a tag. */
+.history-heading {
+  padding-top: 1rem;
+}
+.history-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-chalk);
+}
+.history-eyebrow::before {
+  content: '';
+  width: 2.5rem;
+  height: 2px;
+  background: var(--color-marker);
+}
+.history-title {
+  margin-top: 0.9rem;
+  font-size: clamp(2.75rem, 11.5vw, 8.5rem);
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-stretch: 125%;
+}
+.history-title .marker {
+  display: block;
+  width: fit-content;
+  margin-top: 0.08em;
+}
+.history-heading-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  margin-top: 1.5rem;
+}
+.history-intro {
+  max-width: 34rem;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--color-chalk);
+}
+.history-count {
+  filter: drop-shadow(2px 4px 3px rgb(0 0 0 / 0.45));
+  transform: rotate(1.5deg);
+}
+.history-count span {
+  position: relative;
+  display: block;
+  padding: 0.55rem 1.15rem 0.55rem 2.1rem;
+  background: var(--color-marker);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  clip-path: polygon(1.1rem 0, 100% 0, 100% 100%, 1.1rem 100%, 0 50%);
+}
+/* The hole the string goes through. */
+.history-count span::before {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: -0.275rem;
+  border-radius: 50%;
+  background: var(--color-felt);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.6);
+}
+
+/* The drawer: seen from above, dark inside, lit from the top. */
+.case-drawer {
+  position: relative;
+  margin: 2.5rem -0.75rem 0;
+  padding: 1.25rem 0.75rem 1.75rem;
+  border: 1px solid rgb(0 0 0 / 0.5);
+  border-radius: 6px;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.4), transparent 8rem), var(--color-felt-2);
+  box-shadow:
+    inset 0 16px 30px -6px rgb(0 0 0 / 0.55),
+    inset 0 -2px 0 rgb(255 255 255 / 0.05),
+    0 1px 0 rgb(255 255 255 / 0.07);
+}
+.case-drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 0.5rem 1.5rem;
+  list-style: none;
+}
+.case-drawer-status {
+  display: grid;
+  place-items: center;
+  min-height: 14rem;
+}
+.case-status {
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  color: var(--color-chalk);
+}
+@media (min-width: 40rem) {
+  .case-drawer {
+    margin-inline: 0;
+    padding-inline: 1.5rem;
+  }
+}
+
+/* Cards come in one after the other: 300-400 ms in total. */
+.case-entry {
+  padding-top: 1.7rem;
+  animation: case-slide-in 0.24s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(min(var(--index, 0), 6) * 25ms);
+}
+@keyframes case-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+/* Index card: ruled lines, a red header rule, a layered shadow. */
+.case-paper {
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(160deg, rgb(255 255 255 / 0.4), transparent 45%),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 1.4rem,
+      rgb(29 90 128 / 0.15) 1.4rem calc(1.4rem + 1px)
+    );
+  box-shadow: var(--paper-shadow);
+}
+.case-card {
+  --tilt: 0deg;
+  --lift: 0px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 11.5rem;
+  padding: 1.3rem 1rem 0.85rem;
+  color: var(--color-ink);
+  transform: rotate(var(--tilt)) translateY(var(--lift));
+  transition: transform 0.18s ease-out;
+}
+.case-entry:nth-child(odd) .case-card {
+  --tilt: -0.7deg;
+}
+.case-entry:nth-child(even) .case-card {
+  --tilt: 0.6deg;
+}
+.case-entry:nth-child(5n) .case-card {
+  --tilt: 0.2deg;
+}
+.case-entry:nth-child(7n + 3) .case-card {
+  --tilt: -1deg;
+}
+/* A deeper shadow fades in on hover: opacity moves, the box does not. */
+.case-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  box-shadow:
+    0 24px 30px -10px rgb(0 0 0 / 0.7),
+    0 6px 10px rgb(0 0 0 / 0.35);
+  transition: opacity 0.18s ease-out;
+  pointer-events: none;
+}
+.case-entry:nth-child(n) .case-card:hover,
+.case-entry:nth-child(n) .case-card:focus-visible {
+  --tilt: 0deg;
+  --lift: -8px;
+}
+.case-card:hover::after,
+.case-card:focus-visible::after {
+  opacity: 1;
+}
+.case-card:active {
+  --lift: -3px;
+}
+
+/* The folder tab sticks out of the top edge and carries the case number. */
+.case-tab {
+  position: absolute;
+  left: 1rem;
+  bottom: 100%;
+  padding: 0.2rem 0.85rem 0.15rem;
+  border-radius: 7px 7px 0 0;
+  background: var(--color-paper);
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: 0 -2px 3px rgb(0 0 0 / 0.3);
+}
+/* Tape on one card in three, a pin on the next, the rest just lie there. */
+.case-entry:nth-child(3n + 1) .case-card::before,
+.lost-card::before,
+.shared-banner::before,
+.shared-missing::before,
+.shred-confirm::after {
+  content: '';
+  position: absolute;
+  top: -0.8rem;
+  right: 2.2rem;
+  z-index: 2;
+  width: 4.6rem;
+  height: 1.5rem;
+  background: rgb(241 233 210 / 0.72);
+  box-shadow: inset 0 0 0 1px rgb(23 32 28 / 0.1);
+  transform: rotate(4deg);
+  clip-path: polygon(
+    0 0,
+    4% 15%,
+    0 30%,
+    4% 45%,
+    0 60%,
+    4% 75%,
+    0 100%,
+    100% 100%,
+    96% 85%,
+    100% 70%,
+    96% 55%,
+    100% 40%,
+    96% 25%,
+    100% 0
+  );
+  pointer-events: none;
+}
+.case-entry:nth-child(3n) .case-card::before {
+  content: '';
+  position: absolute;
+  top: 0.2rem;
+  left: 50%;
+  z-index: 2;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    rgb(255 255 255 / 0.7) 0 12%,
+    var(--color-pen) 16% 62%,
+    rgb(0 0 0 / 0.45)
+  );
+  filter: drop-shadow(1px 3px 2px rgb(0 0 0 / 0.5));
+  pointer-events: none;
+}
+.case-card-head {
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid rgb(200 50 31 / 0.5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+}
+.case-date {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+}
+
+/* The title is typed on a label; the highlighter wipes across it on hover. */
+.case-label {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  flex: 1;
+  margin-top: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgb(23 32 28 / 0.3);
+  background: var(--color-band);
+  box-shadow: inset 0 1px 2px rgb(23 32 28 / 0.18);
+}
+.case-label::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-marker);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease-out;
+}
+.case-card:hover .case-label::before,
+.case-card:focus-visible .case-label::before {
+  transform: scaleX(1);
+}
+.case-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.case-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgb(23 32 28 / 0.35);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.case-category {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-ink-soft);
+}
+.case-open {
+  flex-shrink: 0;
+}
+.case-open::after {
+  content: '';
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  margin-left: 0.5em;
+  border: solid currentColor;
+  border-width: 2px 2px 0 0;
+  transform: rotate(45deg);
+  transition: transform 0.18s ease-out;
+}
+.case-card:hover .case-open::after,
+.case-card:focus-visible .case-open::after {
+  transform: translateX(4px) rotate(45deg);
+}
+
+/* Delete history: a red shredder button, then a slip that asks once more. */
+.shred-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+.shred-button {
+  position: relative;
+  overflow: hidden;
+  padding: 0.75rem 1.4rem 1.1rem;
+  border: 2px solid var(--color-ink);
+  background: var(--pen-ink);
+  color: var(--color-paper);
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-stretch: 125%;
+  box-shadow: 4px 4px 0 rgb(0 0 0 / 0.55);
+  transition: transform 0.12s;
+}
+/* Strips of paper hanging out of the shredder slot. */
+.shred-button::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.5rem;
+  background: repeating-linear-gradient(90deg, var(--color-ink) 0 3px, transparent 3px 7px);
+}
+.shred-button:hover:not(:disabled) {
+  transform: translate(2px, 2px);
+}
+.shred-button:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  transition-duration: 0.05s;
+}
+.shred-button:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+.shred-confirm {
+  position: relative;
+  width: min(100%, 34rem);
+  padding: 1.7rem 1.4rem 1.3rem;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: var(--paper-shadow);
+  transform: rotate(-0.6deg);
+}
+/* Hazard stripe along the top edge. */
+.shred-confirm::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0.65rem;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--pen-ink) 0 0.7rem,
+    var(--color-ink) 0.7rem 1.4rem
+  );
+}
+.shred-confirm::after {
+  right: 1.5rem;
+  top: 0.2rem;
+  transform: rotate(-5deg);
+}
+.shred-question {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.shred-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem 1.5rem;
+  margin-top: 1.1rem;
+}
+.shred-cancel {
+  padding: 0.7rem 0.4rem;
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-transform: uppercase;
+}
+.shred-cancel:hover:not(:disabled) {
+  background: var(--color-marker);
+}
+.shred-cancel:disabled {
+  opacity: 0.65;
+}
+
+/* Empty drawer: one blank card outlined in dashes, and the way to fill it. */
+.case-empty {
+  display: grid;
+  gap: 2.25rem;
+  align-items: center;
+  padding: 2.75rem 1.25rem 2.25rem;
+}
+.case-ghost {
+  position: relative;
+  display: grid;
+  place-items: center;
+  max-width: 20rem;
+  min-height: 11.5rem;
+  margin-top: 1.5rem;
+  border: 2px dashed rgb(183 201 189 / 0.55);
+  background: rgb(183 201 189 / 0.05);
+  transform: rotate(-1deg);
+}
+.case-ghost .case-tab {
+  background: transparent;
+  border: 2px dashed rgb(183 201 189 / 0.55);
+  border-bottom: 0;
+  color: var(--color-chalk);
+  box-shadow: none;
+}
+.case-ghost-label {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-chalk);
+}
+.case-empty-title {
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  font-stretch: 125%;
+}
+.case-empty-text {
+  max-width: 28rem;
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: var(--color-chalk);
+}
+@media (min-width: 48rem) {
+  .case-empty {
+    grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
+    gap: 3.5rem;
+    padding: 3.25rem 2.5rem 2.75rem;
+  }
+}
+
+/* Error slip: paper, a red edge and a stamp, readable on the desk or on paper. */
+.error-slip {
+  position: relative;
+  max-width: 42rem;
+  padding: 1rem 1.5rem 1.1rem;
+  border-left: 8px solid var(--pen-ink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: var(--paper-shadow);
+  transform: rotate(-0.4deg);
+}
+.error-stamp {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.05rem 0.6rem;
+  border: 3px double var(--pen-ink);
+  color: var(--pen-ink);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-stretch: 125%;
+  transform: rotate(-2deg);
+}
+.error-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+.error-message {
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--color-ink-soft);
+}
+@media (min-width: 40rem) {
+  .error-slip {
+    padding-right: 7rem;
+  }
+  .error-stamp {
+    position: absolute;
+    top: 1rem;
+    right: 1.1rem;
+    margin: 0;
+    transform: rotate(3deg);
+  }
+}
+
+/* Shared page: a taped slip with the read-only stamp, or the stamped "not on file" slip. */
+.shared-banner {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  max-width: 44rem;
+  padding: 1.5rem 1.5rem 1.3rem;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: var(--paper-shadow);
+  transform: rotate(-0.5deg);
+}
+.shared-banner::before {
+  left: 1.5rem;
+  right: auto;
+  transform: rotate(-3deg);
+}
+.shared-stamp,
+.shared-missing-stamp {
+  flex: none;
+  padding: 0.3rem 0.9rem;
+  border: 4px double var(--color-blueink);
+  color: var(--color-blueink);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-stretch: 125%;
+  transform: rotate(-2deg);
+}
+.shared-note {
+  flex: 1 1 16rem;
+  line-height: 1.5;
+}
+.shared-missing {
+  position: relative;
+  max-width: 42rem;
+  margin-top: 1.5rem;
+  padding: 1.75rem 1.5rem 2rem;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: var(--paper-shadow);
+  transform: rotate(-0.5deg);
+}
+.shared-missing-stamp {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  border-color: var(--pen-ink);
+  color: var(--pen-ink);
+}
+.shared-missing-title {
+  font-size: clamp(1.75rem, 6vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  font-stretch: 125%;
+}
+.shared-missing-message {
+  margin-top: 1rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1.45;
+}
+.shared-missing-hint {
+  margin-top: 0.75rem;
+  max-width: 30rem;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+}
+
+/* 404: a card whose label was blacked out, and the way back. */
+.lost-page {
+  display: grid;
+  gap: 3.5rem;
+  align-items: center;
+  padding: 3rem 0 2rem;
+}
+.lost-code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-chalk);
+}
+.lost-title {
+  margin-top: 0.9rem;
+  font-size: clamp(2.5rem, 9vw, 5.5rem);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-stretch: 125%;
+}
+.lost-title .marker {
+  display: block;
+  width: fit-content;
+  margin-top: 0.08em;
+}
+.lost-message {
+  max-width: 32rem;
+  margin-top: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: var(--color-chalk);
+}
+.lost-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.75rem;
+  margin-top: 2rem;
+}
+.lost-history-link {
+  padding: 0.25rem 0.2rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  color: var(--color-chalk);
+}
+.lost-history-link:hover {
+  background: var(--color-marker);
+  color: var(--color-ink);
+}
+.lost-card {
+  --rule-y: 3.9rem;
+  background-image:
+    linear-gradient(
+      to bottom,
+      transparent var(--rule-y),
+      rgb(200 50 31 / 0.5) var(--rule-y),
+      rgb(200 50 31 / 0.5) calc(var(--rule-y) + 2px),
+      transparent calc(var(--rule-y) + 2px)
+    ),
+    linear-gradient(160deg, rgb(255 255 255 / 0.4), transparent 45%),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 1.4rem,
+      rgb(29 90 128 / 0.15) 1.4rem calc(1.4rem + 1px)
+    );
+  position: relative;
+  justify-self: center;
+  width: min(100%, 22rem);
+  min-height: 14rem;
+  margin-top: 1.5rem;
+  padding: 5.2rem 1.4rem 1.4rem;
+  color: var(--color-ink);
+  transform: rotate(1.2deg);
+}
+.lost-bar {
+  display: block;
+  height: 1.1rem;
+  margin-bottom: 0.6rem;
+  background: var(--color-ink);
+}
+.lost-bar-long {
+  width: 88%;
+}
+.lost-bar-short {
+  width: 52%;
+}
+.lost-stamp {
+  position: absolute;
+  right: 1rem;
+  bottom: 1.25rem;
+  padding: 0.2rem 0.9rem;
+  border: 4px double var(--pen-ink);
+  background: var(--color-paper);
+  color: var(--pen-ink);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-stretch: 125%;
+  transform: rotate(-6deg);
+}
+@media (min-width: 56rem) {
+  .lost-page {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
+    gap: 4rem;
+    padding-top: 5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-entry {
+    animation: none;
+  }
+  .case-card,
+  .case-card::after,
+  .case-label::before,
+  .case-open::after,
+  .shred-button {
+    transition: none;
+  }
+  .shred-button:hover:not(:disabled),
+  .shred-button:active:not(:disabled) {
+    transform: none;
+  }
+  .case-entry:nth-child(n) .case-card:hover,
+  .case-entry:nth-child(n) .case-card:focus-visible {
+    --lift: 0px;
+  }
+  .case-card:hover .case-open::after,
+  .case-card:focus-visible .case-open::after {
+    transform: rotate(45deg);
+  }
+}

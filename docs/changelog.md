@@ -4,6 +4,9 @@ Modifiche approvate, dalla più recente.
 
 ## 2026-11-03
 
+- Grafica rifatta: "la stanza delle prove". Scrivania con lampada e grana, hero con muro di log e lente, editor come foglio con clip, scansione con etichette E1/E2 timbrate, report come fascicolo (timbro di gravità, bacheca con filo rosso tra causa radice ed effetti), storico come cassetto di schede, pagina condivisa e 404 nello stesso stile. Tutto con `prefers-reduced-motion` rispettato.
+- Il report ha il campo `timeline` (eventi in ordine, ruolo root/effect/independent) che disegna il filo rosso.
+- Pulsante Clear nell'editor; avviso prima di condividere un link; frasi del quadro generale tagliate a parola intera.
 - Quadro generale nel motore a regole: gli eventi di un log vengono collegati (causa radice e sintomi, ordine nel tempo, indirizzo condiviso). Il report ha il campo `overview`, la sezione "Big picture" e un titolo che descrive la causa radice. Tabella delle relazioni in `server/src/content/correlations.ts`.
 - Un login riuscito dopo almeno 3 tentativi falliti dallo stesso indirizzo porta il report a `critical` ("possibile brute force riuscito"). Il parser tiene le righe `Accepted password|publickey` per vederlo.
 - Nuova regola per il pool di connessioni esaurito (Database).

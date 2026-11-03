@@ -10,7 +10,7 @@ export function AnalyzePage() {
   return (
     <div>
       <AnalyzeHero />
-      <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <div className="grid gap-12 pt-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-8">
         <LogEditor
           text={log.text}
           fileName={log.fileName}

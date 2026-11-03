@@ -7,7 +7,7 @@ import { CopyButton } from './CopyButton';
 export function IssueActions({ id, markdown }: { id: string; markdown: string }) {
   return (
     <>
-      <div className="flex flex-wrap gap-3">
+      <div className="report-drawer-actions">
         <CopyButton
           text={markdown}
           label={REPORT_TEXT.copyIssue}
@@ -22,13 +22,11 @@ export function IssueActions({ id, markdown }: { id: string; markdown: string })
           {REPORT_TEXT.downloadMarkdown}
         </button>
       </div>
-      <details className="mt-5">
-        <summary className="cursor-pointer font-bold underline decoration-2 underline-offset-4 select-none hover:bg-marker hover:text-ink">
+      <details className="report-fold">
+        <summary className="report-fold-summary">
           {REPORT_TEXT.showMarkdown(markdown.split('\n').length)}
         </summary>
-        <pre className="bands mt-4 overflow-x-auto p-4 font-mono text-[13.5px] leading-[22px] whitespace-pre-wrap text-ink">
-          {markdown}
-        </pre>
+        <pre className="report-fold-sheet bands">{markdown}</pre>
       </details>
     </>
   );

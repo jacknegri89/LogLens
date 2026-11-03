@@ -1,4 +1,4 @@
-/** Line numbers beside the editor. Failing lines get the highlighter. */
+/** Line numbers beside the editor, left of the red margin rule. Failing lines get the highlighter. */
 export function EditorGutter({
   rows,
   rowHeights,
@@ -10,7 +10,7 @@ export function EditorGutter({
 }) {
   return (
     <ol
-      className="sticky left-0 z-10 shrink-0 border-r-2 border-ink bg-paper text-right text-ink-soft select-none"
+      className="editor-gutter sticky left-0 z-10 shrink-0 bg-paper text-right text-ink-soft select-none"
       aria-hidden="true"
     >
       {Array.from({ length: rows }, (_, i) => (
@@ -35,7 +35,11 @@ function GutterNumber({
   failing: boolean;
 }) {
   return (
-    <li style={{ height }} className={`px-3 ${failing ? 'bg-marker font-bold text-pen' : ''}`}>
+    <li
+      style={{ height }}
+      data-failing={failing}
+      className={`px-3 ${failing ? 'bg-marker font-bold text-ink' : ''}`}
+    >
       {number}
     </li>
   );

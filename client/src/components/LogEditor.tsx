@@ -1,3 +1,4 @@
+import { ANALYZE_TEXT } from '../content/analyze';
 import { useEditorReveal } from '../hooks/useEditorReveal';
 import { useFileDrop } from '../hooks/useFileDrop';
 import { countLines } from '../lib/format';
@@ -23,13 +24,22 @@ export interface LogEditorProps {
   anonymizedCounts: Record<string, number> | null;
 }
 
-/** The left half of the Analyze page: the log on green bar paper. Drop a file here too. */
+/**
+ * The left half of the Analyze page: the log on green bar paper, clipped to the desk
+ * under the lamp. Drop a file here too.
+ */
 export function LogEditor(props: LogEditorProps) {
   const reveal = useEditorReveal(props.onFileLoad, props.onPickExample);
   const { dragging, dropZone } = useFileDrop(reveal.loadFile);
 
   return (
-    <section className="relative flex min-w-0 flex-col bg-paper text-ink" {...dropZone}>
+    <section
+      id="case-file"
+      aria-label={ANALYZE_TEXT.exhibitLog}
+      className="evidence-sheet editor-sheet flex min-w-0 scroll-mt-8 flex-col"
+      {...dropZone}
+    >
+      <span className="sheet-clip" aria-hidden="true" />
       <EditorHeader
         fileName={props.fileName}
         fileSize={reveal.fileSize}

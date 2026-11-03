@@ -1,4 +1,6 @@
-/** A failure message, set apart from the content by a marker-coloured rule. */
+import { ERROR_TEXT } from '../content/errors';
+
+/** A failure message on a paper slip with a red ink stamp, readable on any background. */
 export function ErrorNotice({
   title,
   message,
@@ -9,9 +11,12 @@ export function ErrorNotice({
   className?: string;
 }) {
   return (
-    <div role="alert" className={`border-l-4 border-marker pl-4 ${className}`}>
-      <p className="text-lg font-bold">{title}</p>
-      <p className="mt-1 text-chalk">{message}</p>
+    <div role="alert" className={`error-slip ${className}`}>
+      <span className="error-stamp" aria-hidden="true">
+        {ERROR_TEXT.stamp}
+      </span>
+      <p className="error-title">{title}</p>
+      <p className="error-message">{message}</p>
     </div>
   );
 }

@@ -124,6 +124,7 @@ function buildReport(input: AnalyzeInput): AIReport {
     bugReportMarkdown: buildIssue({ ...issue, overview }),
     ...(findings.length > 0 ? { findings } : {}),
     ...(overview.length > 0 ? { overview } : {}),
+    ...(correlation.timeline.length > 0 ? { timeline: correlation.timeline } : {}),
   });
 }
 

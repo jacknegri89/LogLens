@@ -1,0 +1,834 @@
+/*
+ * Report page: a case file on the desk. Owned by the report designer.
+ * Builds on the shared evidence utilities of index.css (.evidence-card, .evidence-sheet,
+ * .evidence-tag, .evidence-label, .tape, .pin, .stamp, .stamp-land, .red-thread-draw).
+ * Motion: the severity stamp landing (moment 4) and the red thread drawing itself
+ * (moment 3), each held by `data-reveal="waiting"` until it is on screen
+ * (useRevealOnView). Everything else is static.
+ */
+
+/* ---------------------------------------------------------------- frame */
+
+.report-case {
+  container: case / inline-size;
+  counter-reset: report-section;
+  color: var(--color-paper);
+}
+.report-case > * + * {
+  margin-top: clamp(2.75rem, 7cqi, 4.75rem);
+}
+
+.report-page {
+  max-width: 64rem;
+  padding-top: 1rem;
+}
+.report-page-body {
+  display: grid;
+  gap: 4rem;
+  margin-top: 2rem;
+}
+.report-back-link {
+  display: inline-flex;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  color: var(--color-chalk);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: underline 2px transparent;
+  text-underline-offset: 5px;
+  transition:
+    color 0.12s,
+    text-decoration-color 0.12s;
+}
+.report-back-link::before {
+  content: '\2190' / '';
+}
+.report-back-link:hover {
+  color: var(--color-paper);
+  text-decoration-color: var(--color-marker);
+}
+
+/* --------------------------------------------------- cover and the stamp */
+
+.report-header {
+  position: relative;
+  isolation: isolate;
+}
+/* The lamp's pool of light on the felt under the cover card. */
+.report-header::before {
+  content: '';
+  position: absolute;
+  inset: -2.5rem -1rem -1.5rem;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 62% 70% at 45% 45%, rgb(255 228 92 / 0.08), transparent 72%);
+}
+.report-file-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  color: var(--color-chalk);
+}
+.report-file-name {
+  color: var(--color-marker);
+}
+
+.report-cover {
+  margin-top: 1.4rem;
+  padding: 1.15rem clamp(1.1rem, 4cqi, 2.5rem) 1.6rem;
+  rotate: -0.6deg;
+  box-shadow: var(--shadow-lifted);
+}
+/* Two strips of tape on the top corners (an hgroup only holds text, so they are drawn here). */
+.report-cover::before,
+.report-cover::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  width: 104px;
+  height: 28px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgb(241 233 210 / 0.62),
+    rgb(223 231 203 / 0.5) 60%,
+    rgb(241 233 210 / 0.6)
+  );
+  clip-path: polygon(0 10%, 4% 0, 97% 6%, 100% 0, 98% 40%, 100% 100%, 3% 95%, 0 100%, 2% 60%);
+}
+.report-cover::before {
+  left: -30px;
+  rotate: -34deg;
+}
+.report-cover::after {
+  right: -30px;
+  rotate: 31deg;
+}
+.report-cover-label {
+  color: var(--color-ink-soft);
+}
+/* The title typed on a strip of label tape, which wraps line by line. */
+.report-title {
+  margin-top: 1.6rem;
+  font-family: var(--font-mono);
+  font-size: clamp(1.3rem, 0.9rem + 2.4cqi, 2.2rem);
+  font-weight: 700;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.report-title span {
+  padding: 0.05em 0.35em;
+  background: var(--color-band);
+  box-shadow: 0 1px 0 rgb(23 32 28 / 0.18);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+[data-severity='critical'],
+[data-severity='high'] {
+  --stamp-ink: var(--color-pen);
+}
+[data-severity='medium'] {
+  --stamp-ink: var(--color-amber);
+}
+[data-severity='low'],
+[data-severity='informational'] {
+  --stamp-ink: var(--color-blueink);
+}
+
+/* The big stamp. Red reads at 4.4:1 on paper, so every letter of it is large text (>= 19px bold). */
+.report-stamp {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: 1.4rem 0 0 auto;
+  padding: 0.45rem 1.1rem 0.6rem;
+  border: 6px double var(--stamp-ink);
+  border-radius: 7px;
+  color: var(--stamp-ink);
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+  rotate: -5deg;
+  mask-image: var(--noise-stamp);
+  mask-size: 120px 120px;
+}
+.report-stamp-kicker {
+  display: block;
+  font-size: 1.2rem;
+  letter-spacing: 0.32em;
+}
+.report-stamp-word {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: clamp(1.5rem, calc(78cqi / var(--stamp-letters, 6)), 5.5rem);
+  letter-spacing: 0.05em;
+}
+/* The ink the rubber leaves behind: a wash that blooms on impact and dries back. */
+.report-stamp::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--stamp-ink) 14%, transparent);
+  opacity: 0.25;
+}
+.report-header[data-reveal='playing'] .report-stamp::after {
+  animation: stamp-ink 0.9s 0.35s ease-out both;
+}
+.report-header[data-reveal='playing'] .report-cover {
+  animation: cover-jolt 0.3s 0.43s ease-out;
+}
+@keyframes stamp-ink {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+@keyframes cover-jolt {
+  35% {
+    transform: translateY(3px);
+  }
+}
+/* Moments 3 and 4 wait, paused on their first frame, until they are on screen. */
+[data-reveal='waiting'] .stamp-land,
+[data-reveal='waiting'] .red-thread-draw {
+  animation-play-state: paused;
+}
+
+/* The small stamp next to a finding, an evidence card or a history row. */
+.report-stamp-small {
+  padding: 0.05rem 0.45rem;
+  font-size: 0.72rem;
+  font-stretch: 112%;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  rotate: -3deg;
+}
+/* Plain red only reaches 4.4:1 on paper, too little for small text: pressed-hard red ink here. */
+.report-stamp-small[data-severity='critical'],
+.report-stamp-small[data-severity='high'] {
+  color: var(--color-pen-deep);
+}
+.report-stamp-small[data-severity='medium'] {
+  color: var(--color-amber);
+}
+.report-stamp-small[data-severity='low'],
+.report-stamp-small[data-severity='informational'] {
+  color: var(--color-blueink);
+}
+
+/* ------------------------------------------------------- section dividers */
+
+.report-section {
+  counter-increment: report-section;
+}
+.report-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.4rem;
+  font-size: clamp(1.4rem, 1rem + 1.8cqi, 2.15rem);
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+.report-heading::before {
+  content: counter(report-section, decimal-leading-zero);
+  flex-shrink: 0;
+  padding: 0.25rem 0.45rem;
+  background: var(--color-marker);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-stretch: 100%;
+  letter-spacing: 0.08em;
+}
+.report-heading::after {
+  content: '';
+  flex: 1 1 2rem;
+  border-top: 2px dashed rgb(127 154 140 / 0.45);
+}
+.report-hint {
+  max-width: 42rem;
+  margin: -0.6rem 0 1.5rem;
+  color: var(--color-chalk);
+}
+
+/* --------------------------------------------------------- case summary */
+
+.report-summary {
+  max-width: 48rem;
+  padding: 2.1rem clamp(1rem, 4cqi, 2rem) 1.75rem 3.4rem;
+  rotate: 0.4deg;
+  /* The legal pad margin: a red rule down the left side. */
+  background-image:
+    linear-gradient(
+      to right,
+      transparent 2.3rem,
+      rgb(200 50 31 / 0.5) 2.3rem 2.42rem,
+      transparent 2.42rem
+    ),
+    var(--noise-dark);
+}
+.report-summary .pin {
+  left: 2rem;
+}
+.report-summary-list {
+  display: grid;
+  gap: 0.9rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.report-summary-list li:first-child {
+  font-size: clamp(1.15rem, 0.95rem + 1.2cqi, 1.5rem);
+  font-weight: 700;
+  line-height: 1.38;
+}
+
+/* ------------------------------------------------------- evidence board */
+
+.report-board {
+  position: relative;
+  padding: 2.25rem clamp(0.75rem, 3cqi, 1.75rem) 2rem;
+  overflow: clip;
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 0%, rgb(241 233 210 / 0.06), transparent 72%),
+    var(--color-felt-deep);
+  box-shadow:
+    inset 0 0 0 1px rgb(183 201 189 / 0.12),
+    inset 0 18px 40px rgb(0 0 0 / 0.45),
+    0 1px 0 rgb(183 201 189 / 0.08);
+}
+.report-board-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem 1.5rem;
+}
+
+.report-evidence {
+  --tilt: -0.7deg;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.1rem 1rem 1.1rem;
+  rotate: calc(var(--tilt) * 0.5);
+}
+.report-evidence:nth-child(2n) {
+  --tilt: 0.9deg;
+}
+.report-evidence:nth-child(3n) {
+  --tilt: -1.3deg;
+}
+.report-evidence:nth-child(5n) {
+  --tilt: 1.2deg;
+}
+.report-evidence-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  min-height: 1.9rem;
+}
+.report-evidence-top .report-stamp-small {
+  margin-left: auto;
+}
+.report-evidence-time {
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.report-evidence-title {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.report-evidence-category,
+.report-evidence-role {
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.report-evidence-line {
+  padding: 0.35rem 0.5rem;
+  background: var(--color-band);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.report-evidence-role {
+  margin-top: auto;
+}
+.report-evidence[data-role='effect'] .report-evidence-role {
+  color: var(--color-pen-deep);
+}
+.report-evidence[data-role='effect'] .report-evidence-role::before {
+  content: '\2191\00a0' / '';
+}
+.report-evidence[data-role='root'] {
+  box-shadow: var(--shadow-lifted);
+}
+.report-evidence[data-role='root'] .report-evidence-role {
+  align-self: flex-start;
+  padding: 0.1rem 0.5rem;
+  border: 3px double currentColor;
+  color: var(--color-pen-deep);
+  font-family: var(--font-sans);
+  font-weight: 900;
+  font-stretch: 125%;
+  letter-spacing: 0.14em;
+  rotate: -2deg;
+  mask-image: var(--noise-stamp);
+  mask-size: 120px 120px;
+}
+/* An event with no link: a greener slip, taped instead of pinned. */
+.report-evidence[data-role='independent'] {
+  background-color: var(--color-band);
+}
+.report-evidence[data-role='independent'] .report-evidence-line {
+  background: var(--color-paper);
+}
+
+.report-thread {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  display: none;
+  overflow: visible;
+  pointer-events: none;
+}
+.report-thread .red-thread {
+  stroke-width: 2.5;
+}
+
+/* Two columns and up: the cards spread out on the board and the thread is drawn. */
+@container case (min-width: 34rem) {
+  .report-board-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .report-evidence {
+    rotate: var(--tilt);
+  }
+  .report-evidence:nth-child(2n) {
+    margin-top: 1.5rem;
+  }
+  .report-thread {
+    display: block;
+  }
+  /* The arrow on a phone stands in for the thread; with the thread it is not needed. */
+  .report-evidence[data-role='effect'] .report-evidence-role::before {
+    content: none;
+  }
+}
+@container case (min-width: 54rem) {
+  .report-board-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .report-evidence:nth-child(2n) {
+    margin-top: 0;
+  }
+  .report-evidence:nth-child(3n + 2) {
+    margin-top: 1.75rem;
+  }
+  /* Unlinked events stand apart in their own column, behind a dashed line. */
+  .report-board[data-set-aside='true'] .report-board-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 0.85fr);
+    grid-auto-flow: row dense;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgb(127 154 140 / 0.45) 0 8px,
+        transparent 8px 15px
+      )
+      no-repeat calc((100% - 3rem) * 0.7018 + 2.25rem) 0 / 2px 100%;
+  }
+  .report-board[data-set-aside='true'] .report-evidence[data-role='independent'] {
+    grid-column: 3;
+  }
+}
+
+/* ------------------------------------------------- findings: the register */
+
+.report-register {
+  max-width: 52rem;
+  padding: 1.6rem clamp(1rem, 4cqi, 2rem) 0.75rem;
+  rotate: -0.3deg;
+}
+.report-register-list {
+  counter-reset: exhibit;
+}
+.report-register-row {
+  position: relative;
+  counter-increment: exhibit;
+  padding: 1rem 0 1.1rem 3.1rem;
+}
+.report-register-row + .report-register-row {
+  border-top: 1px dashed rgb(23 32 28 / 0.28);
+}
+.report-register-row::before {
+  content: counter(exhibit, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.95rem;
+  color: var(--color-pen-deep);
+  font-size: 1.6rem;
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 1;
+}
+.report-register-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+}
+.report-register-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.report-register-category {
+  margin-top: 0.2rem;
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.report-register-evidence {
+  margin-top: 0.5rem;
+  padding: 0.3rem 0.55rem;
+  background: var(--color-band);
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.report-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+/* A reference tag: dark card with a punched hole, the framework in yellow, the id in cream. */
+.report-tag {
+  position: relative;
+  max-width: 100%;
+  padding: 0.2rem 0.6rem 0.2rem 1.35rem;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.report-tag::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: calc(50% - 3px);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-paper);
+}
+.report-tag-label {
+  color: var(--color-marker);
+}
+
+/* ---------------------------------------------- failing lines: strips */
+
+.report-strips {
+  overflow-x: auto;
+  padding: 0.25rem 0 0.4rem;
+  filter: drop-shadow(0 3px 3px rgb(0 0 0 / 0.35));
+}
+.report-strip {
+  display: flex;
+  width: max-content;
+  min-width: min(100%, 22rem);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 22px;
+  /* The right end is torn off the printout. */
+  mask: conic-gradient(from -135deg at right, #0000, #000 1deg 89deg, #0000 90deg) 50% / 100% 12px;
+}
+.report-strip + .report-strip {
+  margin-top: 0.5rem;
+}
+.report-strip:nth-child(2n) {
+  background: var(--color-band);
+  translate: 0.6rem 0;
+}
+.report-strip-number {
+  position: sticky;
+  left: 0;
+  flex-shrink: 0;
+  width: 3.2rem;
+  padding: 0.35rem 0.6rem 0.35rem 0;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-weight: 700;
+  text-align: right;
+  user-select: none;
+}
+.report-strip-text {
+  padding: 0.35rem 1.6rem 0.35rem 0.75rem;
+  white-space: pre;
+}
+.report-strip[data-failing='true'] .report-strip-text {
+  color: var(--color-pen-deep);
+  font-weight: 700;
+  background: linear-gradient(
+    100deg,
+    transparent 0.35rem,
+    rgb(255 228 92 / 0.95) 0.5rem calc(100% - 1.4rem),
+    transparent calc(100% - 1.2rem)
+  );
+}
+
+/* --------------------------------------------- causes and debug steps */
+
+.report-procedures {
+  display: grid;
+  gap: clamp(2.75rem, 7cqi, 4.75rem) 3rem;
+}
+@container case (min-width: 50rem) {
+  .report-procedures {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: start;
+  }
+}
+.report-procedure {
+  display: grid;
+  gap: 1.1rem;
+  counter-reset: procedure;
+}
+.report-procedure li {
+  display: grid;
+  grid-template-columns: 3.3rem minmax(0, 1fr);
+  column-gap: 1rem;
+  align-items: start;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px dashed rgb(127 154 140 / 0.35);
+  counter-increment: procedure;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.report-procedure li::before {
+  content: counter(procedure);
+  font-size: 2.9rem;
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 0.85;
+  text-align: right;
+}
+.report-procedure[data-kind='steps'] li::before {
+  color: var(--color-marker);
+}
+/* Causes are leads, not steps: hollow numbers in chalk. */
+.report-procedure[data-kind='causes'] li::before {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--color-chalk);
+}
+
+/* -------------------------------------------------------- tool drawers */
+
+.report-drawers {
+  display: grid;
+  gap: 2.5rem 1.5rem;
+  padding-top: 0.9rem;
+}
+@container case (min-width: 46rem) {
+  .report-drawers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .report-drawers > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+.report-drawer {
+  position: relative;
+  padding: 0 clamp(1rem, 3cqi, 1.6rem) 1.5rem;
+  border-radius: 3px;
+  background:
+    linear-gradient(to bottom, rgb(183 201 189 / 0.07), transparent 2.5rem), var(--color-felt-2);
+  box-shadow:
+    inset 0 1px 0 rgb(183 201 189 / 0.18),
+    inset 0 -3px 0 rgb(0 0 0 / 0.35),
+    0 12px 24px -12px rgb(0 0 0 / 0.75);
+}
+.report-drawer > * + * {
+  margin-top: 1rem;
+}
+/* The drawer pull. */
+.report-drawer::after {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  width: 3.25rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-chalk-dim),
+    color-mix(in oklab, var(--color-chalk-dim), black 45%)
+  );
+  box-shadow: 0 2px 2px rgb(0 0 0 / 0.45);
+}
+/* The label plate: a typed card in a dark frame, half over the drawer's top edge. */
+.report-drawer-label {
+  display: table;
+  max-width: calc(100% - 4.5rem);
+  margin: -0.9rem 0 1.25rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 0 3px var(--color-ink),
+    0 0 0 4px rgb(183 201 189 / 0.4),
+    0 6px 10px rgb(0 0 0 / 0.4);
+}
+.report-drawer-hint {
+  max-width: 38rem;
+  color: var(--color-chalk);
+}
+.report-drawer-warning,
+.report-drawer-error {
+  padding-left: 1rem;
+  border-left: 4px solid var(--color-marker);
+  color: var(--color-chalk);
+}
+.report-drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.report-drawer-field-label {
+  display: block;
+  color: var(--color-chalk);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.report-drawer .report-drawer-field {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--color-ink);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.report-fold-summary {
+  display: inline-block;
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: underline 2px;
+  text-underline-offset: 4px;
+  user-select: none;
+}
+.report-fold-summary:hover {
+  background: var(--color-marker);
+  color: var(--color-ink);
+}
+.report-fold-sheet {
+  margin-top: 1rem;
+  padding: 0 1rem;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 22px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------- original log */
+
+.report-original-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1rem;
+  padding-top: 1rem;
+  border-top: 2px dashed rgb(127 154 140 / 0.45);
+  cursor: pointer;
+  user-select: none;
+}
+.report-original-title {
+  font-size: clamp(1.4rem, 1rem + 1.8vw, 2.15rem);
+  font-weight: 900;
+  font-stretch: 125%;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.report-original-title::before {
+  content: '+' / '';
+  display: inline-block;
+  width: 1em;
+  color: var(--color-marker);
+}
+.report-original[open] .report-original-title::before {
+  content: '\2212' / '';
+}
+.report-original-summary:hover .report-original-title {
+  color: var(--color-marker);
+}
+.report-original-hint {
+  flex: 1 1 14rem;
+  color: var(--color-chalk);
+}
+.report-original-sheet {
+  position: relative;
+  margin-top: 1.25rem;
+  padding: 0 2.25rem;
+  box-shadow: var(--shadow-paper);
+}
+.report-original-sheet pre {
+  overflow-x: auto;
+  padding: 0 0.5rem;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 22px;
+}
+
+/* ------------------------------------------------------- reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .report-header[data-reveal='playing'] .report-stamp::after,
+  .report-header[data-reveal='playing'] .report-cover {
+    animation: none;
+  }
+  .report-back-link {
+    transition: none;
+  }
+}

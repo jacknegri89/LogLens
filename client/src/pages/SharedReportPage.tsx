@@ -1,7 +1,8 @@
 import { useParams } from 'react-router-dom';
 
-import { ErrorNotice } from '../components/ErrorNotice';
 import { ReportView } from '../components/ReportView';
+import { SharedBanner } from '../components/SharedBanner';
+import { SharedUnavailable } from '../components/SharedUnavailable';
 import { SHARE_TEXT } from '../content/share';
 import { useLoad } from '../hooks/useLoad';
 import { api } from '../lib/api';
@@ -15,14 +16,15 @@ export function SharedReportPage() {
     SHARE_TEXT.unavailableFallback,
   );
 
+  if (error) return <SharedUnavailable message={error} />;
+
   return (
     <div className="max-w-3xl pt-4">
-      <p className="border-l-4 border-chalk-dim pl-4 text-chalk">{SHARE_TEXT.sharedNote}</p>
-      {error && (
-        <ErrorNotice title={SHARE_TEXT.unavailableTitle} message={error} className="mt-10" />
-      )}
-      {!analysis && !error && (
-        <p className="caret mt-10 text-lg text-chalk">{SHARE_TEXT.loading}</p>
+      <SharedBanner />
+      {!analysis && (
+        <p role="status" className="caret mt-10 text-lg text-chalk">
+          {SHARE_TEXT.loading}
+        </p>
       )}
       {analysis && (
         <div className="mt-10">
