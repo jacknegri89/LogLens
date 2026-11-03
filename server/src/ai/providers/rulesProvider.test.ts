@@ -302,4 +302,23 @@ describe('RulesProvider', () => {
 
     expect(report.causes[0]).toContain('no line in it reports a failure');
   });
+
+  it('titles an access log line by its method, path and status', async () => {
+    const report = await provider.analyze({
+      excerpt:
+        '203.0.113.7 - - [02/Nov/2026:10:14:02 +0000] "GET /products?id=1 HTTP/1.1" 500 612 "-" "sqlmap/1.8"',
+      severityHint: 'low',
+    });
+
+    expect(report.title).toBe('GET /products?id=1 returned 500');
+  });
+
+  it('keeps the plain title for a line that is not an access log', async () => {
+    const report = await provider.analyze({
+      excerpt: 'ECONNREFUSED 172.18.0.2:5432',
+      severityHint: 'low',
+    });
+
+    expect(report.title).toBe('ECONNREFUSED 172.18.0.2:5432');
+  });
 });

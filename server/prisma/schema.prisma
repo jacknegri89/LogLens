@@ -42,3 +42,14 @@ model Analysis {
   @@index([owner])
   @@index([clientHash, createdAt])
 }
+
+/// One analysis attempt, saved before the AI is called. Failed attempts count too,
+/// so a request that keeps failing cannot get past the hourly limit.
+model AnalysisAttempt {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  clientHash String   @default("")
+
+  @@index([createdAt])
+  @@index([clientHash, createdAt])
+}

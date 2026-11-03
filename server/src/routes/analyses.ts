@@ -5,11 +5,13 @@ import { env } from '../config/env';
 import { AppError } from '../middleware/errorHandler';
 import { requireVisitorOwner, type Visitor } from '../middleware/visitor';
 import {
-  countAnalysesInLastHour,
+  countAttemptsInLastHour,
   createAnalysis,
   deleteAnalysesByOwner,
   getAnalysisById,
   listAnalysisSummaries,
+  recordAttempt,
+  removeAttempt,
 } from '../repositories/analysisRepository';
 import { createAnalysisBodySchema, type CreateAnalysisBody } from '../schemas/createAnalysis';
 import { analyzeLog } from '../services/analysisService';
@@ -23,23 +25,35 @@ export const analysesRouter = Router();
 
 analysesRouter.use(requireVisitorOwner);
 
-/** Refuses the request when this client, or everyone together, used up the hourly limit. */
-async function enforceRateLimits(visitor: Visitor): Promise<void> {
+/**
+ * Saves this attempt before the AI is called, so a failed call still uses up the limit.
+ * The count includes the attempt itself, so a refused attempt is removed again. Two
+ * requests that arrive together can both be refused, but never both be allowed past the limit.
+ */
+async function reserveAttempt(visitor: Visitor): Promise<void> {
+  const attemptId = await recordAttempt(visitor.clientHash);
+  const refusal = await findRefusal(visitor.clientHash);
+  if (refusal) {
+    await removeAttempt(attemptId);
+    throw new AppError(429, refusal);
+  }
+}
+
+/** The message for a limit that this attempt would go over, or null when it may go on. */
+async function findRefusal(clientHash: string): Promise<string | null> {
   if (env.RATE_LIMIT_PER_HOUR > 0) {
-    const used = await countAnalysesInLastHour(visitor.clientHash);
-    if (used >= env.RATE_LIMIT_PER_HOUR) {
-      throw new AppError(
-        429,
-        `Limit reached: ${env.RATE_LIMIT_PER_HOUR} analyses per hour. Try again later.`,
-      );
+    const used = await countAttemptsInLastHour(clientHash);
+    if (used > env.RATE_LIMIT_PER_HOUR) {
+      return `Limit reached: ${env.RATE_LIMIT_PER_HOUR} analyses per hour. Try again later.`;
     }
   }
   if (env.GLOBAL_LIMIT_PER_HOUR > 0) {
-    const used = await countAnalysesInLastHour();
-    if (used >= env.GLOBAL_LIMIT_PER_HOUR) {
-      throw new AppError(429, 'The demo is busy right now. Try again in a while.');
+    const used = await countAttemptsInLastHour();
+    if (used > env.GLOBAL_LIMIT_PER_HOUR) {
+      return 'The demo is busy right now. Try again in a while.';
     }
   }
+  return null;
 }
 
 // POST /api/analyses — analyze a log and save the result.
@@ -50,7 +64,7 @@ analysesRouter.post('/', async (req: Request, res: Response) => {
   }
   const visitor = res.locals.visitor as Visitor;
 
-  await enforceRateLimits(visitor);
+  await reserveAttempt(visitor);
   const saved = await analyzeAndSave(parsed.data, visitor);
 
   res.status(201).json(saved);

@@ -29,9 +29,15 @@ function pickSeverity(rule: Rule, excerpt: string, severityHint: Severity): Seve
   return rule.severity ?? severityHint;
 }
 
+const ACCESS_LOG_REQUEST = /"(\S+) (\S+) HTTP\/[\d.]+" (\d{3})/;
+
 /** Drops a leading "timestamp LEVEL" prefix so the title reads as a plain message. */
 function makeTitle(keyLines: string[]): string {
   const first = keyLines[0] ?? '';
+  const request = first.match(ACCESS_LOG_REQUEST);
+  if (request) {
+    return `${request[1]} ${request[2]} returned ${request[3]}`.slice(0, MAX_TITLE_LENGTH);
+  }
   const withoutTimestamp = first.replace(
     /^(?:\d{4}-\d{2}-\d{2}[T ])?\d{2}:\d{2}:\d{2}(?:[.,]\d+)?Z?\s+/,
     '',
