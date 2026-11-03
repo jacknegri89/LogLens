@@ -1,19 +1,24 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 
+import type { AIReport } from '../ai/schema';
 import { env } from '../config/env';
 import { AppError } from '../middleware/errorHandler';
 import { requireVisitorOwner, type Visitor } from '../middleware/visitor';
 import {
   countAttemptsInLastHour,
   createAnalysis,
+  createShareToken,
   deleteAnalysesByOwner,
   getAnalysisById,
   listAnalysisSummaries,
   recordAttempt,
   removeAttempt,
+  revokeShareToken,
+  setFeedback,
 } from '../repositories/analysisRepository';
 import { createAnalysisBodySchema, type CreateAnalysisBody } from '../schemas/createAnalysis';
+import { feedbackBodySchema } from '../schemas/feedback';
 import { analyzeLog } from '../services/analysisService';
 
 /**
@@ -81,13 +86,20 @@ async function analyzeAndSave(input: CreateAnalysisBody, visitor: Visitor) {
     title: report.title,
     severity: report.severity,
     category: report.category,
-    report: {
-      keyLines: report.keyLines,
-      causes: report.causes,
-      debugSteps: report.debugSteps,
-      bugReportMarkdown: report.bugReportMarkdown,
-    },
+    report: pickStoredReport(report),
   });
+}
+
+/** The parts of a report that are saved with the analysis. */
+function pickStoredReport(report: AIReport) {
+  return {
+    keyLines: report.keyLines,
+    causes: report.causes,
+    debugSteps: report.debugSteps,
+    bugReportMarkdown: report.bugReportMarkdown,
+    format: report.format,
+    findings: report.findings,
+  };
 }
 
 // GET /api/analyses — the visitor's own history (lightweight summaries).
@@ -100,6 +112,38 @@ analysesRouter.get('/', async (_req: Request, res: Response) => {
 analysesRouter.delete('/', async (_req: Request, res: Response) => {
   const deleted = await deleteAnalysesByOwner((res.locals.visitor as Visitor).owner);
   res.json({ deleted });
+});
+
+// PUT /api/analyses/:id/feedback — the visitor's verdict: useful, not useful, or cleared (null).
+analysesRouter.put('/:id/feedback', async (req: Request<{ id: string }>, res: Response) => {
+  const parsed = feedbackBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new AppError(400, 'Send { "helpful": true | false | null }.');
+  }
+  const owner = (res.locals.visitor as Visitor).owner;
+  const saved = await setFeedback(req.params.id, owner, parsed.data.helpful);
+  if (!saved) {
+    throw new AppError(404, `Analysis not found: ${req.params.id}`);
+  }
+  res.json({ helpful: parsed.data.helpful });
+});
+
+// POST /api/analyses/:id/share — creates the secret read-only link (or returns the existing one).
+analysesRouter.post('/:id/share', async (req: Request<{ id: string }>, res: Response) => {
+  const shareToken = await createShareToken(req.params.id, (res.locals.visitor as Visitor).owner);
+  if (!shareToken) {
+    throw new AppError(404, `Analysis not found: ${req.params.id}`);
+  }
+  res.status(201).json({ shareToken });
+});
+
+// DELETE /api/analyses/:id/share — revokes the link; the old URL stops working.
+analysesRouter.delete('/:id/share', async (req: Request<{ id: string }>, res: Response) => {
+  const revoked = await revokeShareToken(req.params.id, (res.locals.visitor as Visitor).owner);
+  if (!revoked) {
+    throw new AppError(404, `Analysis not found: ${req.params.id}`);
+  }
+  res.json({ revoked: true });
 });
 
 // GET /api/analyses/:id — a single analysis with its full report.

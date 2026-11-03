@@ -10,7 +10,7 @@ export function useLoad<T>(load: () => Promise<T>, deps: unknown[], fallback: st
   useEffect(() => {
     load()
       .then(setData)
-      .catch((err: unknown) => setError(errorMessage(err, fallback)));
+      .catch((error: unknown) => setError(errorMessage(error, fallback)));
     // The caller decides when to load again, through `deps`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);

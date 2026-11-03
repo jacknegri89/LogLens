@@ -1,8 +1,7 @@
 import { REPORT_TEXT } from '../content/report';
 import { downloadMarkdown } from '../lib/format';
+import { ACTION_BUTTON_CLASS } from '../lib/styles';
 import { CopyButton } from './CopyButton';
-
-const ACTION_CLASS = 'btn-paper px-4 py-2 text-[13px] font-bold tracking-wide uppercase';
 
 /** Copy, download and preview of the GitHub issue written for an analysis. */
 export function IssueActions({ id, markdown }: { id: string; markdown: string }) {
@@ -13,12 +12,12 @@ export function IssueActions({ id, markdown }: { id: string; markdown: string })
           text={markdown}
           label={REPORT_TEXT.copyIssue}
           copiedLabel={REPORT_TEXT.copiedIssue}
-          className={ACTION_CLASS}
+          className={ACTION_BUTTON_CLASS}
         />
         <button
           type="button"
           onClick={() => downloadMarkdown(`loglens-${id}.md`, markdown)}
-          className={ACTION_CLASS}
+          className={ACTION_BUTTON_CLASS}
         >
           {REPORT_TEXT.downloadMarkdown}
         </button>

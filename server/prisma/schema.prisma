@@ -37,6 +37,11 @@ model Analysis {
   owner      String @default("") // random id kept in the visitor's browser
   clientHash String @default("") // salted hash of the network address, for rate limits
 
+  // Visitor's verdict on the report: true = useful, false = not useful, null = no vote.
+  helpful    Boolean?
+  // Secret link for a read-only copy of the report; null when not shared.
+  shareToken String?  @unique
+
   @@index([createdAt])
   @@index([severity])
   @@index([owner])

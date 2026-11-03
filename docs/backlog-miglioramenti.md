@@ -6,6 +6,7 @@
 | Checklist PASS/FAIL su LogLens                                          | alto / medio     | approvata                          |
 | Spezzare le funzioni oltre circa 20 righe                               | medio / medio    | approvata                          |
 | Spostare i testi visibili in file di contenuto                          | basso / medio    | approvata                          |
+| Feedback "utile" e link di condivisione nell'interfaccia                | medio / medio    | approvata                          |
 | Test automatico del controllo del visitatore sulle route                | medio / basso    | da valutare                        |
 | Test end-to-end nella CI                                                | medio / basso    | da valutare                        |
 | Dominio personalizzato per LogLens                                      | —                | rifiutata (non si comprano domini) |

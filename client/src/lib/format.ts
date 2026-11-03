@@ -34,6 +34,11 @@ export function formatDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+/** The public address of a shared report. */
+export function shareUrl(token: string): string {
+  return `${window.location.origin}/shared/${token}`;
+}
+
 /** Trigger a client-side download of a Markdown file. */
 export function downloadMarkdown(filename: string, content: string): void {
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });

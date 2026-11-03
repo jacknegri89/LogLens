@@ -3,6 +3,7 @@
  * shown to the reader. Everything a visitor reads here lives in this file, so the
  * wording can change without touching the engine in `rulesProvider.ts`.
  */
+import { extractLineFields } from '../parser/lineFields';
 import type { Severity } from '../types/report';
 
 /**
@@ -15,6 +16,10 @@ export interface Rule {
   severity?: Severity;
   /** Raises the severity to critical when the log also shows a server error (5xx). */
   criticalOnServerError?: boolean;
+  /** MITRE ATT&CK technique, set only where the rule describes adversary behaviour. */
+  mitre?: string;
+  /** OWASP Top 10 (2021) category, set only where the rule maps to one. */
+  owasp?: string;
   causes: string[];
   /** Builds the causes from the log when its details make the cause specific. Replaces `causes`. */
   causesFor?: (excerpt: string) => string[];
@@ -23,7 +28,7 @@ export interface Rule {
 
 /** Scanner names and injection payloads that mark a request as an attack. */
 export const ATTACK_SIGNATURE =
-  /sqlmap|\bnikto\b|\bnmap\b|dirbuster|gobuster|acunetix|union(?:\s|%20|\+)+select|(?:'|%27)(?:\s|%20|\+)*or(?:\s|%20|\+)+\d+(?:=|%3d)\d+|sleep\(\d+\)|<script|\.\.\/\.\.\//i;
+  /sqlmap|\bnikto\b|\bnmap\b|dirbuster|gobuster|acunetix|union(?:\s|%20|\+)+select|(?:'|%27)(?:\s|%20|\+)*or(?:\s|%20|\+)+\d+(?:=|%3d)\d+|sleep\(\d+\)|<script|\.\.\/\.\.\/|%2e%2e(?:%2f|\/)|\$\{jndi:|onerror\s*=|;\s*cat\s+\/etc\/passwd/i;
 
 export const FAILURE_LINE =
   /\berror\b|[a-z]Error\b|exception|\bfatal\b|\bpanic\b|\bfail(?:ed|ure|s)?\b|refused|killed|\btimeout\b|timed out|denied|traceback/i;
@@ -53,6 +58,8 @@ export const RULES: Rule[] = [
     category: 'Security Attack',
     severity: 'high',
     criticalOnServerError: true,
+    mitre: 'T1190 Exploit Public-Facing Application',
+    owasp: 'A03:2021 Injection',
     causes: [
       'An automated attack tool or scanner sent injection payloads (SQL, XSS or path traversal) in the request.',
       'The payload reached the application logic without being rejected or escaped, so the server failed while processing it.',
@@ -132,6 +139,7 @@ export const RULES: Rule[] = [
       /unable to verify the first certificate|self[- ]signed certificate|certificate has expired|cert_has_expired|ssl routines|unable_to_verify_leaf_signature/i,
     category: 'Network',
     severity: 'medium',
+    owasp: 'A02:2021 Cryptographic Failures',
     causes: [
       'The certificate is expired, self-signed, or not issued by an authority the client trusts.',
       'The server does not send the full certificate chain.',
@@ -443,6 +451,8 @@ export const RULES: Rule[] = [
     pattern: /failed password for|invalid user \S+ from|authentication failure;.*rhost=/i,
     category: 'Security Attack',
     severity: 'high',
+    mitre: 'T1110 Brute Force',
+    owasp: 'A07:2021 Identification and Authentication Failures',
     causes: [
       'Repeated login attempts with wrong passwords or unknown users: a brute-force or credential-guessing attack.',
     ],
@@ -569,6 +579,7 @@ export const RULES: Rule[] = [
       /certificate has expired|self[- ]signed certificate|unable to verify the first certificate|ssl certificate problem|x509: certificate|cert_has_expired/i,
     category: 'Network',
     severity: 'high',
+    owasp: 'A02:2021 Cryptographic Failures',
     causes: [
       'The TLS certificate is expired, does not match the host name, or is signed by an authority the client does not trust.',
       'A self-signed or internal certificate is used without the matching CA certificate on the client.',
@@ -775,6 +786,8 @@ export const RULES: Rule[] = [
       /accessdenied|expiredtoken|the security token included in the request is expired|invalid_grant/i,
     category: 'Access Denied',
     severity: 'high',
+    mitre: 'T1078 Valid Accounts',
+    owasp: 'A07:2021 Identification and Authentication Failures',
     causes: [
       'The cloud credentials are missing the permission for this action, or they have expired.',
     ],
@@ -854,8 +867,11 @@ export const FALLBACK_RULE: Rule = {
     if (line === null) {
       return ['The excerpt holds normal activity only: no line in it reports a failure.'];
     }
+    const fields = extractLineFields(line);
+    const fieldText = fields.length > 0 ? ` Read from the line: ${fields.join('; ')}.` : '';
     return [
-      `The failing line is: "${line}". No known rule covers this message, so search the code for this exact text to find the function that writes it.`,
+      `The failing line is: "${line}".${fieldText}`,
+      'The rules hold no entry for this exact message, so the cause is in the code that writes it: search for this text to find the function.',
     ];
   },
   causes: [],

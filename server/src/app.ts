@@ -8,6 +8,16 @@ import { notFound } from './middleware/notFound';
 import { identifyVisitor } from './middleware/visitor';
 import { analysesRouter } from './routes/analyses';
 import { healthRouter } from './routes/health';
+import { sharedRouter } from './routes/shared';
+
+/**
+ * In production no origin means "same site only": an empty or wildcard value would let any
+ * web page call the API from its visitors' browsers and use up the shared hourly quota.
+ */
+function corsOrigin(): string | false {
+  const open = env.CORS_ORIGIN === '' || env.CORS_ORIGIN === '*';
+  return open && env.NODE_ENV === 'production' ? false : env.CORS_ORIGIN;
+}
 
 /**
  * Build and configure the Express application.
@@ -21,7 +31,7 @@ export function createApp() {
 
   // Allow the frontend to call the API. CORS_ORIGIN defaults to * in dev and
   // is set to the Render frontend URL in production.
-  app.use(cors({ origin: env.CORS_ORIGIN }));
+  app.use(cors({ origin: corsOrigin() }));
 
   // Parse JSON request bodies. Logs can be sizeable, so raise the limit.
   app.use(express.json({ limit: '2mb' }));
@@ -34,6 +44,8 @@ export function createApp() {
   // Routes
   app.use('/api/health', healthRouter);
   app.use('/api/analyses', identifyVisitor, analysesRouter);
+  // Shared reports are public by their secret link, so they skip the visitor check.
+  app.use('/api/shared', sharedRouter);
 
   // These two must come LAST, in this order:
   app.use(notFound); // anything unmatched -> 404

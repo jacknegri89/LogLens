@@ -1,4 +1,5 @@
 import { ANALYZE_TEXT } from '../content/analyze';
+import { AnonymizeToggle } from './AnonymizeToggle';
 import { OpenFileButton } from './FileInput';
 
 export interface EditorToolbarProps {
@@ -7,6 +8,10 @@ export interface EditorToolbarProps {
   onSubmit: () => void;
   onCancel: () => void;
   onFileLoad: (file: File) => void;
+  anonymize: boolean;
+  onAnonymizeChange: (enabled: boolean) => void;
+  /** Counts from the last anonymized send, or null when nothing was anonymized. */
+  anonymizedCounts: Record<string, number> | null;
 }
 
 /** The buttons under the editor: analyze, open a file, cancel while loading. */
@@ -16,13 +21,20 @@ export function EditorToolbar({
   onSubmit,
   onCancel,
   onFileLoad,
+  anonymize,
+  onAnonymizeChange,
+  anonymizedCounts,
 }: EditorToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-4 border-t-2 border-ink px-5 py-4">
       <AnalyzeButton canSubmit={canSubmit} onSubmit={onSubmit} />
       <OpenFileButton onFileLoad={onFileLoad} />
+      <AnonymizeToggle checked={anonymize} onChange={onAnonymizeChange} />
       {loading && <CancelButton onCancel={onCancel} />}
       <span className="ml-auto text-xs text-ink-soft">{ANALYZE_TEXT.shortcutHint}</span>
+      <div role="status" className="basis-full text-sm font-bold empty:hidden">
+        {anonymizedCounts && ANALYZE_TEXT.anonymizedNotice(anonymizedCounts)}
+      </div>
     </div>
   );
 }

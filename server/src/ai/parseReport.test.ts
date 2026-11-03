@@ -17,45 +17,45 @@ describe('parseReport', () => {
   // ── Happy path ───────────────────────────────────────────────────────────
 
   it('parses a valid JSON string', () => {
-    const r = parseReport(JSON.stringify(VALID_REPORT));
-    expect(r.title).toBe('Database connection refused');
-    expect(r.severity).toBe('high');
-    expect(r.category).toBe('Database');
+    const report = parseReport(JSON.stringify(VALID_REPORT));
+    expect(report.title).toBe('Database connection refused');
+    expect(report.severity).toBe('high');
+    expect(report.category).toBe('Database');
   });
 
   it('strips ```json code fences before parsing', () => {
     const fenced = '```json\n' + JSON.stringify(VALID_REPORT) + '\n```';
-    const r = parseReport(fenced);
-    expect(r.title).toBe(VALID_REPORT.title);
+    const report = parseReport(fenced);
+    expect(report.title).toBe(VALID_REPORT.title);
   });
 
   it('strips plain ``` code fences before parsing', () => {
     const fenced = '```\n' + JSON.stringify(VALID_REPORT) + '\n```';
-    const r = parseReport(fenced);
-    expect(r.title).toBe(VALID_REPORT.title);
+    const report = parseReport(fenced);
+    expect(report.title).toBe(VALID_REPORT.title);
   });
 
   it('trims surrounding whitespace before parsing', () => {
-    const r = parseReport('  \n' + JSON.stringify(VALID_REPORT) + '\n  ');
-    expect(r.title).toBe(VALID_REPORT.title);
+    const report = parseReport('  \n' + JSON.stringify(VALID_REPORT) + '\n  ');
+    expect(report.title).toBe(VALID_REPORT.title);
   });
 
   it('defaults keyLines to [] when omitted', () => {
     const { keyLines: _kl, ...without } = VALID_REPORT;
-    const r = parseReport(JSON.stringify(without));
-    expect(r.keyLines).toEqual([]);
+    const report = parseReport(JSON.stringify(without));
+    expect(report.keyLines).toEqual([]);
   });
 
   it('defaults causes to [] when omitted', () => {
     const { causes: _c, ...without } = VALID_REPORT;
-    const r = parseReport(JSON.stringify(without));
-    expect(r.causes).toEqual([]);
+    const report = parseReport(JSON.stringify(without));
+    expect(report.causes).toEqual([]);
   });
 
   it('defaults debugSteps to [] when omitted', () => {
     const { debugSteps: _ds, ...without } = VALID_REPORT;
-    const r = parseReport(JSON.stringify(without));
-    expect(r.debugSteps).toEqual([]);
+    const report = parseReport(JSON.stringify(without));
+    expect(report.debugSteps).toEqual([]);
   });
 
   // ── Error cases ──────────────────────────────────────────────────────────
@@ -67,8 +67,8 @@ describe('parseReport', () => {
   it('sets statusCode 502 for invalid JSON', () => {
     try {
       parseReport('not json');
-    } catch (err) {
-      expect((err as AppError).statusCode).toBe(502);
+    } catch (error) {
+      expect((error as AppError).statusCode).toBe(502);
     }
   });
 
@@ -89,5 +89,20 @@ describe('parseReport', () => {
   it('throws AppError 502 when bugReportMarkdown is empty', () => {
     const bad = { ...VALID_REPORT, bugReportMarkdown: '' };
     expect(() => parseReport(JSON.stringify(bad))).toThrowError(AppError);
+  });
+});
+
+describe('parseReport server-only fields', () => {
+  it('drops format and findings the model sent', () => {
+    const sent = {
+      ...VALID_REPORT,
+      format: 'Syslog',
+      findings: [{ title: 'x', severity: 'low', category: 'y', evidence: 'z' }],
+    };
+
+    const report = parseReport(JSON.stringify(sent));
+
+    expect(report).not.toHaveProperty('format');
+    expect(report).not.toHaveProperty('findings');
   });
 });

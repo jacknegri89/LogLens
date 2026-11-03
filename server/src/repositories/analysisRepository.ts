@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 import type { Analysis } from '@prisma/client';
 
 import { prisma } from '../db/prisma';
@@ -24,16 +26,17 @@ export interface CreateAnalysisInput {
 }
 
 /**
- * What callers get back: the database row, but with `report` already parsed
- * from its JSON string into a real object.
+ * What callers get back: the database row with `report` parsed from its JSON string, and
+ * without `owner` and `clientHash`, which identify a visitor and never leave the server.
  */
-export interface AnalysisRecord extends Omit<Analysis, 'report'> {
+export interface AnalysisRecord extends Omit<Analysis, 'report' | 'owner' | 'clientHash'> {
   report: AnalysisReport;
 }
 
 /** Turn a raw DB row into our richer record (parse the JSON `report`). */
 function toRecord(row: Analysis): AnalysisRecord {
-  return { ...row, report: JSON.parse(row.report) as AnalysisReport };
+  const { owner: _owner, clientHash: _clientHash, ...visible } = row;
+  return { ...visible, report: JSON.parse(row.report) as AnalysisReport };
 }
 
 export async function createAnalysis(input: CreateAnalysisInput): Promise<AnalysisRecord> {
@@ -95,6 +98,89 @@ export async function getAnalysisById(id: string, owner: string): Promise<Analys
     return null;
   }
   return toRecord(row);
+}
+
+/** Records the visitor's verdict. Returns false when the analysis is not theirs or does not exist. */
+export async function setFeedback(
+  id: string,
+  owner: string,
+  helpful: boolean | null,
+): Promise<boolean> {
+  const result = await prisma.analysis.updateMany({ where: { id, owner }, data: { helpful } });
+  return result.count > 0;
+}
+
+/**
+ * Creates the secret link of an analysis, or returns the existing one. Returns null when the
+ * analysis is not theirs or does not exist.
+ */
+export async function createShareToken(id: string, owner: string): Promise<string | null> {
+  const row = await findShareToken(id, owner);
+  if (!row) {
+    return null;
+  }
+  if (row.shareToken) {
+    return row.shareToken;
+  }
+  const shareToken = randomBytes(24).toString('base64url');
+  // Only an analysis without a link takes this token: a request that lost the race keeps the winner's.
+  await prisma.analysis.updateMany({
+    where: { id, owner, shareToken: null },
+    data: { shareToken },
+  });
+  const saved = await findShareToken(id, owner);
+  return saved?.shareToken ?? null;
+}
+
+function findShareToken(id: string, owner: string) {
+  return prisma.analysis.findFirst({ where: { id, owner }, select: { shareToken: true } });
+}
+
+/** Removes the secret link, so the report is no longer reachable from it. */
+export async function revokeShareToken(id: string, owner: string): Promise<boolean> {
+  const result = await prisma.analysis.updateMany({
+    where: { id, owner },
+    data: { shareToken: null },
+  });
+  return result.count > 0;
+}
+
+/** The read-only view of a shared report: no raw log and no owner, only what the report shows. */
+export interface SharedAnalysis {
+  id: string;
+  createdAt: Date;
+  title: string;
+  severity: Severity;
+  category: string;
+  report: AnalysisReport;
+}
+
+export async function getSharedAnalysis(shareToken: string): Promise<SharedAnalysis | null> {
+  const row = await prisma.analysis.findUnique({ where: { shareToken } });
+  if (!row) {
+    return null;
+  }
+  const record = toRecord(row);
+  return {
+    id: record.id,
+    createdAt: record.createdAt,
+    title: record.title,
+    severity: record.severity as Severity,
+    category: record.category,
+    report: toSharedReport(record.report),
+  };
+}
+
+/** Keeps the parts of the report that a reader needs, without the raw log. */
+export function toSharedReport(report: AnalysisReport): AnalysisReport {
+  return {
+    keyLines: report.keyLines,
+    causes: report.causes,
+    debugSteps: report.debugSteps,
+    bugReportMarkdown: report.bugReportMarkdown,
+    format: report.format,
+    findings: report.findings,
+  };
 }
 
 const ONE_HOUR_MS = 60 * 60 * 1000;

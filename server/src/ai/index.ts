@@ -6,6 +6,14 @@ import { OllamaProvider } from './providers/ollamaProvider';
 import { OpenAIProvider } from './providers/openaiProvider';
 import { RulesProvider } from './providers/rulesProvider';
 
+const PROVIDER_FACTORIES: Record<typeof env.AI_PROVIDER, () => AIProvider> = {
+  openai: () => new OpenAIProvider(),
+  hybrid: () => new HybridProvider(new RulesProvider(), new OpenAIProvider()),
+  ollama: () => new OllamaProvider(),
+  rules: () => new RulesProvider(),
+  mock: () => new MockProvider(),
+};
+
 let cached: AIProvider | undefined;
 
 /**
@@ -14,26 +22,7 @@ let cached: AIProvider | undefined;
  * imports a specific provider, so swapping engines is a config change.
  */
 export function getAIProvider(): AIProvider {
-  if (cached) return cached;
-
-  switch (env.AI_PROVIDER) {
-    case 'openai':
-      cached = new OpenAIProvider();
-      break;
-    case 'hybrid':
-      cached = new HybridProvider(new RulesProvider(), new OpenAIProvider());
-      break;
-    case 'ollama':
-      cached = new OllamaProvider();
-      break;
-    case 'rules':
-      cached = new RulesProvider();
-      break;
-    case 'mock':
-    default:
-      cached = new MockProvider();
-  }
-
+  cached ??= (PROVIDER_FACTORIES[env.AI_PROVIDER] ?? PROVIDER_FACTORIES.mock)();
   return cached;
 }
 

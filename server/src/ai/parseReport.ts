@@ -26,5 +26,11 @@ export function parseReport(content: string): AIReport {
   if (!result.success) {
     throw new AppError(502, 'The AI response did not match the expected report format.');
   }
-  return result.data;
+  return withoutServerFields(result.data);
+}
+
+/** Format and findings are computed by the server, never taken from the model. */
+function withoutServerFields(report: AIReport): AIReport {
+  const { format: _format, findings: _findings, ...modelFields } = report;
+  return modelFields;
 }

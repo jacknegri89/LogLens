@@ -1,29 +1,31 @@
+import type { ReactNode } from 'react';
+
 import { REPORT_TEXT } from '../content/report';
 import { findLineNumbers, formatDate } from '../lib/format';
-import type { AnalysisRecord } from '../lib/types';
+import type { Finding, ReportSource } from '../lib/types';
 import { FailingLines } from './FailingLines';
+import { FindingsList } from './FindingsList';
 import { IssueActions } from './IssueActions';
 import { ReportSection } from './ReportSection';
 import { SeverityBadge } from './SeverityBadge';
+
+interface ReportViewProps {
+  analysis: ReportSource;
+  children?: ReactNode;
+}
 
 /**
  * The review of one analysis. It sits on the dark desk, so the log excerpt is a
  * strip of paper and the failing lines are marked with the highlighter.
  */
-export function ReportView({ analysis }: { analysis: AnalysisRecord }) {
+export function ReportView({ analysis, children }: ReportViewProps) {
   const { report } = analysis;
 
   return (
     <article className="space-y-9">
       <ReportHeader analysis={analysis} />
-      {report.keyLines.length > 0 && (
-        <ReportSection title={REPORT_TEXT.failingLines}>
-          <FailingLines
-            lines={report.keyLines}
-            lineNumbers={findLineNumbers(analysis.rawLog, report.keyLines)}
-          />
-        </ReportSection>
-      )}
+      <FindingsSection findings={report.findings} />
+      <FailingLinesSection analysis={analysis} />
       <ReportSection title={REPORT_TEXT.probableCauses}>
         <CauseList causes={report.causes} />
       </ReportSection>
@@ -33,16 +35,44 @@ export function ReportView({ analysis }: { analysis: AnalysisRecord }) {
       <ReportSection title={REPORT_TEXT.githubIssue}>
         <IssueActions id={analysis.id} markdown={report.bugReportMarkdown} />
       </ReportSection>
+      {children}
     </article>
   );
 }
 
-function ReportHeader({ analysis }: { analysis: AnalysisRecord }) {
+function FailingLinesSection({ analysis }: { analysis: ReportSource }) {
+  const { keyLines } = analysis.report;
+  if (keyLines.length === 0) return null;
+
+  const lineNumbers =
+    analysis.rawLog === undefined ? undefined : findLineNumbers(analysis.rawLog, keyLines);
+  return (
+    <ReportSection title={REPORT_TEXT.failingLines}>
+      <FailingLines lines={keyLines} lineNumbers={lineNumbers} />
+    </ReportSection>
+  );
+}
+
+function FindingsSection({ findings }: { findings?: Finding[] }) {
+  if (!findings || findings.length < 2) return null;
+  return (
+    <ReportSection title={REPORT_TEXT.allFindings}>
+      <FindingsList findings={findings} />
+    </ReportSection>
+  );
+}
+
+function ReportHeader({ analysis }: { analysis: ReportSource }) {
   return (
     <header>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <SeverityBadge severity={analysis.severity} />
         <span className="font-mono text-sm font-bold text-chalk">{analysis.category}</span>
+        {analysis.report.format && (
+          <span className="border border-chalk-dim px-1.5 font-mono text-xs text-chalk">
+            {analysis.report.format}
+          </span>
+        )}
         <span className="font-mono text-sm text-chalk-dim">{formatDate(analysis.createdAt)}</span>
       </div>
       <h2 className="mt-5 text-[26px] leading-tight font-extrabold break-words">

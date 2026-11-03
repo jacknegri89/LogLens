@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /shared/
 
 Sitemap: https://loglens-demo.vercel.app/sitemap.xml
