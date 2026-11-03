@@ -229,4 +229,77 @@ describe('RulesProvider', () => {
     expect(disk.category).toBe('Infrastructure');
     expect(image.category).toBe('Infrastructure');
   });
+
+  it('describes a 404 in the access log by its meaning, not as an unknown log', async () => {
+    const report = await provider.analyze({
+      excerpt:
+        '203.0.113.9 - - [02/Nov/2026:10:14:05 +0000] "GET /wp-login.php HTTP/1.1" 404 153 "-" "curl/8"',
+      severityHint: 'low',
+    });
+
+    expect(report.category).toBe('Client Error');
+    expect(report.severity).toBe('low');
+    expect(report.causes[0]).toContain('the path does not exist');
+  });
+
+  it('names the column of a PostgreSQL not-null violation in a Caused by chain', async () => {
+    const report = await provider.analyze({
+      excerpt: [
+        '2026-11-02 10:20:01 ERROR OrderService - failed to save order 991',
+        'Caused by: org.postgresql.util.PSQLException: ERROR: null value in column "sku" violates not-null constraint',
+      ].join('\n'),
+      severityHint: 'high',
+    });
+
+    expect(report.category).toBe('Database');
+    expect(report.causes[0]).toContain('into sku');
+  });
+
+  it('keeps the real message as the title when the log starts with PHP Fatal error', async () => {
+    const report = await provider.analyze({
+      excerpt:
+        'PHP Fatal error:  Uncaught TypeError: Argument 1 passed to foo() must be of type int, string given in /var/www/app.php:42',
+      severityHint: 'high',
+    });
+
+    expect(report.title.startsWith('PHP Fatal error')).toBe(true);
+    expect(report.category).toBe('Runtime');
+    expect(report.causes[0]).toContain('Argument 1 passed to foo()');
+  });
+
+  it('strips a date and time prefix from the title', async () => {
+    const report = await provider.analyze({
+      excerpt: '2026-11-02 10:20:01 ERROR OrderService - failed to save order 991',
+      severityHint: 'high',
+    });
+
+    expect(report.title).toBe('OrderService - failed to save order 991');
+  });
+
+  it('does not report a network timeout for a timeout_ms setting', async () => {
+    const report = await provider.analyze({
+      excerpt: 'INFO metrics errors_count=0 failed_jobs=0 timeout_ms=300',
+      severityHint: 'low',
+    });
+
+    expect(report.category).not.toBe('Network');
+  });
+
+  it('quotes the exact failing line when no rule covers it', async () => {
+    const report = await provider.analyze({
+      excerpt: 'INFO start\nERROR payments: charge rejected: card declined code=51',
+      severityHint: 'high',
+    });
+
+    expect(report.causes[0]).toContain('"ERROR payments: charge rejected: card declined code=51"');
+  });
+
+  it('says so when the excerpt holds no failure line', async () => {
+    const report = await provider.analyze({
+      excerpt: 'INFO metrics errors_count=0 failed_jobs=0 timeout_ms=300',
+      severityHint: 'low',
+    });
+
+    expect(report.causes[0]).toContain('no line in it reports a failure');
+  });
 });

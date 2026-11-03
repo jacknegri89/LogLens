@@ -127,8 +127,8 @@ PostgreSQL on Neon through the Vercel integration. Both have a free tier.
 
    | Variable                | Value                                                              |
    | ----------------------- | ------------------------------------------------------------------ |
-   | `AI_PROVIDER`           | `rules` (no key needed), `openai` or `ollama`                      |
-   | `OPENAI_API_KEY`        | your key, only when `AI_PROVIDER=openai`                           |
+   | `AI_PROVIDER`           | `rules` (no key needed), `hybrid` (rules first, OpenAI only for logs no rule covers), `openai` or `ollama`                      |
+   | `OPENAI_API_KEY`        | your key, only when `AI_PROVIDER=openai` or `hybrid`                           |
    | `RATE_LIMIT_PER_HOUR`   | analyses per client address per hour (default `5`, `0` = no limit) |
    | `GLOBAL_LIMIT_PER_HOUR` | analyses for everyone per hour (default `100`, `0` = no limit)     |
    | `TRUST_PROXY`           | `true` on Vercel, so the limit counts real visitors, not the proxy |

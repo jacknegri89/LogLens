@@ -12,6 +12,11 @@ function pickRule(text: string): Rule {
   return RULES.find((rule) => rule.pattern.test(text)) ?? FALLBACK_RULE;
 }
 
+/** True when a known failure matches the text, so the rules can explain it without a model. */
+export function hasKnownRule(text: string): boolean {
+  return pickRule(text) !== FALLBACK_RULE;
+}
+
 function pickKeyLines(lines: string[], rule: Rule): string[] {
   const matching = lines.filter((line) => rule.pattern.test(line) || FAILURE_LINE.test(line));
   const chosen = matching.length > 0 ? matching : lines;
@@ -27,7 +32,14 @@ function pickSeverity(rule: Rule, excerpt: string, severityHint: Severity): Seve
 /** Drops a leading "timestamp LEVEL" prefix so the title reads as a plain message. */
 function makeTitle(keyLines: string[]): string {
   const first = keyLines[0] ?? '';
-  const withoutPrefix = first.replace(/^\S+\s+(?:INFO|WARN|ERROR|DEBUG|FATAL)\s+/i, '');
+  const withoutTimestamp = first.replace(
+    /^(?:\d{4}-\d{2}-\d{2}[T ])?\d{2}:\d{2}:\d{2}(?:[.,]\d+)?Z?\s+/,
+    '',
+  );
+  const withoutPrefix = withoutTimestamp.replace(
+    /^(?:INFO|WARN|WARNING|ERROR|DEBUG|FATAL)\s+/i,
+    '',
+  );
   return withoutPrefix.trim().slice(0, MAX_TITLE_LENGTH) || 'Unknown issue';
 }
 

@@ -25,7 +25,8 @@ export interface Rule {
 export const ATTACK_SIGNATURE =
   /sqlmap|\bnikto\b|\bnmap\b|dirbuster|gobuster|acunetix|union(?:\s|%20|\+)+select|(?:'|%27)(?:\s|%20|\+)*or(?:\s|%20|\+)+\d+(?:=|%3d)\d+|sleep\(\d+\)|<script|\.\.\/\.\.\//i;
 
-const FAILURE_LINE = /error|exception|fatal|fail|refused|killed|timeout|denied|traceback/i;
+const FAILURE_LINE =
+  /\berror\b|[a-z]Error\b|exception|\bfatal\b|\bfail(?:ed|ure|s)?\b|refused|killed|\btimeout\b|timed out|denied|traceback/i;
 
 /** The innermost frame of a Python or Java traceback: where the failure really happened. */
 function lastFrame(excerpt: string): string {
@@ -37,6 +38,14 @@ function lastFrame(excerpt: string): string {
   if (lastJava) return `${lastJava[1]} (${lastJava[2]})`;
   return 'the failing line of the log';
 }
+
+const CLIENT_ERROR_MEANING: Record<string, string> = {
+  '400': 'the request is malformed or has invalid parameters.',
+  '404': 'the path does not exist on this server.',
+  '405': 'the HTTP method (GET, POST, ...) is not allowed on this path.',
+  '408': 'the client was too slow to send the request.',
+  '413': 'the request body is larger than the server accepts.',
+};
 
 export const RULES: Rule[] = [
   {
@@ -252,6 +261,25 @@ export const RULES: Rule[] = [
     ],
   },
   {
+    pattern: /\bTypeError\b/,
+    category: 'Runtime',
+    severity: 'high',
+    causesFor: (excerpt) => {
+      const message =
+        excerpt.match(/TypeError: ([^\n]+)/)?.[1]?.trim() ?? 'a value of the wrong type';
+      return [
+        `A call received a value of the wrong type: ${message}.`,
+        'The value comes from input or data whose type the code does not check before using it.',
+      ];
+    },
+    causes: [],
+    debugSteps: [
+      'Open the file and line named in the message or in the last stack frame.',
+      'Print the type of the value passed there (typeof, type() or gettype()) just before the call.',
+      'Convert or validate the input where it enters the code, and reject a wrong type with a clear error.',
+    ],
+  },
+  {
     pattern: /\bIndexError\b|(?:list|string|tuple) index out of range/i,
     category: 'Runtime',
     severity: 'high',
@@ -281,7 +309,25 @@ export const RULES: Rule[] = [
     ],
   },
   {
-    pattern: /etimedout|timed out|timeout|deadline exceeded/i,
+    pattern: /violates (?:not-null|not null) constraint|null value in column/i,
+    category: 'Database',
+    severity: 'high',
+    causesFor: (excerpt) => {
+      const column = excerpt.match(/column "([^"]+)"/i)?.[1] ?? 'a required column';
+      return [
+        `The INSERT or UPDATE writes NULL into ${column}, which the table does not allow.`,
+        'The code builds the row without a value for this field, often because the input was missing or an earlier step failed.',
+      ];
+    },
+    causes: [],
+    debugSteps: [
+      'Find the code that builds the row and check that every NOT NULL column receives a value.',
+      'Validate the required fields before the insert, and return a clear error when one is missing.',
+      'Compare the table definition (\\d <table> in psql) with the fields the code sends.',
+    ],
+  },
+  {
+    pattern: /etimedout|timed out|timeout(?!_)|deadline exceeded/i,
     category: 'Network',
     severity: 'medium',
     causes: [
@@ -518,24 +564,49 @@ export const RULES: Rule[] = [
       'Check that the account is allowed to connect from the host the app runs on (the host part of the account name).',
     ],
   },
+  {
+    pattern: /"\s4\d{2}\s|\bstatus[=:\s]+4\d{2}\b/i,
+    category: 'Client Error',
+    severity: 'low',
+    causesFor: (excerpt) => {
+      const code = excerpt.match(/"\s(4\d{2})\s|\bstatus[=:\s]+(4\d{2})\b/i);
+      const status = code?.[1] ?? code?.[2] ?? '4xx';
+      return [
+        `The server answered ${status}: ${CLIENT_ERROR_MEANING[status] ?? 'it refused the request because of how the client made it.'}`,
+        'Many such answers from one address in a short time mean a scanner or a broken client, not a user.',
+      ];
+    },
+    causes: [],
+    debugSteps: [
+      'Compare the path and the method in the access log with the routes the application defines.',
+      'Look for many 4xx answers from one address: that is a scanner or a broken client.',
+      'If the client is your own frontend, fix the link or the request it sends.',
+    ],
+  },
 ];
 
-/** The first line that reports a failure, or the last line when none does. */
-function firstFailureLine(excerpt: string): string {
+/** The first line that reports a failure, or null when the excerpt has none. */
+function firstFailureLine(excerpt: string): string | null {
   const lines = excerpt.split('\n').filter((line) => line.trim() !== '');
-  return lines.find((line) => FAILURE_LINE.test(line)) ?? lines.at(-1) ?? '';
+  return lines.find((line) => FAILURE_LINE.test(line)) ?? null;
 }
 
 /**
- * Used when no rule matches. It still says what the log shows: the failing line
- * and where to look for the cause, instead of claiming the log is unknown.
+ * Used when no rule matches. It quotes the failing line exactly and says so when
+ * there is no failure at all, so the reader never gets a generic answer.
  */
 export const FALLBACK_RULE: Rule = {
   pattern: /./,
   category: 'Runtime',
-  causesFor: (excerpt) => [
-    `The log records: "${firstFailureLine(excerpt)}". The cause is in the lines just before it, which show what the system was doing when it failed.`,
-  ],
+  causesFor: (excerpt) => {
+    const line = firstFailureLine(excerpt);
+    if (line === null) {
+      return ['The excerpt holds normal activity only: no line in it reports a failure.'];
+    }
+    return [
+      `The failing line is: "${line}". No known rule covers this message, so search the code for this exact text to find the function that writes it.`,
+    ];
+  },
   causes: [],
   debugSteps: [
     'Read the first error line and the lines just before it: the cause is usually there.',
