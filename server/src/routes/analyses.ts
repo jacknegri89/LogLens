@@ -41,17 +41,15 @@ async function reserveAttempt(visitor: Visitor): Promise<void> {
 
 /** The message for a limit that this attempt would go over, or null when it may go on. */
 async function findRefusal(clientHash: string): Promise<string | null> {
-  if (env.RATE_LIMIT_PER_HOUR > 0) {
-    const used = await countAttemptsInLastHour(clientHash);
-    if (used > env.RATE_LIMIT_PER_HOUR) {
-      return `Limit reached: ${env.RATE_LIMIT_PER_HOUR} analyses per hour. Try again later.`;
-    }
+  const [clientUsed, globalUsed] = await Promise.all([
+    env.RATE_LIMIT_PER_HOUR > 0 ? countAttemptsInLastHour(clientHash) : 0,
+    env.GLOBAL_LIMIT_PER_HOUR > 0 ? countAttemptsInLastHour() : 0,
+  ]);
+  if (clientUsed > env.RATE_LIMIT_PER_HOUR) {
+    return `Limit reached: ${env.RATE_LIMIT_PER_HOUR} analyses per hour. Try again later.`;
   }
-  if (env.GLOBAL_LIMIT_PER_HOUR > 0) {
-    const used = await countAttemptsInLastHour();
-    if (used > env.GLOBAL_LIMIT_PER_HOUR) {
-      return 'The demo is busy right now. Try again in a while.';
-    }
+  if (globalUsed > env.GLOBAL_LIMIT_PER_HOUR) {
+    return 'The demo is busy right now. Try again in a while.';
   }
   return null;
 }

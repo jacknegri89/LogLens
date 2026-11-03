@@ -125,15 +125,15 @@ PostgreSQL on Neon through the Vercel integration. Both have a free tier.
    **Neon**. Vercel creates `DATABASE_URL` and `DIRECT_URL` for you.
 3. **Environment variables** (Project → Settings → Environment Variables):
 
-   | Variable                | Value                                                              |
-   | ----------------------- | ------------------------------------------------------------------ |
-   | `AI_PROVIDER`           | `rules` (no key needed), `hybrid` (rules first, OpenAI only for logs no rule covers), `openai` or `ollama`                      |
-   | `OPENAI_API_KEY`        | your key, only when `AI_PROVIDER=openai` or `hybrid`                           |
-   | `RATE_LIMIT_PER_HOUR`   | analysis attempts per client address per hour, failed ones included (default `5`, `0` = no limit) |
-   | `GLOBAL_LIMIT_PER_HOUR` | analysis attempts for everyone per hour (default `100`, `0` = no limit)                            |
-   | `TRUST_PROXY`           | `true` on Vercel, so the limit counts real visitors, not the proxy |
-   | `VISITOR_SALT`          | any long random text, used to hash visitor addresses               |
-   | `CORS_ORIGIN`           | leave empty: client and API share the same domain                  |
+   | Variable                | Value                                                                                                      |
+   | ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+   | `AI_PROVIDER`           | `rules` (no key needed), `hybrid` (rules first, OpenAI only for logs no rule covers), `openai` or `ollama` |
+   | `OPENAI_API_KEY`        | your key, only when `AI_PROVIDER=openai` or `hybrid`                                                       |
+   | `RATE_LIMIT_PER_HOUR`   | analysis attempts per client address per hour, failed ones included (default `5`, `0` = no limit)          |
+   | `GLOBAL_LIMIT_PER_HOUR` | analysis attempts for everyone per hour (default `100`, `0` = no limit)                                    |
+   | `TRUST_PROXY`           | `true` on Vercel, so the limit counts real visitors, not the proxy                                         |
+   | `VISITOR_SALT`          | any long random text, used to hash visitor addresses                                                       |
+   | `CORS_ORIGIN`           | leave empty: client and API share the same domain                                                          |
 
 4. **Create the tables once**, from your computer, with the Neon URLs in `server/.env`:
 
