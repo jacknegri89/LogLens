@@ -1,0 +1,124 @@
+/*
+ * High-contrast theme: only the colour tokens change, so the layout stays the same. Text and borders
+ * get lighter, the felt gets darker. Switched by `data-theme="contrast"` on <html>.
+ */
+:root[data-theme='contrast'] {
+  --color-felt: #05100c;
+  --color-felt-2: #0a1c16;
+  --color-felt-deep: #020805;
+  --color-chalk: #f1f6f3;
+  --color-chalk-dim: #d2e0d8;
+  --color-ink-soft: #1d2622;
+  --color-marker: #fff04d;
+}
+
+:root[data-theme='contrast'] :focus-visible {
+  outline-width: 4px;
+}
+
+/* The palette window. */
+.pal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 1rem 1rem;
+  background: rgb(2 8 5 / 0.7);
+  overscroll-behavior: contain;
+  animation: pal-fade 0.12s ease-out;
+}
+
+.pal-dialog {
+  display: grid;
+  width: min(100%, 40rem);
+  max-height: min(34rem, 80dvh);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-chalk-dim) 55%, transparent);
+  border-radius: 8px;
+  background: var(--color-felt-deep);
+  color: var(--color-paper);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.6);
+}
+
+.pal-input {
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-chalk-dim) 40%, transparent);
+  background: transparent;
+  color: var(--color-paper);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+}
+
+.pal-input::placeholder {
+  color: var(--color-chalk);
+  opacity: 0.8;
+}
+
+.pal-input:focus-visible {
+  outline-offset: -3px;
+}
+
+.pal-list {
+  overflow-y: auto;
+  padding: 0.4rem;
+}
+
+.pal-group {
+  padding: 0.6rem 0.7rem 0.25rem;
+  color: var(--color-chalk);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pal-option {
+  padding: 0.55rem 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+
+.pal-option[aria-selected='true'] {
+  background: var(--color-marker);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.pal-empty {
+  padding: 1rem 0.7rem;
+  color: var(--color-chalk);
+  font-size: 0.9rem;
+}
+
+.pal-hint {
+  padding: 0.55rem 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-chalk-dim) 30%, transparent);
+  color: var(--color-chalk);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+@keyframes pal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pal-backdrop {
+    animation: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .pal-backdrop {
+    padding-top: 4rem;
+  }
+}

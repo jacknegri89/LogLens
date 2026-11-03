@@ -4,11 +4,20 @@ export interface AnonymizeResult {
   text: string;
   /** How many different values were replaced, per placeholder kind. */
   replaced: Record<string, number>;
+  /** How many places in the text were replaced, the same value counted each time it appears. */
+  occurrences: number;
+}
+
+export interface AnonymizeManyResult {
+  texts: string[];
+  replaced: Record<string, number>;
+  occurrences: number;
 }
 
 interface Registry {
   tokens: Map<string, string>;
   counts: Record<string, number>;
+  occurrences: number;
 }
 
 /** Every pattern names a `value` group; an optional `prefix` group is kept as written. */
@@ -35,8 +44,22 @@ const USER_LABEL = [
   String.raw`invalid[ \t]+user[ \t]+`,
 ].join('|');
 
+const CONNECTION_SCHEME = String.raw`(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|rediss?|amqps?|https?|ftps?)`;
+// Credentials sit between "scheme://" and "@": the host, port and database name are not touched.
+const CONNECTION_PASSWORD = new RegExp(
+  String.raw`(?<prefix>\b${CONNECTION_SCHEME}://[^\s:/@]*:)(?<value>[^\s@/]+)(?=@)`,
+  'gi',
+);
+const CONNECTION_USER = new RegExp(
+  String.raw`(?<prefix>\b${CONNECTION_SCHEME}://)(?<value>[^\s:/@]+)(?=(?::[^\s@/]*)?@)`,
+  'gi',
+);
+const PLACEHOLDER = /^(?:IP|EMAIL|SECRET|USER)-\d+$/;
+
 // Order matters: a value hidden by an earlier rule is already a short placeholder for the next ones.
 const RULES: Rule[] = [
+  { kind: 'SECRET', pattern: CONNECTION_PASSWORD },
+  { kind: 'USER', pattern: CONNECTION_USER },
   {
     kind: 'SECRET',
     pattern: new RegExp(
@@ -44,6 +67,21 @@ const RULES: Rule[] = [
       'gi',
     ),
   },
+  {
+    kind: 'SECRET',
+    pattern:
+      /(?<prefix>\bAuthorization["']?[ \t]*[:=][ \t]*["']?(?:Bearer|Basic)[ \t]+)(?<value>[A-Za-z0-9._~+/=-]{6,})/gi,
+  },
+  { kind: 'SECRET', pattern: /(?<![A-Za-z0-9])(?<value>[spr]k_(?:live|test)_[A-Za-z0-9]{8,})/g },
+  {
+    kind: 'SECRET',
+    pattern: /(?<![A-Za-z0-9])(?<value>(?:AKIA|ASIA)[A-Z0-9]{16})(?![A-Za-z0-9])/g,
+  },
+  {
+    kind: 'SECRET',
+    pattern: /(?<![A-Za-z0-9])(?<value>gh[pousr]_[A-Za-z0-9]{20,}|github_pat_\w{20,})/g,
+  },
+  { kind: 'SECRET', pattern: /(?<![A-Za-z0-9])(?<value>xox[bpars]-[A-Za-z0-9-]{10,})/g },
   {
     kind: 'SECRET',
     pattern: /(?<prefix>\bBearer[ \t]+)(?<value>[A-Za-z0-9._~+/=-]{8,})/gi,
@@ -66,7 +104,8 @@ const RULES: Rule[] = [
   },
   {
     kind: 'EMAIL',
-    pattern: /(?<value>[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})/g,
+    // Not the "user@" of a connection string: the host after it is not a mail domain.
+    pattern: /(?<value>[A-Za-z0-9._%+-]+(?<!:\/\/[^\s/@]*)@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})/g,
   },
   {
     kind: 'IP',
@@ -80,17 +119,44 @@ const RULES: Rule[] = [
 
 /** Replaces sensitive identifiers with stable placeholders (IP-1, EMAIL-1, SECRET-1, USER-1). */
 export function anonymizeLog(text: string): AnonymizeResult {
-  const registry: Registry = { tokens: new Map(), counts: {} };
-  const anonymized = RULES.reduce((current, rule) => applyRule(current, rule, registry), text);
-  return { text: anonymized, replaced: { ...registry.counts } };
+  const { texts, replaced, occurrences } = anonymizeMany([text]);
+  return { text: texts[0], replaced, occurrences };
+}
+
+/** Several texts share one numbering, so a value in the log and in its report gets the same token. */
+export function anonymizeMany(texts: readonly string[]): AnonymizeManyResult {
+  const anonymizer = createAnonymizer();
+  const anonymized = texts.map(anonymizer.anonymize);
+  return { texts: anonymized, ...anonymizer.summary() };
+}
+
+export interface Anonymizer {
+  anonymize: (text: string) => string;
+  /** What was replaced so far, across every text given to `anonymize`. */
+  summary: () => { replaced: Record<string, number>; occurrences: number };
+}
+
+/** For callers that meet their texts one at a time but want one numbering for all of them. */
+export function createAnonymizer(): Anonymizer {
+  const registry: Registry = { tokens: new Map(), counts: {}, occurrences: 0 };
+  return {
+    anonymize: (text) => RULES.reduce((current, rule) => applyRule(current, rule, registry), text),
+    summary: () => ({ replaced: { ...registry.counts }, occurrences: registry.occurrences }),
+  };
 }
 
 function applyRule(text: string, rule: Rule, registry: Registry): string {
   return text.replace(rule.pattern, (...args) => {
     const groups = args[args.length - 1] as { prefix?: string; value: string };
-    if (rule.accepts && !rule.accepts(groups.value)) return args[0];
+    if (isLeftAlone(rule, groups.value)) return args[0];
+    registry.occurrences += 1;
     return (groups.prefix ?? '') + placeholderFor(registry, rule.kind, groups.value);
   });
+}
+
+// A placeholder written by an earlier rule must not be taken for a new secret.
+function isLeftAlone(rule: Rule, value: string): boolean {
+  return PLACEHOLDER.test(value) || (rule.accepts !== undefined && !rule.accepts(value));
 }
 
 function placeholderFor(registry: Registry, kind: PlaceholderKind, value: string): string {

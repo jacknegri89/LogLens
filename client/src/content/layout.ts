@@ -7,6 +7,7 @@ export const LAYOUT_TEXT = defineText({
     navLabel: 'Main',
     languageLabel: 'Language',
     analyze: 'Analyze',
+    workbench: 'Workbench',
     history: 'History',
     skipToContent: 'Skip to content',
     footerPrivacy:
@@ -17,6 +18,7 @@ export const LAYOUT_TEXT = defineText({
     navLabel: 'Principale',
     languageLabel: 'Lingua',
     analyze: 'Analizza',
+    workbench: 'Workbench',
     history: 'Cronologia',
     skipToContent: 'Salta al contenuto',
     footerPrivacy:

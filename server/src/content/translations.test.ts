@@ -192,16 +192,23 @@ describe('report texts', () => {
 });
 
 describe('prompt languages', () => {
-  it('names the language and gives all eight issue headings in every language', () => {
+  it('names the language and gives the four report headings in every language', () => {
     for (const language of LANGUAGES) {
-      const { name, headings } = PROMPT_LANGUAGE[language];
+      const { name, sections } = PROMPT_LANGUAGE[language];
 
       expect(name.trim()).not.toBe('');
-      expect(Object.values(headings)).toHaveLength(8);
-      for (const heading of Object.values(headings)) expect(heading.trim()).not.toBe('');
+      expect(Object.values(sections)).toHaveLength(4);
+      for (const heading of Object.values(sections)) expect(heading.trim()).not.toBe('');
     }
-    expect(Object.keys(PROMPT_LANGUAGE.it.headings)).toEqual(
-      Object.keys(PROMPT_LANGUAGE.en.headings),
+    expect(Object.keys(PROMPT_LANGUAGE.it.sections)).toEqual(
+      Object.keys(PROMPT_LANGUAGE.en.sections),
+    );
+  });
+
+  it('keeps the owner Italian headings exactly as written', () => {
+    expect(PROMPT_LANGUAGE.it.sections.security).toBe('## 🚨 INCIDENTI DI SICUREZZA RILEVATI');
+    expect(PROMPT_LANGUAGE.it.sections.nextSteps).toBe(
+      '## 🚀 PROSSIMI PASSI (NEXT STEPS) CORRETTI',
     );
   });
 });

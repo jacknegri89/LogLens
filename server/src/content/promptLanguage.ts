@@ -1,49 +1,38 @@
 import type { Language } from '../types/language';
 
-/** The sections of the GitHub issue the model writes, in the order it must write them. */
-export interface IssueHeadings {
-  title: string;
-  severity: string;
-  category: string;
-  component: string;
-  whatHappened: string;
-  evidence: string;
-  cause: string;
-  mitigation: string;
+/** The four sections of the final report, in the order the model must write them. */
+export interface ReportSections {
+  security: string;
+  infrastructure: string;
+  noise: string;
+  nextSteps: string;
 }
 
 /** What the prompt says about the language of the answer. */
 export interface PromptLanguage {
   /** The name of the language, in English, as the prompt writes it. */
   name: string;
-  headings: IssueHeadings;
+  /** The headings of the report. Italian is the owner's wording; English is its translation. */
+  sections: ReportSections;
 }
 
 export const PROMPT_LANGUAGE: Record<Language, PromptLanguage> = {
   en: {
     name: 'English',
-    headings: {
-      title: 'Title',
-      severity: 'Severity',
-      category: 'Category',
-      component: 'Affected component',
-      whatHappened: 'What happened',
-      evidence: 'Evidence',
-      cause: 'Probable cause (RCA)',
-      mitigation: 'Mitigation',
+    sections: {
+      security: '## 🚨 SECURITY INCIDENTS DETECTED',
+      infrastructure: '## ⚙️ INFRASTRUCTURE OUTAGES / PERFORMANCE',
+      noise: '## 🟢 BACKGROUND NOISE IGNORED',
+      nextSteps: '## 🚀 CORRECT NEXT STEPS',
     },
   },
   it: {
     name: 'Italian',
-    headings: {
-      title: 'Titolo',
-      severity: 'Severità',
-      category: 'Categoria',
-      component: 'Componente impattato',
-      whatHappened: 'Cosa è successo',
-      evidence: 'Evidenze',
-      cause: 'Causa probabile (RCA)',
-      mitigation: 'Mitigazione',
+    sections: {
+      security: '## 🚨 INCIDENTI DI SICUREZZA RILEVATI',
+      infrastructure: '## ⚙️ DISSERVIZI INFRASTRUTTURALI / PERFORMANCE',
+      noise: '## 🟢 RUMORE DI FONDO IGNORATO',
+      nextSteps: '## 🚀 PROSSIMI PASSI (NEXT STEPS) CORRETTI',
     },
   },
 };

@@ -2,6 +2,13 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-03 — Il modello riceve solo righe rilevanti e un prompt in 4 fasi
+
+- **Decisione:** prima dell'invio il codice toglie il rumore di routine (health check, probe del load balancer, asset statici con esito normale) salvo che portino un errore o lo stesso trace id di una riga in errore, e dice al modello quanto ne ha tolto. Il system prompt apre con il testo del proprietario alla lettera; il contratto JSON, la scala di severità e le regole contro il prompt injection sono accodati.
+- **Motivo:** il modello si distraeva sugli errori più vistosi (OOMKilled, 504), perdeva gli attacchi e univa eventi senza legame. Meno rumore e regole di correlazione esplicite riducono entrambi i problemi.
+- **Scartato:** sostituire del tutto il prompt (il report salvato richiede il JSON validato con Zod e la difesa contro il prompt injection); il ruolo `developer` (non serve, `system` è accettato da tutti i modelli e da Ollama).
+- **Adattamento:** le intestazioni emoji del report vanno in `bugReportMarkdown`; per un report in inglese sono tradotte.
+
 ## 2026-11-03 — Grafica "stanza delle prove" al posto dell'aspetto precedente
 
 - **Decisione:** stessa palette (feltro, carta, evidenziatore, penna rossa), composizione nuova: carte inclinate con nastro e spillo, timbri, filo rosso SVG tra gli eventi collegati. Quattro momenti animati (lente dell'hero, scansione, filo rosso, timbro) e nient'altro oltre agli stati hover.

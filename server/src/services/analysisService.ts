@@ -33,6 +33,7 @@ export async function analyzeLog(
   const report = await provider.analyze({
     excerpt: parsed.excerpt,
     severityHint: parsed.severityHint,
+    noise: parsed.noise,
     language,
   });
 

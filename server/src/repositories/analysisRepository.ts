@@ -14,7 +14,7 @@ import type { AnalysisReport, Severity } from '../types/report';
 
 /** Everything needed to store a new analysis. */
 export interface CreateAnalysisInput {
-  source?: 'paste' | 'upload';
+  source?: 'paste' | 'upload' | 'ingest';
   fileName?: string | null;
   rawLog: string;
   title: string;
@@ -90,6 +90,12 @@ export async function listAnalysisSummaries(owner: string): Promise<AnalysisSumm
 export async function deleteAnalysesByOwner(owner: string): Promise<number> {
   const result = await prisma.analysis.deleteMany({ where: { owner } });
   return result.count;
+}
+
+/** Removes one analysis of this visitor. Returns false when it is not theirs or does not exist. */
+export async function deleteAnalysisById(id: string, owner: string): Promise<boolean> {
+  const result = await prisma.analysis.deleteMany({ where: { id, owner } });
+  return result.count > 0;
 }
 
 export async function getAnalysisById(id: string, owner: string): Promise<AnalysisRecord | null> {

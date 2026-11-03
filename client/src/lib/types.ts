@@ -50,6 +50,8 @@ export interface AnalysisRecord {
   report: AnalysisReport;
   helpful: boolean | null;
   shareToken: string | null;
+  /** Set only on a copy kept in this browser whose log was cut to fit; the server never sends it. */
+  logTruncated?: boolean;
 }
 
 /** Read-only copy served through a share link (matches GET /api/shared/:token); it has no raw log. */

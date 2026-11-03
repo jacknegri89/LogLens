@@ -1,4 +1,5 @@
 import type { Language } from '../types/language';
+import type { NoiseSummary } from '../parser/noiseFilter';
 import type { Severity } from '../types/report';
 import type { AIReport } from './schema';
 
@@ -6,6 +7,8 @@ import type { AIReport } from './schema';
 export interface AnalyzeInput {
   excerpt: string;
   severityHint: Severity;
+  /** What the parser took out before the excerpt was built; the prompt says so to the model. */
+  noise?: NoiseSummary;
   /** The language of the report text. English when missing. */
   language?: Language;
 }

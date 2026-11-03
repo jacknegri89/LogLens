@@ -11,7 +11,7 @@ const OPENAI_TEMPERATURE = 0.2;
 /* A stalled model call would hold the request until the platform kills it; fail fast instead. */
 const OPENAI_TIMEOUT_MS = 20_000;
 /* The answer is billed per token; a cap stops a log from asking the model for a long one. */
-const OPENAI_MAX_TOKENS = 1500;
+const OPENAI_MAX_TOKENS = 2500;
 
 /**
  * Talks to the OpenAI Chat Completions API using the built-in `fetch` (no SDK

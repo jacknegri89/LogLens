@@ -51,10 +51,9 @@ describe.each([
     await createProvider().analyze({ excerpt: EXCERPT, severityHint: 'low', language: 'it' });
 
     const prompt = textOf(sentMessages());
-    expect(prompt).toContain('bugReportMarkdown) in Italian.');
-    expect(prompt).toContain('"Causa probabile (RCA)"');
+    expect(prompt).toContain('Write every human-readable value in Italian.');
     expect(prompt).toContain('Write every human-readable field of the report in Italian.');
-    expect(prompt).not.toContain('"Probable cause (RCA)"');
+    expect(prompt).not.toContain('## 🚨 SECURITY INCIDENTS DETECTED');
   });
 
   it('asks the model for English when the language is English or missing', async () => {
@@ -64,9 +63,8 @@ describe.each([
       await createProvider().analyze({ excerpt: EXCERPT, severityHint: 'low', language });
 
       const prompt = textOf(sentMessages());
-      expect(prompt).toContain('bugReportMarkdown) in English.');
-      expect(prompt).toContain('"Probable cause (RCA)"');
-      expect(prompt).not.toContain('"Causa probabile (RCA)"');
+      expect(prompt).toContain('Write every human-readable value in English.');
+      expect(prompt).toContain('## 🚨 SECURITY INCIDENTS DETECTED');
     }
   });
 
