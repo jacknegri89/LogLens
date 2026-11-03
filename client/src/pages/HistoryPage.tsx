@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { ErrorNotice } from '../components/ErrorNotice';
@@ -6,13 +7,33 @@ import { ERROR_TEXT } from '../content/errors';
 import { HISTORY_TEXT } from '../content/history';
 import { useLoad } from '../hooks/useLoad';
 import { api } from '../lib/api';
+import { errorMessage } from '../lib/errors';
 
 export function HistoryPage() {
+  // Bumping this key loads the history again, for example after it was cleared.
+  const [reloadKey, setReloadKey] = useState(0);
   const { data: items, error } = useLoad(
     () => api.listAnalyses(),
-    [],
+    [reloadKey],
     ERROR_TEXT.loadHistoryFallback,
   );
+  const [confirming, setConfirming] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [clearError, setClearError] = useState('');
+
+  async function clearHistory() {
+    setClearing(true);
+    setClearError('');
+    try {
+      await api.deleteAnalyses();
+      setConfirming(false);
+      setReloadKey((key) => key + 1);
+    } catch (err: unknown) {
+      setClearError(errorMessage(err, HISTORY_TEXT.clearFailed));
+    } finally {
+      setClearing(false);
+    }
+  }
 
   return (
     <div>
@@ -22,7 +43,21 @@ export function HistoryPage() {
         <p className="caret mt-10 text-lg text-chalk">{HISTORY_TEXT.loading}</p>
       )}
       {items && items.length === 0 && <EmptyHistory />}
-      {items && items.length > 0 && <HistoryList items={items} />}
+      {items && items.length > 0 && (
+        <>
+          <HistoryList items={items} />
+          <ClearHistory
+            confirming={confirming}
+            clearing={clearing}
+            onStart={() => setConfirming(true)}
+            onCancel={() => setConfirming(false)}
+            onConfirm={clearHistory}
+          />
+        </>
+      )}
+      {clearError && (
+        <ErrorNotice title={HISTORY_TEXT.clearFailed} message={clearError} className="mt-6" />
+      )}
     </div>
   );
 }
@@ -38,6 +73,56 @@ function HistoryHeading({ count }: { count: number | null }) {
           {HISTORY_TEXT.savedCount(count)}
         </span>
       )}
+    </div>
+  );
+}
+
+function ClearHistory({
+  confirming,
+  clearing,
+  onStart,
+  onCancel,
+  onConfirm,
+}: {
+  confirming: boolean;
+  clearing: boolean;
+  onStart: () => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  if (!confirming) {
+    return (
+      <div className="mt-6 flex justify-end">
+        <button
+          type="button"
+          onClick={onStart}
+          className="btn-ink px-5 py-2 text-sm font-bold tracking-wide uppercase"
+        >
+          {HISTORY_TEXT.clearButton}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+      <p className="mr-auto text-lg text-chalk">{HISTORY_TEXT.clearConfirm}</p>
+      <button
+        type="button"
+        onClick={onConfirm}
+        disabled={clearing}
+        className="btn-ink px-5 py-2 text-sm font-bold tracking-wide uppercase disabled:opacity-60"
+      >
+        {clearing ? HISTORY_TEXT.clearing : HISTORY_TEXT.clearYes}
+      </button>
+      <button
+        type="button"
+        onClick={onCancel}
+        disabled={clearing}
+        className="px-5 py-2 text-sm font-bold tracking-wide text-chalk uppercase underline disabled:opacity-60"
+      >
+        {HISTORY_TEXT.clearNo}
+      </button>
     </div>
   );
 }

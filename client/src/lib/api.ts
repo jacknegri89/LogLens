@@ -40,5 +40,6 @@ export const api = {
       signal,
     }),
   listAnalyses: () => request<AnalysisSummary[]>('/api/analyses'),
+  deleteAnalyses: () => request<{ deleted: number }>('/api/analyses', { method: 'DELETE' }),
   getAnalysis: (id: string) => request<AnalysisRecord>(`/api/analyses/${id}`),
 };

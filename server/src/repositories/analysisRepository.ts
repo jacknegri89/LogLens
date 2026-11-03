@@ -89,6 +89,12 @@ export async function listAnalysisSummaries(owner: string): Promise<AnalysisSumm
   return rows.map((row) => ({ ...row, severity: row.severity as Severity }));
 }
 
+/** Removes every analysis of one visitor. Returns how many rows were deleted. */
+export async function deleteAnalysesByOwner(owner: string): Promise<number> {
+  const result = await prisma.analysis.deleteMany({ where: { owner } });
+  return result.count;
+}
+
 export async function getAnalysisById(id: string, owner: string): Promise<AnalysisRecord | null> {
   const row = await prisma.analysis.findFirst({ where: { id, owner } });
   if (!row) {
