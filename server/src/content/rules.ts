@@ -434,11 +434,12 @@ export const RULES: Rule[] = [
     ],
   },
   {
-    pattern: /deadlock detected|too many connections|remaining connection slots/i,
+    pattern:
+      /deadlock detected|too many connections|remaining connection slots|pool (?:is )?exhausted|timeout (?:acquiring|waiting for) (?:a )?connection/i,
     category: 'Database',
     severity: 'high',
     causes: [
-      'Too many connections are open: each request or function opens its own.',
+      'Too many connections are open, or every connection of the pool is busy: each request or function opens its own, or a slow query holds them.',
       'Two transactions wait for each other and neither can continue.',
     ],
     debugSteps: [

@@ -27,6 +27,12 @@ describe('buildUserPrompt', () => {
     expect(first.match(/BEGIN (LOG-\w+)/)?.[1]).not.toBe(second.match(/BEGIN (LOG-\w+)/)?.[1]);
   });
 
+  it('asks the model to correlate the events and separate the root cause from the symptoms', () => {
+    expect(SYSTEM_PROMPT).toContain('ROOT CAUSE');
+    expect(SYSTEM_PROMPT).toContain('SYMPTOMS');
+    expect(SYSTEM_PROMPT).toContain('Do not treat each line as an independent bug');
+  });
+
   it('tells the model that the log is data and not instructions', () => {
     expect(SYSTEM_PROMPT).toContain('Untrusted input');
     expect(SYSTEM_PROMPT).toContain('prompt-injection');

@@ -1,8 +1,10 @@
 import type { Severity } from '../../types/report';
 import { FAILURE_LINE, FALLBACK_RULE, type Rule } from '../../content/rules';
 import type { AIProvider, AnalyzeInput } from '../AIProvider';
+import { correlateIncident, type Correlation } from '../correlation';
+import { splitLines } from '../eventTimeline';
 import { buildFindings } from '../findings';
-import { makeTitle, pickRule, pickSeverity } from '../ruleMatching';
+import { makeTitle, pickRule, pickSeverity, raiseSeverity } from '../ruleMatching';
 import { aiReportSchema, type AIReport } from '../schema';
 
 const MAX_KEY_LINES = 6;
@@ -12,10 +14,12 @@ export function hasKnownRule(text: string): boolean {
   return pickRule(text) !== FALLBACK_RULE;
 }
 
-function pickKeyLines(lines: string[], rule: Rule): string[] {
+/** The lines that prove the rule. A lead line, when given, comes first so the title describes it. */
+function pickKeyLines(lines: string[], rule: Rule, leadLine?: string): string[] {
   const matching = lines.filter((line) => rule.pattern.test(line) || FAILURE_LINE.test(line));
   const chosen = matching.length > 0 ? matching : lines;
-  return [...new Set(chosen)].slice(0, MAX_KEY_LINES);
+  const ordered = leadLine === undefined ? chosen : [leadLine, ...chosen];
+  return [...new Set(ordered)].slice(0, MAX_KEY_LINES);
 }
 
 interface IssueFields {
@@ -23,6 +27,7 @@ interface IssueFields {
   severity: Severity;
   category: string;
   keyLines: string[];
+  overview: string[];
   causes: string[];
   debugSteps: string[];
 }
@@ -35,6 +40,7 @@ function buildIssue(issue: IssueFields): string {
     `**Severity:** ${issue.severity}`,
     `**Category:** ${issue.category}`,
     '',
+    ...overviewSection(issue.overview),
     '### Log lines',
     '',
     fence,
@@ -56,6 +62,11 @@ function codeFence(lines: string[]): string {
   return '`'.repeat(Math.max(3, longestRun + 1));
 }
 
+function overviewSection(overview: string[]): string[] {
+  if (overview.length === 0) return [];
+  return ['### Big picture', '', ...overview.map((sentence) => `- ${sentence}`), ''];
+}
+
 function causesSection(causes: string[]): string[] {
   return ['### Probable causes', '', ...causes.map((cause) => `- ${cause}`), ''];
 }
@@ -69,24 +80,50 @@ function stepsSection(debugSteps: string[]): string[] {
   ];
 }
 
-function buildReport({ excerpt, severityHint }: AnalyzeInput): AIReport {
-  const lines = excerpt.split('\n').filter((line) => line.trim() !== '');
-  const rule = pickRule(excerpt);
-  const keyLines = pickKeyLines(lines, rule);
-  const issue: IssueFields = {
+/**
+ * The rule that describes the report. When the events are connected it is the rule of the
+ * root cause, so the headline names what to fix first; otherwise it is the first rule that matches.
+ */
+function pickMainRule(excerpt: string, correlation: Correlation): Rule {
+  return pickRule(correlation.rootCause?.evidence ?? excerpt);
+}
+
+function findLine(lines: string[], evidence: string | undefined): string | undefined {
+  return evidence === undefined ? undefined : lines.find((line) => line.startsWith(evidence));
+}
+
+function describeIssue(
+  input: AnalyzeInput,
+  lines: string[],
+  correlation: Correlation,
+): IssueFields {
+  const { excerpt, severityHint } = input;
+  const rule = pickMainRule(excerpt, correlation);
+  const keyLines = pickKeyLines(lines, rule, findLine(lines, correlation.rootCause?.evidence));
+  const severity = pickSeverity(rule, excerpt, severityHint);
+  return {
     title: makeTitle(keyLines),
-    severity: pickSeverity(rule, excerpt, severityHint),
+    // A login accepted after a brute force means the account may be lost: that is critical.
+    severity: correlation.compromisedLogin ? raiseSeverity(severity, 'critical') : severity,
     category: rule.category,
     keyLines,
-    causes: rule.causesFor ? rule.causesFor(excerpt) : rule.causes,
+    overview: correlation.overview,
+    causes: [...correlation.overview.slice(0, 1), ...(rule.causesFor?.(excerpt) ?? rule.causes)],
     debugSteps: rule.debugSteps,
   };
-  const findings = buildFindings(excerpt, severityHint);
+}
+
+function buildReport(input: AnalyzeInput): AIReport {
+  const lines = splitLines(input.excerpt);
+  const findings = buildFindings(input.excerpt, input.severityHint);
+  const correlation = correlateIncident(input.excerpt, findings);
+  const { overview, ...issue } = describeIssue(input, lines, correlation);
 
   return aiReportSchema.parse({
     ...issue,
-    bugReportMarkdown: buildIssue(issue),
+    bugReportMarkdown: buildIssue({ ...issue, overview }),
     ...(findings.length > 0 ? { findings } : {}),
+    ...(overview.length > 0 ? { overview } : {}),
   });
 }
 

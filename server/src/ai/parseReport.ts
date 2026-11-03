@@ -29,8 +29,8 @@ export function parseReport(content: string): AIReport {
   return withoutServerFields(result.data);
 }
 
-/** Format and findings are computed by the server, never taken from the model. */
+/** Format, findings and overview are computed by the server, never taken from the model. */
 function withoutServerFields(report: AIReport): AIReport {
-  const { format: _format, findings: _findings, ...modelFields } = report;
+  const { format: _format, findings: _findings, overview: _overview, ...modelFields } = report;
   return modelFields;
 }

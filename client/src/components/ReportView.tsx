@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { REPORT_TEXT } from '../content/report';
 import { findLineNumbers, formatDate } from '../lib/format';
 import type { Finding, ReportSource } from '../lib/types';
+import { BigPicture } from './BigPicture';
 import { FailingLines } from './FailingLines';
 import { FindingsList } from './FindingsList';
 import { IssueActions } from './IssueActions';
@@ -24,6 +25,7 @@ export function ReportView({ analysis, children }: ReportViewProps) {
   return (
     <article className="space-y-9">
       <ReportHeader analysis={analysis} />
+      <BigPictureSection overview={report.overview} />
       <FindingsSection findings={report.findings} />
       <FailingLinesSection analysis={analysis} />
       <ReportSection title={REPORT_TEXT.probableCauses}>
@@ -49,6 +51,15 @@ function FailingLinesSection({ analysis }: { analysis: ReportSource }) {
   return (
     <ReportSection title={REPORT_TEXT.failingLines}>
       <FailingLines lines={keyLines} lineNumbers={lineNumbers} />
+    </ReportSection>
+  );
+}
+
+function BigPictureSection({ overview }: { overview?: string[] }) {
+  if (!overview || overview.length === 0) return null;
+  return (
+    <ReportSection title={REPORT_TEXT.bigPicture}>
+      <BigPicture sentences={overview} />
     </ReportSection>
   );
 }

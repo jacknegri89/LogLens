@@ -34,4 +34,6 @@ export interface AnalysisReport {
   format?: string;
   /** Distinct problems in the log, most severe first. */
   findings?: Finding[];
+  /** The big picture: root cause against symptoms, order in time, shared actors. Each item is a short sentence. */
+  overview?: string[];
 }

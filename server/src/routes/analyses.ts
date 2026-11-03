@@ -99,6 +99,7 @@ function pickStoredReport(report: AIReport) {
     bugReportMarkdown: report.bugReportMarkdown,
     format: report.format,
     findings: report.findings,
+    overview: report.overview,
   };
 }
 

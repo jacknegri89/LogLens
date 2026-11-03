@@ -4,6 +4,9 @@ Modifiche approvate, dalla più recente.
 
 ## 2026-11-03
 
+- Quadro generale nel motore a regole: gli eventi di un log vengono collegati (causa radice e sintomi, ordine nel tempo, indirizzo condiviso). Il report ha il campo `overview`, la sezione "Big picture" e un titolo che descrive la causa radice. Tabella delle relazioni in `server/src/content/correlations.ts`.
+- Un login riuscito dopo almeno 3 tentativi falliti dallo stesso indirizzo porta il report a `critical` ("possibile brute force riuscito"). Il parser tiene le righe `Accepted password|publickey` per vederlo.
+- Nuova regola per il pool di connessioni esaurito (Database).
 - Modalità `hybrid`: regole prima, OpenAI solo per i log che nessuna regola copre.
 - Il fallback cita la riga di errore esatta, o dice quando non c'è alcun errore.
 - Pulsante "Delete history" nello storico, con conferma; endpoint `DELETE /api/analyses` limitato al visitatore.

@@ -22,6 +22,12 @@ describe('toSharedReport', () => {
     expect(shared.findings).toEqual(report.findings);
   });
 
+  it('passes the overview through', () => {
+    const overview = ['Probable root cause: the database refused the connection.'];
+
+    expect(toSharedReport({ ...report, overview }).overview).toEqual(overview);
+  });
+
   it('stays valid for an older report that has neither', () => {
     const { format: _format, findings: _findings, ...older } = report;
 
