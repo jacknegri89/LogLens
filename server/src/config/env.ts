@@ -19,9 +19,9 @@ const envSchema = z
     DATABASE_URL: z.string().min(1, 'DATABASE_URL is required (see .env.example)'),
 
     // Which AI engine analyzes the logs.
-    AI_PROVIDER: z.enum(['mock', 'rules', 'openai', 'ollama']).default('mock'),
+    AI_PROVIDER: z.enum(['mock', 'rules', 'openai', 'hybrid', 'ollama']).default('mock'),
 
-    // OpenAI (used when AI_PROVIDER=openai)
+    // OpenAI (used when AI_PROVIDER=openai, or for unknown logs when AI_PROVIDER=hybrid)
     OPENAI_API_KEY: z.string().optional(),
     OPENAI_MODEL: z.string().default('gpt-4o-mini'),
 
@@ -45,11 +45,12 @@ const envSchema = z
   })
   .superRefine((value, ctx) => {
     // Conditional rule: OpenAI needs a key, but only when it's the chosen provider.
-    if (value.AI_PROVIDER === 'openai' && !value.OPENAI_API_KEY) {
+    const usesOpenAI = value.AI_PROVIDER === 'openai' || value.AI_PROVIDER === 'hybrid';
+    if (usesOpenAI && !value.OPENAI_API_KEY) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['OPENAI_API_KEY'],
-        message: 'OPENAI_API_KEY is required when AI_PROVIDER=openai',
+        message: `OPENAI_API_KEY is required when AI_PROVIDER=${value.AI_PROVIDER}`,
       });
     }
   });

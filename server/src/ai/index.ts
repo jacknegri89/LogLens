@@ -1,5 +1,6 @@
 import { env } from '../config/env';
 import type { AIProvider } from './AIProvider';
+import { HybridProvider } from './providers/hybridProvider';
 import { MockProvider } from './providers/mockProvider';
 import { OllamaProvider } from './providers/ollamaProvider';
 import { OpenAIProvider } from './providers/openaiProvider';
@@ -18,6 +19,9 @@ export function getAIProvider(): AIProvider {
   switch (env.AI_PROVIDER) {
     case 'openai':
       cached = new OpenAIProvider();
+      break;
+    case 'hybrid':
+      cached = new HybridProvider(new RulesProvider(), new OpenAIProvider());
       break;
     case 'ollama':
       cached = new OllamaProvider();

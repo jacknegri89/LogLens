@@ -2,6 +2,21 @@ import { describe, expect, it } from 'vitest';
 
 import { parseLog } from './logParser';
 
+describe('parseLog error words', () => {
+  it('does not treat a metric named errors_count as an error', () => {
+    const result = parseLog('INFO metrics errors_count=0 failed_jobs=0 timeout_ms=300');
+
+    expect(result.relevantLines.map((line) => line.category)).not.toContain('error');
+    expect(result.relevantLines.map((line) => line.category)).not.toContain('timeout');
+  });
+
+  it('still recognises TypeError and KeyError as errors', () => {
+    const result = parseLog('TypeError: x is undefined\nKeyError: 42');
+
+    expect(result.relevantLines.map((line) => line.category)).toEqual(['error', 'error']);
+  });
+});
+
 describe('parseLog', () => {
   // ── Empty / whitespace input ─────────────────────────────────────────────
 

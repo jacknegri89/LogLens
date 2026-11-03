@@ -70,7 +70,8 @@ const MATCHERS: { category: Exclude<LineCategory, 'context'>; pattern: RegExp }[
   },
   { category: 'attack', pattern: ATTACK_SIGNATURE },
   { category: 'exception', pattern: /exception/i },
-  { category: 'error', pattern: /error|fatal|panic/i }, // also catches TypeError, ERROR, ...
+  // Whole word, so "errors_count=0" is not an error; "TypeError" and "KeyError" still match.
+  { category: 'error', pattern: /\berror\b|[a-z]Error\b|\bfatal\b|\bpanic\b/i },
   { category: 'server-error', pattern: /"\s5\d{2}\s|\bstatus[=:\s]+5\d{2}\b/i }, // access log: "GET / HTTP/1.1" 502
   { category: 'timeout', pattern: /\btimeout\b|timed out/i },
   {
