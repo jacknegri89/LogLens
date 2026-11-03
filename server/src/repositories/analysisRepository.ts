@@ -105,10 +105,20 @@ export async function getAnalysisById(id: string, owner: string): Promise<Analys
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
-/** Analyses created in the last hour by one client, or by everyone when no hash is given. */
-export function countAnalysesInLastHour(clientHash?: string): Promise<number> {
+/** Saves one attempt before the AI runs. Returns its id, so a refused attempt can be removed. */
+export async function recordAttempt(clientHash: string): Promise<string> {
+  const attempt = await prisma.analysisAttempt.create({ data: { clientHash } });
+  return attempt.id;
+}
+
+export async function removeAttempt(id: string): Promise<void> {
+  await prisma.analysisAttempt.delete({ where: { id } });
+}
+
+/** Attempts in the last hour by one client, or by everyone when no hash is given. */
+export function countAttemptsInLastHour(clientHash?: string): Promise<number> {
   const since = new Date(Date.now() - ONE_HOUR_MS);
-  return prisma.analysis.count({
+  return prisma.analysisAttempt.count({
     where: { createdAt: { gte: since }, ...(clientHash ? { clientHash } : {}) },
   });
 }
