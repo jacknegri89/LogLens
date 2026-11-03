@@ -321,4 +321,65 @@ describe('RulesProvider', () => {
 
     expect(report.title).toBe('ECONNREFUSED 172.18.0.2:5432');
   });
+
+  it.each([
+    ['an expired TLS certificate', 'Error: certificate has expired', 'Network'],
+    [
+      'a Redis login failure',
+      'ERR WRONGPASS invalid username-password pair',
+      'Database Connection Failure',
+    ],
+    [
+      'a Docker daemon that is not running',
+      'Cannot connect to the Docker daemon at unix:///var/run/docker.sock',
+      'Infrastructure',
+    ],
+    [
+      'a Go panic',
+      'panic: runtime error: invalid memory address or nil pointer dereference',
+      'Runtime',
+    ],
+    ['a Rust panic', "thread 'main' panicked at src/main.rs:10:5", 'Runtime'],
+    [
+      'an unhandled .NET exception',
+      'System.NullReferenceException: Object reference not set',
+      'Runtime',
+    ],
+    ['a PHP uncaught exception', 'PHP Fatal error:  Uncaught Exception: boom', 'Runtime'],
+    ['a Ruby NoMethodError', "NoMethodError: undefined method `name' for nil:NilClass", 'Runtime'],
+    [
+      'an nginx upstream error',
+      '2026/11/03 10:00:00 [error] 1234#0: *5 connect() failed',
+      'Infrastructure',
+    ],
+    [
+      'a systemd service that failed to start',
+      'Job for nginx.service failed because the control process exited',
+      'Infrastructure',
+    ],
+    [
+      'an evicted Kubernetes pod',
+      'Pod was evicted: The node was low on resource: memory',
+      'Infrastructure',
+    ],
+    [
+      'a Java exception in a thread',
+      'Exception in thread "main" java.lang.IllegalStateException: closed',
+      'Runtime',
+    ],
+  ])('recognises %s', async (_name, excerpt, expectedCategory) => {
+    const report = await provider.analyze({ excerpt, severityHint: 'medium' });
+
+    expect(report.category).toBe(expectedCategory);
+    expect(report.causes.length).toBeGreaterThan(0);
+  });
+
+  it('does not take an ordinary info line for a Java exception', async () => {
+    const report = await provider.analyze({
+      excerpt: '2026-11-03T10:00:00Z INFO request served in 12ms',
+      severityHint: 'low',
+    });
+
+    expect(report.bugReportMarkdown).toContain('normal activity only');
+  });
 });

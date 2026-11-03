@@ -26,7 +26,7 @@ export const ATTACK_SIGNATURE =
   /sqlmap|\bnikto\b|\bnmap\b|dirbuster|gobuster|acunetix|union(?:\s|%20|\+)+select|(?:'|%27)(?:\s|%20|\+)*or(?:\s|%20|\+)+\d+(?:=|%3d)\d+|sleep\(\d+\)|<script|\.\.\/\.\.\//i;
 
 export const FAILURE_LINE =
-  /\berror\b|[a-z]Error\b|exception|\bfatal\b|\bfail(?:ed|ure|s)?\b|refused|killed|\btimeout\b|timed out|denied|traceback/i;
+  /\berror\b|[a-z]Error\b|exception|\bfatal\b|\bpanic\b|\bfail(?:ed|ure|s)?\b|refused|killed|\btimeout\b|timed out|denied|traceback/i;
 
 /** The innermost frame of a Python or Java traceback: where the failure really happened. */
 function lastFrame(excerpt: string): string {
@@ -562,6 +562,156 @@ export const RULES: Rule[] = [
       'Compare the user and password in the configuration with the real credentials of the MySQL account.',
       'Test the login by hand: mysql -h <host> -u <user> -p.',
       'Check that the account is allowed to connect from the host the app runs on (the host part of the account name).',
+    ],
+  },
+  {
+    pattern:
+      /certificate has expired|self[- ]signed certificate|unable to verify the first certificate|ssl certificate problem|x509: certificate|cert_has_expired/i,
+    category: 'Network',
+    severity: 'high',
+    causes: [
+      'The TLS certificate is expired, does not match the host name, or is signed by an authority the client does not trust.',
+      'A self-signed or internal certificate is used without the matching CA certificate on the client.',
+    ],
+    debugSteps: [
+      'Check the expiry date and the host names of the certificate: openssl s_client -connect <host>:443 -servername <host>.',
+      'Renew the certificate, or install the missing intermediate and CA certificates on the server.',
+      'Do not turn off certificate checks in the client; add the correct CA certificate instead.',
+    ],
+  },
+  {
+    pattern: /\bNOAUTH\b|\bWRONGPASS\b|OOM command not allowed|MISCONF Redis/,
+    category: 'Database Connection Failure',
+    severity: 'high',
+    causes: [
+      'Redis rejects the command: the client is not logged in (NOAUTH), the password is wrong (WRONGPASS), or Redis is out of memory or cannot save to disk (OOM, MISCONF).',
+    ],
+    debugSteps: [
+      'Compare the Redis password in the configuration with the requirepass value of the server.',
+      'For OOM, check maxmemory and the eviction policy, and free memory or raise the limit.',
+      'For MISCONF, check the disk space and permissions of the Redis data directory.',
+    ],
+  },
+  {
+    pattern:
+      /cannot connect to the docker daemon|docker: error response from daemon|docker daemon is not running/i,
+    category: 'Infrastructure',
+    severity: 'high',
+    causes: [
+      'The Docker daemon is not running, or the current user has no permission to reach its socket.',
+      'The command points to a daemon on another host through DOCKER_HOST.',
+    ],
+    debugSteps: [
+      'Start the daemon (systemctl start docker) or open Docker Desktop, then retry.',
+      'Add the user to the docker group, or run the command with sudo, if the socket reports permission denied.',
+      'Check the DOCKER_HOST variable and the context selected with docker context ls.',
+    ],
+  },
+  {
+    pattern: /^panic: |goroutine \d+ \[running\]|thread '[^']*' panicked at/im,
+    category: 'Runtime',
+    severity: 'high',
+    causes: [
+      'The program hit a condition it does not handle (nil pointer, index out of range, failed unwrap) and stopped.',
+    ],
+    debugSteps: [
+      'Read the first stack frame that belongs to your code, not to the standard library.',
+      'Check the value named in the panic message at that line: nil, length or unwrap result.',
+      'Return an error from that path instead of panicking, and handle it where the call is made.',
+    ],
+  },
+  {
+    pattern: /unhandled exception\.|system\.\w+exception|nullreferenceexception/i,
+    category: 'Runtime',
+    severity: 'high',
+    causes: [
+      'A .NET exception was not caught, so the application ended. The top frame shows where it was thrown.',
+    ],
+    debugSteps: [
+      'Open the first frame of your own code in the stack trace.',
+      'Check the object or value used there for null or out-of-range data.',
+      'Catch the exception at the boundary that can handle it, and log the full details.',
+    ],
+  },
+  {
+    pattern: /php fatal error|uncaught (?:exception|error)|call to undefined function/i,
+    category: 'Runtime',
+    severity: 'high',
+    causes: [
+      'PHP stopped the script because of an uncaught error or a call to code that does not exist.',
+    ],
+    debugSteps: [
+      'Open the file and line named in the message: PHP prints it after "on line".',
+      'Check that the function or class is defined and that its file is loaded (autoload, require).',
+      'Turn on error logging for development, and keep display_errors off in production.',
+    ],
+  },
+  {
+    pattern: /nomethoderror|undefined method `?\w+'? for nil/i,
+    category: 'Runtime',
+    severity: 'high',
+    causes: ['Ruby called a method on nil: a value that should exist is missing at that point.'],
+    debugSteps: [
+      'Open the first application frame of the backtrace and find the variable that is nil there.',
+      'Check where that variable is set, and why it is not set in this request.',
+      'Guard the call with a nil check or fix the lookup that returned nothing.',
+    ],
+  },
+  {
+    pattern: /\[error\] \d+#\d+|\[crit\] \d+#\d+|upstream prematurely closed/i,
+    category: 'Infrastructure',
+    severity: 'high',
+    causes: [
+      'The web server (nginx) failed while serving the request: a crashed upstream, a file or permission problem, or a limit it reached.',
+    ],
+    debugSteps: [
+      'Read the error text after the [error] tag: it names the file, socket or upstream that failed.',
+      'Check that the upstream application is running and reachable from the web server.',
+      'Run nginx -t to validate the configuration, then reload it.',
+    ],
+  },
+  {
+    pattern: /failed to start |main process exited, code=|job for \S+ failed/i,
+    category: 'Infrastructure',
+    severity: 'high',
+    causes: [
+      'A system service exited during start-up: a wrong configuration, a missing file or a port that is already used.',
+    ],
+    debugSteps: [
+      'Read the service log: journalctl -u <service> -n 100 --no-pager.',
+      'Test the service command by hand to see its full error output.',
+      'Fix the configuration named in the log, then restart the service.',
+    ],
+  },
+  {
+    pattern: /\bevicted\b|the node was low on resource|ephemeral-storage/i,
+    category: 'Infrastructure',
+    severity: 'medium',
+    causes: [
+      'Kubernetes removed the pod because its node ran low on memory or disk, and the pod exceeded its requests.',
+    ],
+    debugSteps: [
+      'Run kubectl describe pod and read the reason and the message of the eviction.',
+      'Set realistic memory and storage requests and limits for the container.',
+      'Check the node disk usage and clean up old images and logs if the disk is full.',
+    ],
+  },
+  {
+    pattern: /exception in thread "|\b[\w$]+(?:\.[\w$]+)*(?:Exception|Error): /,
+    category: 'Runtime',
+    severity: 'high',
+    causesFor: (excerpt) => {
+      const exceptionName = excerpt.match(/([\w$]+(?:\.[\w$]+)*(?:Exception|Error)):/)?.[1];
+      return [
+        `The exception ${exceptionName ?? '(see the first line)'} was not caught and stopped the thread.`,
+        `It was raised at ${lastFrame(excerpt)} and was not handled there.`,
+      ];
+    },
+    causes: [],
+    debugSteps: [
+      'Read the "Caused by" lines at the bottom: the innermost cause is the real problem.',
+      'Open the first frame of your own code and check the value used there.',
+      'Catch the exception where the program can recover, and log the full stack trace.',
     ],
   },
   {

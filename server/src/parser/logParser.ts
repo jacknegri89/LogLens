@@ -72,6 +72,8 @@ const MATCHERS: { category: Exclude<LineCategory, 'context'>; pattern: RegExp }[
   { category: 'exception', pattern: /exception/i },
   // Whole word, so "errors_count=0" is not an error; "TypeError" and "KeyError" still match.
   { category: 'error', pattern: /\berror\b|[a-z]Error\b|\bfatal\b|\bpanic\b/i },
+  // Syslog and log4j levels are written in capitals; lowercase "err" or "crit" in prose is not a level.
+  { category: 'error', pattern: /\b(?:ERR|CRIT|CRITICAL|ALERT|EMERG)\b/ },
   { category: 'server-error', pattern: /"\s5\d{2}\s|\bstatus[=:\s]+5\d{2}\b/i }, // access log: "GET / HTTP/1.1" 502
   { category: 'timeout', pattern: /\btimeout\b|timed out/i },
   {
