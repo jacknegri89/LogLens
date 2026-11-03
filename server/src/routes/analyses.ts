@@ -7,6 +7,7 @@ import { requireVisitorOwner, type Visitor } from '../middleware/visitor';
 import {
   countAnalysesInLastHour,
   createAnalysis,
+  deleteAnalysesByOwner,
   getAnalysisById,
   listAnalysisSummaries,
 } from '../repositories/analysisRepository';
@@ -81,6 +82,12 @@ async function analyzeAndSave(input: CreateAnalysisBody, visitor: Visitor) {
 analysesRouter.get('/', async (_req: Request, res: Response) => {
   const analyses = await listAnalysisSummaries((res.locals.visitor as Visitor).owner);
   res.json(analyses);
+});
+
+// DELETE /api/analyses — erases the whole history of this visitor only.
+analysesRouter.delete('/', async (_req: Request, res: Response) => {
+  const deleted = await deleteAnalysesByOwner((res.locals.visitor as Visitor).owner);
+  res.json({ deleted });
 });
 
 // GET /api/analyses/:id — a single analysis with its full report.
