@@ -25,3 +25,16 @@ test('wrapped log lines keep one line number each and never scroll sideways', as
   const overflow = await scroller.evaluate((el) => el.scrollWidth - el.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test('the Clear button empties the editor and only shows while there is text', async ({ page }) => {
+  await page.goto('/');
+  const clearButton = page.getByRole('button', { name: 'Clear', exact: true });
+  await expect(clearButton).toHaveCount(0);
+
+  await page.locator('#log-input').fill('ERROR something broke');
+  await expect(clearButton).toBeVisible();
+
+  await clearButton.click();
+  await expect(page.locator('#log-input')).toHaveValue('');
+  await expect(clearButton).toHaveCount(0);
+});

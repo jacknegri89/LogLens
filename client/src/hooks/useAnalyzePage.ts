@@ -54,6 +54,11 @@ export function useAnalyzePage() {
     analysis.run(toAnalysisInput(anonymizedSend.prepare(), log.fileName));
   }
 
+  function clear() {
+    log.clear();
+    analysis.reset();
+  }
+
   return {
     log,
     analysis,
@@ -61,6 +66,7 @@ export function useAnalyzePage() {
     anonymizedCounts: anonymizedSend.matching?.replaced ?? null,
     canSubmit,
     submit,
+    clear,
     failingLines: failingLinesFor(analysis.result, anonymizedSend.matching?.sent ?? log.text),
   };
 }

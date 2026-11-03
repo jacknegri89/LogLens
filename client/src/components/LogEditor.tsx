@@ -17,6 +17,7 @@ export interface LogEditorProps {
   onFileLoad: (file: File) => void;
   onSubmit: () => void;
   onCancel: () => void;
+  onClear: () => void;
   anonymize: boolean;
   onAnonymizeChange: (enabled: boolean) => void;
   anonymizedCounts: Record<string, number> | null;
@@ -44,7 +45,7 @@ export function LogEditor(props: LogEditorProps) {
         onSubmitShortcut={props.onSubmit}
       />
       {/* The toolbar takes the same props; only the file loader is wrapped for the reveal. */}
-      <EditorToolbar {...props} onFileLoad={reveal.loadFile} />
+      <EditorToolbar {...props} canClear={props.text !== ''} onFileLoad={reveal.loadFile} />
       {dragging && <DropOverlay />}
     </section>
   );

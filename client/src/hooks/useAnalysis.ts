@@ -48,7 +48,13 @@ export function useAnalysis() {
     setState((previous) => ({ ...previous, status: 'idle' }));
   }
 
-  return { ...state, run, cancel };
+  /** Stops a request that is running and forgets the last result. */
+  function reset() {
+    cancel();
+    setState(IDLE);
+  }
+
+  return { ...state, run, cancel, reset };
 }
 
 function isAbort(error: unknown): boolean {

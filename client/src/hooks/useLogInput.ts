@@ -10,6 +10,11 @@ export function useLogInput() {
     setFileName(null);
   }
 
+  function clear() {
+    setText('');
+    setFileName(null);
+  }
+
   function pickExample(content: string) {
     changeText(content);
   }
@@ -21,5 +26,5 @@ export function useLogInput() {
     });
   }
 
-  return { text, fileName, changeText, pickExample, loadFile };
+  return { text, fileName, changeText, clear, pickExample, loadFile };
 }
