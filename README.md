@@ -110,9 +110,9 @@ LogLens/
 
 | Paste a log or upload a file                  | Report with severity, key lines, causes and steps |
 | --------------------------------------------- | ------------------------------------------------- |
-| ![Analyze page](docs/screenshots/analyze.png) | ![Report](docs/screenshots/report.png)            |
+| ![Analyze page](docs/screenshots/analyze.jpg) | ![Report](docs/screenshots/report.jpg)            |
 
-![History of analyses](docs/screenshots/history.png)
+![History of analyses](docs/screenshots/history.jpg)
 
 ## Deploy on Vercel
 
