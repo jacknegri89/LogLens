@@ -8,15 +8,17 @@ import type { AnalysisSummary } from '../lib/types';
 
 interface HistoryContentProps {
   items: AnalysisSummary[];
+  offline: boolean;
+  onRemoved: (id: string) => void;
   clearHistory: ClearHistoryControls;
 }
 
 /** The saved analyses, with the control to erase them and the reason when that fails. */
-export function HistoryContent({ items, clearHistory }: HistoryContentProps) {
+export function HistoryContent({ items, offline, onRemoved, clearHistory }: HistoryContentProps) {
   const text = useText(HISTORY_TEXT);
   return (
     <>
-      <HistoryList items={items} />
+      <HistoryList items={items} offline={offline} onRemoved={onRemoved} />
       <ClearHistory history={clearHistory} />
       {clearHistory.error && (
         <ErrorNotice title={text.clearFailed} message={clearHistory.error} className="mt-8" />

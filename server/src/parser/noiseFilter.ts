@@ -1,0 +1,90 @@
+import type { NumberedLine } from './logParser';
+
+export type NoiseKind = 'health-check' | 'probe' | 'static-asset';
+
+/** What the filter took out, so the model can say it ignored it without ever reading it. */
+export interface NoiseSummary {
+  removed: number;
+  byKind: Partial<Record<NoiseKind, number>>;
+}
+
+const STATIC_EXTENSIONS = 'css|js|map|png|jpe?g|gif|svg|ico|webp|avif|woff2?|ttf|eot';
+const OK_STATUS = String.raw`HTTP\/[\d.]+"?\s+(?:200|204|206|304)\b`;
+
+const NOISE_PATTERNS: { kind: NoiseKind; pattern: RegExp }[] = [
+  {
+    kind: 'health-check',
+    pattern:
+      /\b(?:GET|HEAD)\s+\/(?:health|healthz|healthcheck|health-check|readyz?|livez?|ping|alive|heartbeat)\b/i,
+  },
+  {
+    kind: 'probe',
+    pattern: /ELB-HealthChecker|kube-probe|GoogleHC|HealthChecker|Pingdom|UptimeRobot|StatusCake/i,
+  },
+  {
+    kind: 'static-asset',
+    pattern: new RegExp(
+      String.raw`\b(?:GET|HEAD)\s+\S+\.(?:${STATIC_EXTENSIONS})(?:\?\S*)?\s+${OK_STATUS}`,
+      'i',
+    ),
+  },
+  {
+    kind: 'static-asset',
+    pattern: new RegExp(
+      String.raw`\b(?:GET|HEAD)\s+\/(?:static|assets|_next\/static|public)\/\S+\s+${OK_STATUS}`,
+      'i',
+    ),
+  },
+];
+
+/** A routine line is still kept when it reports a failure: a failing health check is news. */
+const FAILURE_SIGNAL =
+  /\b(?:error|exception|fatal|panic|fail(?:ed|ure)?|timeout|timed out|refused|denied)\b|"\s*[45]\d{2}\s|\bstatus[=:\s]+[45]\d{2}\b/i;
+
+const TRACE_ID = /\b(?:trace|request|req|correlation)[_-]?id[=:\s"']+([\w-]{6,})/gi;
+
+function noiseKindOf(content: string): NoiseKind | null {
+  return NOISE_PATTERNS.find(({ pattern }) => pattern.test(content))?.kind ?? null;
+}
+
+function traceIdsOf(content: string): string[] {
+  return [...content.matchAll(TRACE_ID)].map((match) => match[1]);
+}
+
+/** The trace ids that appear on a failing line: a routine line with one of them is part of that error trace. */
+function failingTraceIds(lines: NumberedLine[]): Set<string> {
+  const ids = new Set<string>();
+  for (const { content } of lines) {
+    if (FAILURE_SIGNAL.test(content)) traceIdsOf(content).forEach((id) => ids.add(id));
+  }
+  return ids;
+}
+
+function isRoutine(content: string, failingIds: Set<string>): NoiseKind | null {
+  const kind = noiseKindOf(content);
+  if (!kind || FAILURE_SIGNAL.test(content)) return null;
+  return traceIdsOf(content).some((id) => failingIds.has(id)) ? null : kind;
+}
+
+/**
+ * Takes the routine lines out before anything is sent to a model: health checks, load balancer
+ * probes and static assets answered normally. They only distract it from the lines that matter.
+ */
+export function separateNoise(lines: NumberedLine[]): {
+  kept: NumberedLine[];
+  noise: NoiseSummary;
+} {
+  const failingIds = failingTraceIds(lines);
+  const noise: NoiseSummary = { removed: 0, byKind: {} };
+  const kept: NumberedLine[] = [];
+  for (const line of lines) {
+    const kind = isRoutine(line.content, failingIds);
+    if (kind === null) {
+      kept.push(line);
+      continue;
+    }
+    noise.removed += 1;
+    noise.byKind[kind] = (noise.byKind[kind] ?? 0) + 1;
+  }
+  return { kept, noise };
+}

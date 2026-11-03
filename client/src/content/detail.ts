@@ -11,6 +11,9 @@ export const DETAIL_TEXT = defineText({
     lineCount: (count: number) => withCount(count, ['line', 'lines']),
     loadFailed: 'Could not load this analysis',
     loadFallback: 'Analysis not found',
+    offlineNotice: 'Showing the copy saved in this browser: the server cannot be reached.',
+    offlineLimits: 'Sharing and feedback are unavailable until it is back.',
+    logTruncated: 'The log saved in this browser is cut short.',
   },
   it: {
     backLink: 'Torna alla cronologia',
@@ -20,5 +23,9 @@ export const DETAIL_TEXT = defineText({
     lineCount: (count: number) => withCount(count, ['riga', 'righe']),
     loadFailed: 'Impossibile caricare questa analisi',
     loadFallback: 'Analisi non trovata',
+    offlineNotice:
+      'Stai vedendo la copia salvata in questo browser: il server non è raggiungibile.',
+    offlineLimits: 'Condivisione e valutazione non sono disponibili finché non torna.',
+    logTruncated: 'Il log salvato in questo browser è stato troncato.',
   },
 });

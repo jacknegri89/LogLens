@@ -8,6 +8,7 @@ import { notFound } from './middleware/notFound';
 import { identifyVisitor } from './middleware/visitor';
 import { analysesRouter } from './routes/analyses';
 import { healthRouter } from './routes/health';
+import { ingestRouter } from './routes/ingest';
 import { sharedRouter } from './routes/shared';
 
 /**
@@ -44,6 +45,7 @@ export function createApp() {
   // Routes
   app.use('/api/health', healthRouter);
   app.use('/api/analyses', identifyVisitor, analysesRouter);
+  app.use('/api/ingest', identifyVisitor, ingestRouter);
   // Shared reports are public by their secret link, so they skip the visitor check.
   app.use('/api/shared', sharedRouter);
 

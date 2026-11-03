@@ -787,3 +787,138 @@
   background: var(--color-marker);
   color: var(--color-ink);
 }
+
+/* Remove under a history card: it sits on the felt, outside the card link. */
+.case-entry {
+  display: flex;
+  flex-direction: column;
+}
+.case-entry > .case-card {
+  flex: 1 1 auto;
+  height: auto;
+}
+.case-remove {
+  margin-top: 0.4rem;
+}
+.case-remove-button,
+.case-remove-yes,
+.case-remove-no {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.case-remove-button,
+.case-remove-no {
+  color: var(--color-chalk);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.case-remove-button {
+  display: block;
+  margin-left: auto;
+}
+.case-remove-button:hover,
+.case-remove-no:hover:not(:disabled) {
+  background: var(--color-marker);
+  color: var(--color-ink);
+}
+.case-remove-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem 0.5rem;
+}
+.case-remove-question {
+  margin-right: auto;
+  color: var(--color-paper);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.case-remove-yes {
+  border: 2px solid var(--color-ink);
+  background: var(--pen-ink);
+  color: var(--color-paper);
+}
+.case-remove-yes:hover:not(:disabled) {
+  background: var(--color-pen-deep);
+}
+.case-remove-yes:disabled,
+.case-remove-no:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+/* Notice that the page shows the copy kept in this browser: a blue-edged slip, flat so it reads easily. */
+.offline-notice {
+  max-width: 42rem;
+  padding: 0.85rem 1.25rem;
+  border-left: 8px solid var(--color-blueink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: var(--paper-shadow);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+.offline-notice > p + p {
+  margin-top: 0.25rem;
+  color: var(--color-ink-soft);
+}
+
+/* Language change: a band of marker yellow sweeps the page, then the new choice pops in the switch. */
+.language-sweep {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-marker) 35%,
+    var(--color-marker) 65%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: language-sweep 0.7s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+}
+.language-switch .language-option[aria-pressed='true'] {
+  animation: language-pop 0.35s 0.2s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes language-sweep {
+  0% {
+    transform: translateX(-100%);
+    opacity: 1;
+  }
+  55% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+@keyframes language-pop {
+  from {
+    transform: scale(0.6);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .language-sweep {
+    display: none;
+  }
+  .language-switch .language-option[aria-pressed='true'] {
+    animation: none;
+  }
+}

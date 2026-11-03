@@ -1,4 +1,5 @@
 import { ATTACK_SIGNATURE } from '../content/rules';
+import { separateNoise, type NoiseSummary } from './noiseFilter';
 import type { Severity } from '../types/report';
 
 /**
@@ -22,7 +23,8 @@ export type LineCategory =
   | 'attack'
   | 'server-error'
   | 'client-error'
-  | 'login'
+  | 'waf'
+  | 'auth'
   | 'context';
 
 export interface ParsedLine {
@@ -41,6 +43,8 @@ export interface ParseResult {
   relevantLines: ParsedLine[];
   /** Relevant lines joined into a compact text, ready for the AI prompt. */
   excerpt: string;
+  /** The routine lines taken out before the excerpt was built (health checks, probes, static assets). */
+  noise: NoiseSummary;
   /** A rough severity guess from what matched (the AI makes the final call). */
   severityHint: Severity;
   /** True if we hit the line/char limits and cut the excerpt short. */
@@ -58,6 +62,11 @@ export interface ParseOptions {
   fallbackTailLines?: number;
 }
 
+const WAF_EVENT =
+  /\bwaf\b|modsecurity|mod_security|owasp[_ -]?crs|\baction[=:\s"']+(?:block|deny|drop|challenge|captcha)\b|cloudflare|akamai|imperva|fortiweb|fortigate|palo alto|suricata|snort|blocked by|rule[_ -]?id[=:\s]/i;
+const AUTH_STATE_CHANGE =
+  /\b(?:log(?:in|on)|sign[- ]?in|sign[- ]?out|logout|authenticat\w*|authoriz\w*|mfa|2fa|otp|totp|session (?:created|started|expired|revoked|invalidated)|token (?:issued|revoked|expired|refreshed)|password (?:changed|reset)|accepted (?:password|publickey|keyboard-interactive)|access (?:granted|denied)|permission denied|unauthori[sz]ed|forbidden|rbac)\b/i;
+
 /**
  * Ordered keyword matchers. The FIRST one that matches a line wins, so more
  * specific/severe categories are listed first.
@@ -70,6 +79,8 @@ const MATCHERS: { category: Exclude<LineCategory, 'context'>; pattern: RegExp }[
       /^\s*at\s+|^\s*File "[^"]+", line \d+|^\s*Traceback \(most recent call last\)|^\s*caused by:/i,
   },
   { category: 'attack', pattern: ATTACK_SIGNATURE },
+  // Firewall, WAF and IDS events: a block or a rule hit is worth reading even without an error word.
+  { category: 'waf', pattern: WAF_EVENT },
   { category: 'exception', pattern: /exception/i },
   // Whole word, so "errors_count=0" is not an error; "TypeError" and "KeyError" still match.
   { category: 'error', pattern: /\berror\b|[a-z]Error\b|\bfatal\b|\bpanic\b/i },
@@ -83,8 +94,9 @@ const MATCHERS: { category: Exclude<LineCategory, 'context'>; pattern: RegExp }[
   },
   { category: 'client-error', pattern: /"\s4\d{2}\s|\bstatus[=:\s]+4\d{2}\b/i },
   { category: 'warning', pattern: /\bwarn(?:ing)?\b/i },
-  // A successful login is no failure, but after failed ones it can mean a break-in: keep it for the correlation.
-  { category: 'login', pattern: /\baccepted (?:password|publickey|keyboard-interactive)\b/i },
+  // Changes of authentication state. A successful login is no failure, but after failed ones it can
+  // mean a break-in, so it is kept for the correlation.
+  { category: 'auth', pattern: AUTH_STATE_CHANGE },
 ];
 
 function classify(line: string): Exclude<LineCategory, 'context'> | null {
@@ -106,11 +118,12 @@ function truncate(text: string, max: number): string {
 function computeSeverity(categories: Set<LineCategory>): Severity {
   const high = ['error', 'exception', 'attack', 'server-error'] as const;
   if (high.some((category) => categories.has(category))) return 'high';
-  if (categories.has('failure') || categories.has('timeout')) return 'medium';
+  const medium: LineCategory[] = ['failure', 'timeout', 'waf'];
+  if (medium.some((category) => categories.has(category))) return 'medium';
   return 'low';
 }
 
-interface NumberedLine {
+export interface NumberedLine {
   content: string;
   lineNumber: number;
 }
@@ -119,11 +132,14 @@ export function parseLog(raw: string, options: ParseOptions = {}): ParseResult {
   const { maxLines = 100, maxChars = 6000, maxLineLength = 1000, fallbackTailLines = 20 } = options;
 
   const nonEmpty = nonEmptyLines(raw);
-  const matched = keepMatchingLines(nonEmpty, maxLineLength);
+  const { kept, noise } = separateNoise(nonEmpty);
+  // A log made only of routine lines is analysed as it is: there is nothing else to look at.
+  const worthReading = kept.length > 0 ? kept : nonEmpty;
+  const matched = keepMatchingLines(worthReading, maxLineLength);
   // Keep every matching line. If none match, keep the tail instead: the actual failure
   // is often the last thing printed.
   const candidates =
-    matched.length === 0 ? tailLines(nonEmpty, fallbackTailLines, maxLineLength) : matched;
+    matched.length === 0 ? tailLines(worthReading, fallbackTailLines, maxLineLength) : matched;
 
   const { lines: relevant, truncated: lineCapped } = capLines(candidates, maxLines);
   const { excerpt, truncated: charCapped } = capExcerpt(relevant, maxChars);
@@ -133,6 +149,7 @@ export function parseLog(raw: string, options: ParseOptions = {}): ParseResult {
     matchedCount: matched.length,
     relevantLines: relevant,
     excerpt,
+    noise: kept.length > 0 ? noise : { removed: 0, byKind: {} },
     severityHint: computeSeverity(new Set(relevant.map((line) => line.category))),
     truncated: lineCapped || charCapped,
   };

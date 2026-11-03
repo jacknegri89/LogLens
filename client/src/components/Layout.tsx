@@ -2,9 +2,11 @@ import { NavLink, Outlet } from 'react-router-dom';
 
 import { LAYOUT_TEXT } from '../content/layout';
 import { useText } from '../i18n/useText';
+import { CommandPalette } from '../workbench/palette/CommandPalette';
 import { LanguageSwitch } from './LanguageSwitch';
 
-const NAV_TAB_CLASS = 'nav-tab text-xs font-bold tracking-[0.14em] uppercase sm:text-sm';
+const NAV_TAB_CLASS =
+  'nav-tab px-2 text-[11px] font-bold tracking-[0.06em] uppercase sm:px-[0.7rem] sm:text-sm sm:tracking-[0.14em]';
 
 /** The frame around every page: the lit desk, brand, navigation, the page, the footer. */
 export function Layout() {
@@ -22,6 +24,7 @@ export function Layout() {
         <Outlet />
       </main>
       <SiteFooter />
+      <CommandPalette />
     </div>
   );
 }
@@ -38,10 +41,13 @@ function SiteHeader() {
           </span>
         </span>
       </NavLink>
-      <div className="flex w-full items-center justify-between sm:w-auto sm:gap-4">
+      <div className="flex w-full min-w-0 items-center justify-between sm:w-auto sm:gap-4">
         <nav className="flex items-center sm:gap-2" aria-label={text.navLabel}>
           <NavLink to="/" end className={NAV_TAB_CLASS}>
             {text.analyze}
+          </NavLink>
+          <NavLink to="/workbench" className={NAV_TAB_CLASS}>
+            {text.workbench}
           </NavLink>
           <NavLink to="/history" className={NAV_TAB_CLASS}>
             {text.history}

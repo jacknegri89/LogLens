@@ -30,6 +30,8 @@ const envSchema = z
     RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(5),
     GLOBAL_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(100),
     VISITOR_SALT: z.string().default('loglens'),
+    // Secret for POST /api/ingest. Without it the endpoint does not exist; at least 16 characters.
+    INGEST_TOKEN: z.string().min(16).optional(),
     // Set to true only behind a reverse proxy (Vercel, nginx) that sets X-Forwarded-For.
     TRUST_PROXY: z
       .enum(['true', 'false'])

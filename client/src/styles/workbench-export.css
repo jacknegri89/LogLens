@@ -1,0 +1,228 @@
+/* Export view and the restored-from-link notice. Dark panels on the felt, marker yellow for what to press. */
+.exp-panel {
+  --exp-line: color-mix(in srgb, var(--color-chalk-dim) 38%, transparent);
+  --exp-hot: color-mix(in srgb, var(--color-pen) 55%, var(--color-paper));
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.exp-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.exp-subtitle {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.exp-intro,
+.exp-note {
+  max-width: 48rem;
+  color: var(--color-chalk);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.exp-formats {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+.exp-format {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--exp-line);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-felt-deep) 78%, transparent);
+  text-align: left;
+}
+
+.exp-format:hover {
+  border-color: var(--color-chalk);
+}
+
+.exp-format[aria-pressed='true'] {
+  border-color: var(--color-marker);
+  box-shadow: inset 0 0 0 1px var(--color-marker);
+}
+
+.exp-format-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.exp-format[aria-pressed='true'] .exp-format-name {
+  color: var(--color-marker);
+}
+
+.exp-format-hint {
+  color: var(--color-chalk);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.exp-documents {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.exp-document,
+.exp-needs,
+.exp-share {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--exp-line);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-felt-deep) 78%, transparent);
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.exp-document-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.exp-document-name {
+  font-weight: 800;
+}
+
+.exp-file {
+  margin-left: 0.4rem;
+  color: var(--color-chalk);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.exp-actions {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.exp-button {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-chalk);
+  border-radius: 3px;
+  color: var(--color-paper);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.exp-button:hover {
+  background: var(--color-marker);
+  color: var(--color-ink);
+}
+
+.exp-code {
+  max-height: 24rem;
+  margin: 0;
+  padding: 0.75rem;
+  overflow: auto;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-felt) 60%, black);
+  color: var(--color-paper);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.exp-needs-title {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.exp-analyze,
+.exp-create {
+  justify-self: start;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.exp-create:disabled,
+.exp-analyze:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.exp-error {
+  color: var(--exp-hot);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.exp-warning {
+  color: var(--color-marker);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.exp-link {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.exp-link-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.exp-link-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.exp-link-row input {
+  min-width: 0;
+  flex: 1;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--exp-line);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-felt) 60%, black);
+  color: var(--color-paper);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.exp-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  border-left: 5px solid var(--color-marker);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-felt-deep) 85%, transparent);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.exp-notice[data-failed='true'] {
+  border-left-color: color-mix(in srgb, var(--color-pen) 55%, var(--color-paper));
+  color: color-mix(in srgb, var(--color-pen) 55%, var(--color-paper));
+}
+
+.exp-notice-close {
+  color: var(--color-paper);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

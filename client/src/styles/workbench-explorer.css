@@ -1,0 +1,563 @@
+/*
+ * Workbench loader and Explorer. Owned by the Explorer agent.
+ * Dark and quiet like a console: felt-deep surfaces, hairline chalk borders, marker yellow
+ * for focus and matches, pen red for faults. Colours come from the theme tokens only.
+ */
+
+@layer components {
+  .wbx-loader,
+  .wbx-explorer,
+  .wbx-notice {
+    --wbx-line: rgb(183 201 189 / 0.2);
+    --wbx-line-strong: rgb(183 201 189 / 0.38);
+    --wbx-surface: var(--color-felt-deep);
+    --wbx-well: rgb(0 0 0 / 0.28);
+  }
+
+  /* ---------- Loader ---------- */
+  .wbx-loader {
+    position: relative;
+    display: grid;
+    gap: 0.875rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--wbx-line);
+    border-radius: 6px;
+    background: var(--wbx-surface);
+  }
+  .wbx-loader[data-dragging] {
+    border-color: var(--color-marker);
+    box-shadow: 0 0 0 1px var(--color-marker);
+  }
+  .wbx-loader-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+  }
+  .wbx-eyebrow,
+  .wbx-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .wbx-eyebrow {
+    color: var(--color-marker);
+  }
+  .wbx-label {
+    color: var(--color-chalk);
+  }
+  .wbx-summary {
+    display: flex;
+    flex: 1 1 14rem;
+    min-width: 0;
+    gap: 0.6rem;
+    align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+  .wbx-summary-name {
+    overflow: hidden;
+    color: var(--color-paper);
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .wbx-summary-facts,
+  .wbx-summary-empty {
+    flex-shrink: 0;
+    color: var(--color-chalk);
+  }
+  .wbx-loader-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+  .wbx-loader-body {
+    display: grid;
+    gap: 0.75rem;
+  }
+  @media (min-width: 768px) {
+    .wbx-loader-body {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    }
+  }
+
+  .wbx-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.25rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--wbx-line-strong);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-paper);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      border-color 0.12s,
+      color 0.12s,
+      background-color 0.12s;
+  }
+  .wbx-button:hover:not(:disabled) {
+    border-color: var(--color-marker);
+    color: var(--color-marker);
+  }
+  .wbx-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  .wbx-button-strong {
+    border-color: var(--color-marker);
+    background: var(--color-marker);
+    color: var(--color-ink);
+  }
+  .wbx-button-strong:hover:not(:disabled) {
+    border-color: var(--color-paper);
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  .wbx-presets > summary::after {
+    content: '▾';
+    font-size: 0.875rem;
+    line-height: 1;
+  }
+  .wbx-presets[open] > summary {
+    border-color: var(--color-marker);
+    color: var(--color-marker);
+  }
+  /* Left and right come from the loader; the top stays under the button. */
+  .wbx-preset-list {
+    position: absolute;
+    z-index: 30;
+    right: 0.75rem;
+    left: 0.75rem;
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--wbx-line-strong);
+    border-radius: 6px;
+    background: var(--color-felt-deep);
+    box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.7);
+  }
+  @media (min-width: 640px) {
+    .wbx-preset-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .wbx-preset-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .wbx-preset {
+    display: grid;
+    gap: 0.25rem;
+    width: 100%;
+    height: 100%;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--wbx-line);
+    border-radius: 4px;
+    background: var(--color-felt);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.12s;
+  }
+  .wbx-preset:hover {
+    border-color: var(--color-marker);
+  }
+  .wbx-preset-title {
+    color: var(--color-paper);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+  .wbx-preset-description {
+    color: var(--color-chalk);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
+
+  .wbx-paste {
+    display: grid;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+  .wbx-paste > .wbx-button {
+    justify-self: end;
+  }
+  .wbx-textarea {
+    width: 100%;
+    min-height: 4.75rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--wbx-line-strong);
+    border-radius: 4px;
+    background: var(--wbx-well);
+    color: var(--color-paper);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    resize: vertical;
+  }
+  .wbx-textarea::placeholder,
+  .wbx-search-input::placeholder {
+    color: var(--color-chalk-dim);
+  }
+  .wbx-drop {
+    display: grid;
+    align-content: center;
+    gap: 0.45rem;
+    min-width: 0;
+    padding: 0.9rem 1rem;
+    border: 1.5px dashed var(--wbx-line-strong);
+    border-radius: 6px;
+  }
+  .wbx-drop[data-active] {
+    border-color: var(--color-marker);
+    background: rgb(255 228 92 / 0.06);
+  }
+  .wbx-drop-title {
+    color: var(--color-paper);
+    font-size: 0.9375rem;
+    font-weight: 700;
+  }
+  .wbx-drop-hint {
+    color: var(--color-chalk);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+  .wbx-drop-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .wbx-drop-status,
+  .wbx-parsing {
+    color: var(--color-marker);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+  .wbx-alert {
+    padding: 0.6rem 0.8rem;
+    border-left: 3px solid var(--color-pen);
+    border-radius: 2px;
+    background: rgb(200 50 31 / 0.16);
+    color: var(--color-paper);
+    font-size: 0.875rem;
+  }
+
+  /* ---------- Explorer ---------- */
+  .wbx-explorer {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .wbx-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.75rem 1rem;
+  }
+  .wbx-querybar {
+    display: grid;
+    flex: 1 1 30rem;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+  .wbx-query-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+  }
+  .wbx-search {
+    position: relative;
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+  .wbx-search-input {
+    width: 100%;
+    height: 2.5rem;
+    padding: 0 2.25rem 0 0.75rem;
+    border: 1px solid var(--wbx-line-strong);
+    border-radius: 4px;
+    background: var(--wbx-well);
+    color: var(--color-paper);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+  .wbx-search-input::-webkit-search-cancel-button {
+    appearance: none;
+  }
+  .wbx-search-clear {
+    position: absolute;
+    top: 50%;
+    right: 0.25rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 3px;
+    color: var(--color-chalk);
+    font-size: 1.25rem;
+    line-height: 1;
+    transform: translateY(-50%);
+  }
+  .wbx-search-clear:hover {
+    color: var(--color-marker);
+  }
+  .wbx-toggle {
+    min-height: 2.5rem;
+    padding: 0 0.8rem;
+    border: 1px solid var(--wbx-line-strong);
+    border-radius: 4px;
+    color: var(--color-paper);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .wbx-toggle:hover {
+    border-color: var(--color-pen);
+  }
+  .wbx-toggle[aria-pressed='true'] {
+    border-color: var(--color-pen-deep);
+    background: var(--color-pen-deep);
+    color: var(--color-paper);
+  }
+  .wbx-count {
+    color: var(--color-chalk);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .wbx-help {
+    color: var(--color-chalk-dim);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+  .wbx-help[data-warning] {
+    color: var(--color-marker);
+  }
+
+  .wbx-segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    max-width: 100%;
+    border: 1px solid var(--wbx-line-strong);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .wbx-segmented > .wbx-label {
+    display: flex;
+    align-items: center;
+    padding: 0 0.7rem;
+    border-right: 1px solid var(--wbx-line);
+  }
+  .wbx-segmented > button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    max-width: 100%;
+    padding: 0 0.75rem;
+    color: var(--color-paper);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .wbx-segmented > button + button {
+    border-left: 1px solid var(--wbx-line);
+  }
+  .wbx-segmented > button:hover {
+    color: var(--color-marker);
+  }
+  .wbx-segmented > button[aria-pressed='true'] {
+    background: var(--color-marker);
+    color: var(--color-ink);
+  }
+  .wbx-zone {
+    display: inline-block;
+    max-width: 9rem;
+    margin-left: 0.4rem;
+    overflow: hidden;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-overflow: ellipsis;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  /* The list: a fixed-height viewport; rows are 28px, the same number as ROW_HEIGHT in code. */
+  .wbx-list {
+    position: relative;
+    height: clamp(18rem, 62vh, 42rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 1px solid var(--wbx-line);
+    border-radius: 6px;
+    background: var(--wbx-surface);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    contain: content;
+    overscroll-behavior: contain;
+  }
+  .wbx-list-spacer {
+    position: relative;
+  }
+  .wbx-row {
+    display: grid;
+    grid-template-columns: 1rem 6.5rem 3.4rem minmax(0, 8.5rem) minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: center;
+    box-sizing: border-box;
+    height: 28px;
+    padding: 0 0.75rem 0 0.5rem;
+    border-bottom: 1px solid rgb(183 201 189 / 0.06);
+    color: var(--color-paper);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .wbx-row:hover {
+    background: rgb(241 233 210 / 0.05);
+  }
+  .wbx-row[data-fault] {
+    box-shadow: inset 3px 0 0 var(--color-pen);
+  }
+  .wbx-row[aria-selected='true'] {
+    background: rgb(255 228 92 / 0.15);
+    box-shadow: inset 3px 0 0 var(--color-marker);
+  }
+  .wbx-row[data-fault][aria-selected='true'] {
+    box-shadow:
+      inset 3px 0 0 var(--color-pen),
+      inset 0 0 0 1px rgb(255 228 92 / 0.45);
+  }
+  .wbx-list:focus-visible {
+    outline-offset: 2px;
+  }
+  .wbx-list:focus-visible .wbx-row[data-active] {
+    outline: 1px dashed var(--color-marker);
+    outline-offset: -2px;
+  }
+  .wbx-star {
+    color: var(--color-marker);
+    text-align: center;
+  }
+  .wbx-time {
+    overflow: hidden;
+    color: var(--color-chalk);
+    font-variant-numeric: tabular-nums;
+    text-overflow: ellipsis;
+  }
+  .wbx-level {
+    border-radius: 3px;
+    color: var(--color-chalk);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.15rem;
+    text-align: center;
+  }
+  .wbx-level[data-level='FATAL'] {
+    background: var(--color-pen-deep);
+    color: var(--color-paper);
+  }
+  .wbx-level[data-level='ERROR'] {
+    background: color-mix(in srgb, var(--color-pen) 82%, black);
+    color: var(--color-paper);
+  }
+  .wbx-level[data-level='WARN'] {
+    box-shadow: inset 0 0 0 1px rgb(255 228 92 / 0.55);
+    color: var(--color-marker);
+  }
+  .wbx-level[data-level='DEBUG'],
+  .wbx-level[data-level='TRACE'] {
+    color: var(--color-chalk-dim);
+  }
+  .wbx-service {
+    overflow: hidden;
+    color: var(--color-chalk);
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+  }
+  .wbx-message {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .wbx-row[data-detail] .wbx-message {
+    padding-left: 1.25rem;
+    color: var(--color-chalk);
+  }
+  .wbx-message mark {
+    border-radius: 2px;
+    background: var(--color-marker);
+    color: var(--color-ink);
+  }
+  @media (max-width: 639px) {
+    .wbx-segmented {
+      display: flex;
+      flex-wrap: nowrap;
+      width: 100%;
+    }
+    /* Still names the group for screen readers through aria-labelledby. */
+    .wbx-segmented > .wbx-label {
+      display: none;
+    }
+    .wbx-segmented > button {
+      flex: 1 1 auto;
+      justify-content: center;
+      min-width: 0;
+      padding: 0 0.5rem;
+    }
+    .wbx-zone {
+      max-width: 6.5rem;
+    }
+    .wbx-row {
+      grid-template-columns: 0.75rem 5.6rem 3rem minmax(0, 1fr);
+      gap: 0.45rem;
+      padding-right: 0.5rem;
+      font-size: 0.75rem;
+    }
+    .wbx-service {
+      display: none;
+    }
+  }
+
+  .wbx-notice {
+    padding: 2.25rem 1.25rem;
+    border: 1px dashed var(--wbx-line-strong);
+    border-radius: 6px;
+    text-align: center;
+  }
+  .wbx-notice-title {
+    color: var(--color-paper);
+    font-size: 1.125rem;
+    font-weight: 800;
+  }
+  .wbx-notice-body {
+    max-width: 36rem;
+    margin: 0.5rem auto 0;
+    color: var(--color-chalk);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wbx-button,
+    .wbx-preset {
+      transition: none;
+    }
+  }
+}

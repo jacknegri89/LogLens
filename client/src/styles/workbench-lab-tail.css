@@ -1,0 +1,78 @@
+/*
+ * Live tail control, next to the Analyze button. Owned by the Lab view.
+ * It loads with the Workbench shell, so it is kept apart from the heavier Lab styles.
+ */
+
+.live-tail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  min-width: 0;
+}
+.live-tail-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.live-tail-info {
+  color: var(--color-chalk);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+.live-tail-status:empty {
+  display: none;
+}
+.live-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--color-marker);
+  background: rgb(255 228 92 / 0.12);
+  color: var(--color-paper);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.live-banner-hint {
+  color: var(--color-chalk);
+  font-weight: 400;
+}
+.live-banner-close {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--color-chalk);
+  border-radius: 4px;
+  color: var(--color-paper);
+  font-size: 0.75rem;
+}
+.live-banner-close:hover {
+  border-color: var(--color-marker);
+  color: var(--color-marker);
+}
+
+/* The dot pulses while a stream runs; reduced motion keeps it still. */
+.live-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--color-pen);
+  box-shadow: 0 0 0 0 rgb(200 50 31 / 0.6);
+  animation: live-pulse 1.4s ease-out infinite;
+}
+@keyframes live-pulse {
+  to {
+    box-shadow: 0 0 0 0.55rem rgb(200 50 31 / 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
+}
