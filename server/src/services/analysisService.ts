@@ -1,4 +1,5 @@
 import { getAIProvider } from '../ai';
+import { addCorrelation } from './addCorrelation';
 import type { AIReport } from '../ai/schema';
 import { AppError } from '../middleware/errorHandler';
 import { detectFormat } from '../parser/detectFormat';
@@ -38,7 +39,10 @@ export async function analyzeLog(
   });
 
   return {
-    report: { ...report, format: detectFormat(rawLog, language) },
+    report: {
+      ...addCorrelation(report, parsed.excerpt, parsed.severityHint, language),
+      format: detectFormat(rawLog, language),
+    },
     meta: {
       provider: provider.name,
       totalLines: parsed.totalLines,
