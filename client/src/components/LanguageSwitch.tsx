@@ -1,12 +1,9 @@
-import { useEffect, useId, useState, type CSSProperties, type MouseEvent } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 
 import { LAYOUT_TEXT } from '../content/layout';
 import { LANGUAGES, LANGUAGE_LABELS, type Language } from '../i18n/languages';
 import { useLanguage } from '../i18n/useLanguage';
 import { useText } from '../i18n/useText';
-
-/** Gives every drop a new key, so a second press starts a fresh animation. */
-let nextDropId = 0;
 
 /** The whole drop lasts this long: it falls, blooms over the page, then soaks back into the switch. */
 const DROP_DURATION_MS = 1300;
@@ -59,6 +56,8 @@ export function LanguageSwitch() {
   const [drop, setDrop] = useState<InkDrop | null>(null);
   const [pendingLanguage, setPendingLanguage] = useState<Language | null>(null);
   const edgeFilterId = useId();
+  // Every press gets a new key, so a second press starts a fresh animation.
+  const dropCount = useRef(0);
 
   useEffect(() => {
     if (pendingLanguage === null) return;
@@ -74,8 +73,8 @@ export function LanguageSwitch() {
       return;
     }
     // Read the button's position now: React clears event.currentTarget after the handler returns.
-    nextDropId += 1;
-    setDrop(dropFrom(event, code, nextDropId));
+    dropCount.current += 1;
+    setDrop(dropFrom(event, code, dropCount.current));
     setPendingLanguage(code);
   }
 
