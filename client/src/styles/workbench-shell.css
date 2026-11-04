@@ -1,0 +1,62 @@
+/*
+ * Workbench in the evidence-room look of the rest of the site: the same big title, the same
+ * marker tab for the open section, the same hard-shadow buttons and sharp corners.
+ * Loaded last, so it wins over the tool panels' own styles where they overlap.
+ */
+
+.workbench-title {
+  margin-top: 0;
+  font-size: clamp(2.25rem, 10vw, 6rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-stretch: 125%;
+}
+
+.workbench-tabs {
+  position: relative;
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px dashed rgb(127 154 140 / 0.4);
+}
+
+.workbench-tab {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 0.55rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-chalk);
+  transition: color 0.12s;
+}
+
+.workbench-tab:hover {
+  color: var(--color-paper);
+}
+
+/* The open section wears the same marker arrow as the open page in the top menu. */
+.workbench-tab[aria-selected='true'] {
+  padding-left: 1.1rem;
+  background: var(--color-marker);
+  color: var(--color-ink);
+  clip-path: polygon(9px 0, 100% 0, 100% 100%, 9px 100%, 0 50%);
+}
+
+/* Tool buttons: sharp, with a hard shadow like the site's buttons. */
+.wbx-button {
+  border: 2px solid var(--color-paper);
+  border-radius: 0;
+  box-shadow: 3px 3px 0 rgb(0 0 0 / 0.5);
+}
+
+.wbx-button-strong {
+  border-color: var(--color-ink);
+  box-shadow: 4px 4px 0 var(--color-ink);
+}

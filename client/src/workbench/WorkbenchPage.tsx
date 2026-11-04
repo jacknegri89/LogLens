@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 
 import { WORKBENCH_TEXT } from '../content/workbench';
 import { useText } from '../i18n/useText';
@@ -10,6 +10,7 @@ import { ScrubButton } from './security/ScrubButton';
 import { TAB_PANELS } from './tabs';
 import { useWorkbench } from './core/useWorkbench';
 import { WORKBENCH_TAB_IDS } from './types';
+import '../styles/workbench-shell.css';
 
 /** The Workbench: load a log once, then work on it from many views. */
 export function WorkbenchPage() {
@@ -19,8 +20,8 @@ export function WorkbenchPage() {
 
   return (
     <div className="pt-6">
-      <h1 className="text-4xl font-black tracking-tight uppercase">{text.title}</h1>
-      <p className="mt-3 max-w-3xl text-chalk">{text.intro}</p>
+      <h1 className="workbench-title">{text.title}</h1>
+      <p className="mt-4 max-w-3xl text-lg leading-relaxed text-chalk">{text.intro}</p>
       <PermalinkRestoreNotice />
       <LogLoader />
       <Toolbar />
@@ -64,12 +65,24 @@ function Toolbar() {
 function TabBar() {
   const { activeTab, setActiveTab } = useWorkbench();
   const text = useText(WORKBENCH_TEXT);
+  const tabListRef = useRef<HTMLDivElement>(null);
+
+  // On a phone the tabs scroll sideways. Centre the open tab inside that row only: scrolling the
+  // page itself here would jump the visitor down the page on every change.
+  useEffect(() => {
+    const tabList = tabListRef.current;
+    const openTab = tabList?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!tabList || !openTab) return;
+    const tabCentre = openTab.offsetLeft + openTab.offsetWidth / 2;
+    tabList.scrollLeft = tabCentre - tabList.clientWidth / 2;
+  }, [activeTab]);
 
   return (
     <div
+      ref={tabListRef}
       role="tablist"
       aria-label={text.tabsLabel}
-      className="mt-6 flex flex-wrap gap-1 border-b border-chalk-dim/40"
+      className="workbench-tabs mt-6"
     >
       {WORKBENCH_TAB_IDS.map((tab) => (
         <button
@@ -79,9 +92,7 @@ function TabBar() {
           aria-selected={tab === activeTab}
           aria-controls={`workbench-panel-${tab}`}
           onClick={() => setActiveTab(tab)}
-          className={`px-3 py-2 font-mono text-xs font-bold tracking-widest uppercase ${
-            tab === activeTab ? 'bg-marker text-ink' : 'text-chalk hover:text-paper'
-          }`}
+          className="workbench-tab"
         >
           {text.tabs[tab]}
         </button>

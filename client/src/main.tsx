@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import { App } from './App';
+import { redactSharedLinks } from './lib/analyticsPrivacy';
 import { LanguageProvider } from './i18n/LanguageProvider';
 import './index.css';
 
@@ -17,7 +18,7 @@ createRoot(rootElement).render(
     <LanguageProvider>
       <BrowserRouter>
         <App />
-        <Analytics />
+        <Analytics beforeSend={redactSharedLinks} />
       </BrowserRouter>
     </LanguageProvider>
   </StrictMode>,
