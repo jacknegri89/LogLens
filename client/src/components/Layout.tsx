@@ -54,7 +54,10 @@ function SiteHeader() {
             </span>
           </span>
         </NavLink>
-        <LanguageSwitch />
+        {/* On desktop the switch goes after the menu, at the far right; on phones it stays beside the brand. */}
+        <div className="sm:order-last">
+          <LanguageSwitch />
+        </div>
         {/* On phones the tabs drop to their own full-width row; on desktop they sit beside the switch. */}
         <nav
           className="order-last flex w-full items-center justify-between sm:order-none sm:mr-2 sm:ml-auto sm:w-auto sm:justify-start sm:gap-2"

@@ -30,6 +30,9 @@ const envSchema = z
     RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(5),
     GLOBAL_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(100),
     VISITOR_SALT: z.string().default('loglens'),
+    // Secret that Vercel Cron sends as "Authorization: Bearer <CRON_SECRET>". Without it, the
+    // scheduled cleanup refuses every call, so nobody else can trigger it.
+    CRON_SECRET: z.string().min(16).optional(),
     // Set to true only behind a reverse proxy (Vercel, nginx) that sets X-Forwarded-For.
     TRUST_PROXY: z
       .enum(['true', 'false'])

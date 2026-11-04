@@ -26,7 +26,7 @@ GitHub Issue you can copy in one click.
 - **Severity & category** — every issue is classified (informational / low / medium / high / critical) and tagged
 - **Actionable report** — main problem, key log lines, probable causes, debug steps
 - **Copy-ready GitHub Issue** — one click to copy a formatted bug report
-- **History** — every analysis is saved and revisitable; each visitor sees only their own (kept in their browser)
+- **History** — every analysis is saved and revisitable for 90 days; each visitor sees only their own (kept in their browser)
 - **Built-in AI** — a rules engine runs with no API key; **OpenAI** and a **free local Ollama** model can be switched on with one variable
 - **Demo limits** — optional per-visitor and global hourly limits for public instances
 
@@ -133,6 +133,7 @@ PostgreSQL on Neon through the Vercel integration. Both have a free tier.
    | `GLOBAL_LIMIT_PER_HOUR` | analysis attempts for everyone per hour (default `100`, `0` = no limit)                                    |
    | `TRUST_PROXY`           | `true` on Vercel, so the limit counts real visitors, not the proxy                                         |
    | `VISITOR_SALT`          | any long random text, used to hash visitor addresses                                                       |
+   | `CRON_SECRET`           | long random text (16+ characters) that Vercel Cron sends to delete analyses older than 90 days             |
    | `CORS_ORIGIN`           | leave empty: client and API share the same domain                                                          |
 
 4. **Create the tables once**, from your computer, with the Neon URLs in `server/.env`:
@@ -148,6 +149,11 @@ PostgreSQL on Neon through the Vercel integration. Both have a free tier.
 > Privacy: each visitor's history is tied to a random id kept in their browser, and
 > visitor addresses are stored only as salted hashes. Still, do not paste real
 > secrets into a public instance.
+>
+> The privacy and cookie page (`/privacy`) lists the data handled, the providers and the
+> retention periods. If you run your own instance, change the contact, the database region and
+> the providers in [`client/src/content/privacy.ts`](./client/src/content/privacy.ts), and keep the
+> 90-day retention there equal to `ANALYSIS_RETENTION_DAYS` in `server/src/services/retention.ts`.
 
 ## Examples
 
@@ -159,7 +165,7 @@ Try LogLens with the sample logs in [`examples/`](./examples/):
 
 ## Status
 
-Complete: log parsing, AI analysis (built-in rules engine, OpenAI or Ollama), REST API, React frontend, per-visitor analysis history (with delete), rate limits, unit tests, an end-to-end test for the log editor, and CI on GitHub Actions.
+Complete: log parsing, AI analysis (built-in rules engine, OpenAI or Ollama), REST API, React frontend, the Workbench, per-visitor analysis history (with delete), shared read-only links, rate limits, a privacy and cookie page, automatic deletion of analyses after 90 days (daily Vercel Cron), unit tests for server and client, an end-to-end test for the log editor, and CI on GitHub Actions.
 
 ## License
 

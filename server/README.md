@@ -81,12 +81,17 @@ src/
 │   ├── prompt.ts                     # system + user prompts, random boundary per request
 │   ├── parseReport.ts                # parse + validate the AI's JSON
 │   ├── guardReport.ts                # check the report against the log it came from
+│   ├── correlation.ts                # links the events of a log: root cause, effects, shared addresses
 │   ├── index.ts                      # factory: pick provider from env
 │   └── providers/                    # mock, rules, hybrid, openai, ollama
 ├── content/
 │   └── rules.ts                      # rules engine: known failures and their advice
 ├── services/
-│   └── analysisService.ts            # parse -> AI -> validated report
+│   ├── analysisService.ts            # parse -> AI -> validated report
+│   ├── addCorrelation.ts             # adds the overview, findings and timeline to a model report
+│   ├── attemptLimit.ts               # counts the attempts of a visitor and the whole demo
+│   ├── retention.ts                  # deletes analyses past the 90-day retention period
+│   └── saveAnalysis.ts               # analyses a log and stores the report
 ├── repositories/
 │   └── analysisRepository.ts         # all Analysis database queries
 ├── schemas/
@@ -96,6 +101,7 @@ src/
 │   └── report.ts                     # report types
 ├── routes/
 │   ├── analyses.ts                   # /api/analyses (needs X-Visitor-Id)
+│   ├── cron.ts                       # GET /api/cron/retention (Vercel Cron, needs CRON_SECRET)
 │   ├── health.ts                     # GET /api/health
 │   └── shared.ts                     # GET /api/shared/:token (secret link, read-only)
 └── middleware/
@@ -125,9 +131,14 @@ Tests (`*.test.ts`) sit next to the file they cover.
 | `POST`   | `/api/analyses/:id/share`    | Create the secret read-only link (or return the existing one)    |
 | `DELETE` | `/api/analyses/:id/share`    | Revoke the secret link                                           |
 | `GET`    | `/api/shared/:token`         | Read-only report behind a secret link, without the raw log       |
+| `GET`    | `/api/cron/retention`        | Deletes analyses older than 90 days; called daily by Vercel Cron |
 
 Every `/api/analyses` route needs the `X-Visitor-Id` header, or it answers `400`.
 The `/api/shared/:token` route needs no header: the token is the permission.
+
+`GET /api/cron/retention` needs `Authorization: Bearer <CRON_SECRET>`, which Vercel Cron sends
+itself (the schedule is in `vercel.json`). Without `CRON_SECRET` it refuses every call. Analyses are also
+checked on each `GET` and `POST /api/analyses`, since the hosting only runs the schedule once a day.
 
 `POST /api/analyses` body:
 

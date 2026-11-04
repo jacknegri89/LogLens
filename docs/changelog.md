@@ -5,6 +5,15 @@ Modifiche approvate, dalla più recente.
 ## 2026-11-04
 
 - Rimosso l'endpoint `POST /api/ingest` con `INGEST_TOKEN`: route, test e variabile d'ambiente eliminati. Restano `POST`, `GET` e `DELETE /api/analyses` come prima.
+- Rimossa la GitHub Action di invio log (`action/loglens`).
+- Header su telefono: il menu va su una riga propria; l'header resta in cima e si nasconde scorrendo giù, riappare scorrendo su (`client/src/hooks/useHeaderVisibility.ts`).
+- Lingua sul desktop di nuovo accanto al menu; sul telefono resta accanto al logo.
+- Nuova pagina `/privacy` (IT/EN): titolare, dati, basi giuridiche, destinatari, conservazione, cookie e diritti. Link nel footer.
+- Vercel Analytics non registra più il token dei link di condivisione (`client/src/lib/analyticsPrivacy.ts`).
+- I tentativi di analisi con hash dell'indirizzo vengono cancellati dopo un'ora (`services/attemptLimit.ts`).
+- Analisi cancellate automaticamente 90 giorni dopo il salvataggio (`services/retention.ts`), alla lettura e all'invio della cronologia, e ogni giorno da Vercel Cron (`GET /api/cron/retention`, protetto da `CRON_SECRET`, pianificato in `vercel.json`).
+- Workbench allineato allo stile del sito: titolo, schede e pulsanti; schede a scorrimento su telefono.
+- Test client eseguiti anche nella CI.
 
 ## 2026-11-03
 

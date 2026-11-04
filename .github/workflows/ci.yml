@@ -48,6 +48,9 @@ jobs:
       - name: Test (server)
         run: npm test --prefix server
 
+      - name: Test (client)
+        run: npm test --prefix client
+
       - name: Build (server)
         run: npm run build --prefix server
 
