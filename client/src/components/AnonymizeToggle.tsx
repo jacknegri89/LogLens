@@ -26,7 +26,7 @@ export function AnonymizeToggle({ checked, onChange }: AnonymizeToggleProps) {
         className="anonymize-input"
       />
       <span className="anonymize-box" aria-hidden="true">
-        <svg viewBox="0 0 16 16" pathLength="1" focusable="false">
+        <svg viewBox="0 0 16 16" focusable="false">
           <path d="M2.5 8.6 6.2 12.2 13.5 4.2" />
         </svg>
       </span>

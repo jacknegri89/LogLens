@@ -1199,8 +1199,8 @@
   stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
   transition: stroke-dashoffset 0.4s 0.08s cubic-bezier(0.6, 0, 0.2, 1);
 }
 .anonymize-toggle:hover .anonymize-box {
