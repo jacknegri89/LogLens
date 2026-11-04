@@ -3,7 +3,6 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LAYOUT_TEXT } from '../content/layout';
 import { useText } from '../i18n/useText';
 import { CommandPalette } from '../workbench/palette/CommandPalette';
-import { CalmToggle } from './CalmToggle';
 import { LanguageSwitch } from './LanguageSwitch';
 
 const NAV_TAB_CLASS =
@@ -58,7 +57,6 @@ function SiteHeader() {
             {text.history}
           </NavLink>
         </nav>
-        <CalmToggle />
         <LanguageSwitch />
       </div>
     </header>
