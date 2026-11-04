@@ -4,6 +4,8 @@ Modifiche approvate, dalla più recente.
 
 ## 2026-11-03
 
+- Analisi per tutti i provider: quadro generale, ordine degli eventi e findings calcolati dal server anche quando a rispondere è il modello (`server/src/services/addCorrelation.ts`).
+- GitHub Action (`action/loglens`): invia un log di CI a `POST /api/ingest` e scrive il report nel riepilogo del job.
 - Analisi AI più rigida: pre-filtro del rumore (health check, probe, asset statici) prima dell'invio, categorie nuove per eventi auth e WAF, e system prompt con il ruolo SRE/Cyber Security Tier 3 in 4 fasi (testo del proprietario, parola per parola) più il contratto JSON. Il report segue le 4 sezioni richieste.
 - API: `DELETE /api/analyses/:id` e `POST /api/ingest` (chiuso finché non c'è `INGEST_TOKEN`; richiede `Authorization: Bearer`). Il limite orario è ora in `services/attemptLimit.ts`, condiviso dalle due route.
 - Grafica rifatta: "la stanza delle prove". Scrivania con lampada e grana, hero con muro di log e lente, editor come foglio con clip, scansione con etichette E1/E2 timbrate, report come fascicolo (timbro di gravità, bacheca con filo rosso tra causa radice ed effetti), storico come cassetto di schede, pagina condivisa e 404 nello stesso stile. Tutto con `prefers-reduced-motion` rispettato.

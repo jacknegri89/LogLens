@@ -150,6 +150,30 @@ PostgreSQL on Neon through the Vercel integration. Both have a free tier.
 > visitor addresses are stored only as salted hashes. Still, do not paste real
 > secrets into a public instance.
 
+## GitHub Action
+
+A CI job that fails can send its log to LogLens and put the report in the job summary.
+Set `INGEST_TOKEN` on your server (16 characters or more), then store the same value as the
+repository secret `LOGLENS_TOKEN`:
+
+```yaml
+- name: Run the tests
+  run: npm test > test.log 2>&1
+- name: Analyze the failure with LogLens
+  if: failure()
+  uses: jacknegri89/LogLens/action/loglens@main
+  with:
+    log-path: test.log
+    loglens-token: ${{ secrets.LOGLENS_TOKEN }}
+    endpoint: https://your-loglens.example.com/api/ingest
+    fail-on-severity: high
+```
+
+The action sends at most the last 190,000 characters of the file, writes severity, category and
+title to the job summary, and returns `severity` and `id` as outputs. Without `fail-on-severity` it
+never fails the job. The analysis is saved under the owner `ingest`, so it is not listed in any
+visitor's history; open it through the server's API.
+
 ## Examples
 
 Try LogLens with the sample logs in [`examples/`](./examples/):
