@@ -58,3 +58,6 @@ playwright-report/
 
 # Browser tool logs
 .playwright-mcp/
+
+# Prisma client generated from prisma/schema.prisma (rebuilt by npm run prisma:generate)
+server/src/generated/

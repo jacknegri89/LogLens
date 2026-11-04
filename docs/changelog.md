@@ -14,6 +14,9 @@ Modifiche approvate, dalla più recente.
 - Analisi cancellate automaticamente 90 giorni dopo il salvataggio (`services/retention.ts`), alla lettura e all'invio della cronologia, e ogni giorno da Vercel Cron (`GET /api/cron/retention`, protetto da `CRON_SECRET`, pianificato in `vercel.json`).
 - Workbench allineato allo stile del sito: titolo, schede e pulsanti; schede a scorrimento su telefono.
 - Test client eseguiti anche nella CI.
+- Prisma 7 (adattatore PostgreSQL, `prisma.config.ts`, client in `src/generated/prisma`): vulnerabilità alte di produzione risolte.
+- Dipendenze di sviluppo aggiornate: vitest, vite, esbuild, Playwright, typescript-eslint. Dove serve, versioni fissate con `overrides`: `npm audit` non segnala più nulla in server e client.
+- Intestazioni di sicurezza su tutte le risposte (Content-Security-Policy, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS). Rimosso lo script inline di caricamento dei font.
 
 ## 2026-11-03
 

@@ -1,15 +1,15 @@
 // Prisma schema for LogLens
 // Learn more: https://pris.ly/d/prisma-schema
 
+// The client is generated into src/generated/prisma (see prisma.config.ts for the URLs).
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
+// The connection URLs live in prisma.config.ts (CLI) and src/db/prisma.ts (application).
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 /// One log-analysis run: what the user submitted plus the structured
