@@ -18,7 +18,7 @@ export function LensStage() {
       <span className="tape tape-right" />
       <div
         ref={stageRef}
-        className="relative h-[19rem] cursor-none touch-pan-y overflow-hidden select-none sm:h-[23rem] lg:h-[26rem]"
+        className="hero-stage relative h-[19rem] cursor-none touch-pan-y overflow-hidden select-none sm:h-[23rem] lg:h-[26rem]"
         style={
           { '--x': '55%', '--y': '50%', '--w': '600px', '--h': '416px' } as React.CSSProperties
         }

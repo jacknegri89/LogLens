@@ -767,9 +767,13 @@
   display: inline-grid;
   grid-template-columns: 1fr 1fr;
   flex-shrink: 0;
-  border: 2px solid var(--color-chalk-dim);
+  border: 2px solid var(--color-paper);
   border-radius: 999px;
-  padding: 2px;
+  padding: 3px;
+  background: rgb(15 42 36 / 0.7);
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.45),
+    0 3px 0 rgb(0 0 0 / 0.35);
 }
 .language-pill {
   position: absolute;
@@ -779,8 +783,11 @@
   width: calc(50% - 2px);
   border-radius: 999px;
   background: var(--color-marker);
-  box-shadow: 0 2px 0 var(--color-ink);
-  transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.5, 1);
+  box-shadow:
+    inset 0 -3px 0 rgb(0 0 0 / 0.18),
+    inset 0 2px 0 rgb(255 255 255 / 0.5),
+    0 2px 0 rgb(0 0 0 / 0.35);
+  transition: transform 0.5s cubic-bezier(0.34, 1.4, 0.5, 1);
 }
 .language-switch[data-language='it'] .language-pill {
   transform: translateX(100%);
@@ -805,7 +812,11 @@
   color: var(--color-ink);
 }
 .language-option:active {
-  transform: scale(0.94);
+  transform: scale(0.9);
+}
+.language-option:focus-visible {
+  outline: 3px solid var(--color-marker);
+  outline-offset: 2px;
 }
 .language-switch .language-option[aria-pressed='true'] {
   animation: language-pop 0.35s 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) both;
@@ -895,50 +906,73 @@
   color: var(--color-ink-soft);
 }
 
-/* Language change: a felt curtain rises over the whole page, the words change behind it, then it
-   rolls away. The new code is stamped on the curtain, so the switch reads as a deliberate scene change. */
-.language-cover {
+/* Language change: a drop of ink falls onto the page, spreads until it covers the screen, and the
+   words change under it. Then it soaks away. The blob's size is set by the component (--ink-scale). */
+.ink-drop {
   position: fixed;
-  inset: 0;
+  left: 50%;
+  top: 50%;
   z-index: 80;
+  width: 180px;
+  height: 180px;
+  margin: -90px 0 0 -90px;
+  pointer-events: all;
   display: grid;
   place-items: center;
-  background: var(--color-felt);
-  border-top: 12px solid var(--color-marker);
-  pointer-events: all;
-  animation: language-curtain 1s cubic-bezier(0.65, 0, 0.35, 1) both;
+  transform-origin: 50% 50%;
+  animation: ink-drop 1.1s linear both;
 }
-.language-cover-code {
-  padding: 0.12em 0.45em 0.08em;
-  border: 5px double var(--color-marker);
+.ink-drop-shape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ink-drop-shape circle {
+  fill: var(--color-ink);
+}
+.ink-drop-code {
+  position: relative;
   color: var(--color-marker);
   font-family: var(--font-sans);
-  font-size: clamp(4rem, 18vw, 9rem);
+  font-size: 2.4rem;
   font-weight: 900;
   font-stretch: 125%;
   letter-spacing: 0.06em;
-  line-height: 1;
-  rotate: -6deg;
-  animation: language-code 0.6s 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  opacity: 0;
+  animation: ink-code 0.4s 0.3s ease-out both;
 }
-@keyframes language-curtain {
+@keyframes ink-drop {
   0% {
-    transform: translateY(100%);
+    transform: translateY(-62vh) scale(0.42, 1.35);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
   }
-  40% {
-    transform: translateY(0);
+  26% {
+    transform: translateY(0) scale(0.5, 0.62);
+    animation-timing-function: cubic-bezier(0.1, 0.6, 0.4, 1);
   }
-  60% {
-    transform: translateY(0);
+  36% {
+    transform: translateY(0) scale(0.72, 0.5);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  52% {
+    transform: translateY(0) scale(var(--ink-scale));
+    opacity: 1;
+  }
+  78% {
+    transform: translateY(0) scale(var(--ink-scale));
+    opacity: 1;
   }
   100% {
-    transform: translateY(-100%);
+    transform: translateY(0) scale(calc(var(--ink-scale) * 1.06));
+    opacity: 0;
   }
 }
-@keyframes language-code {
+@keyframes ink-code {
   from {
     opacity: 0;
-    scale: 1.8;
+    scale: 0.6;
   }
   to {
     opacity: 1;
@@ -957,7 +991,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .language-cover {
+  .ink-drop {
     display: none;
   }
   .language-switch .language-option[aria-pressed='true'] {
@@ -1104,24 +1138,14 @@
     transform: none;
   }
 }
+/* The hover only changes the rotation, through a spring transition. The entrance animation stays
+   on the lens and never restarts, so leaving the logo does not make the lens flicker. */
+.brand .brand-mark {
+  transition: rotate 0.55s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
 .brand:hover .brand-mark,
 .brand:focus-visible .brand-mark {
-  animation: brand-lens-wiggle 0.6s cubic-bezier(0.3, 1.5, 0.5, 1);
   rotate: -14deg;
-}
-@keyframes brand-lens-wiggle {
-  0% {
-    rotate: 0deg;
-  }
-  35% {
-    rotate: -24deg;
-  }
-  70% {
-    rotate: -10deg;
-  }
-  100% {
-    rotate: -14deg;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1133,5 +1157,108 @@
   }
   .brand-word::before {
     transform: scaleX(1);
+  }
+}
+
+/* Anonymize checkbox: a paper box with a hard shadow; the check is inked in with a stroke. */
+.anonymize-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  cursor: pointer;
+  font-weight: 800;
+  user-select: none;
+}
+.anonymize-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+.anonymize-box {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex-shrink: 0;
+  border: 2px solid var(--color-ink);
+  background: var(--color-paper);
+  box-shadow: 3px 3px 0 var(--color-ink);
+  transition:
+    background-color 0.25s,
+    transform 0.12s cubic-bezier(0.3, 1.4, 0.5, 1),
+    box-shadow 0.12s;
+}
+.anonymize-box svg {
+  width: 82%;
+  height: 82%;
+  fill: none;
+  stroke: var(--color-pen);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.4s 0.08s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.anonymize-toggle:hover .anonymize-box {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+.anonymize-toggle:active .anonymize-box {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--color-ink);
+}
+.anonymize-input:checked + .anonymize-box {
+  background: var(--color-marker);
+}
+.anonymize-input:checked + .anonymize-box svg {
+  stroke-dashoffset: 0;
+}
+.anonymize-input:focus-visible + .anonymize-box {
+  outline: 3px solid var(--color-marker);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anonymize-box,
+  .anonymize-box svg {
+    transition: none;
+  }
+}
+
+/* The hero lens: the lamp light pools on the paper where the glass is, the handle swings with the
+   glass's speed (--tilt, set by the hook), and the glass casts its shadow down and to the right. */
+.hero-stage {
+  isolation: isolate;
+}
+.hero-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--x, 50%) var(--y, 50%),
+    rgb(255 250 226 / 0.42),
+    transparent 180px
+  );
+  mix-blend-mode: soft-light;
+}
+.lens-handle {
+  rotate: var(--tilt, 0deg);
+  transform-origin: 50% 0;
+}
+.lens-glass {
+  box-shadow:
+    inset 0 0 0 2px rgb(255 255 255 / 0.35),
+    inset 0 0 30px rgb(0 0 0 / 0.22),
+    0 4px 8px rgb(0 0 0 / 0.3),
+    0 22px 34px -8px rgb(0 0 0 / 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lens-handle {
+    rotate: none;
   }
 }
