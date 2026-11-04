@@ -97,7 +97,6 @@ src/
 ├── routes/
 │   ├── analyses.ts                   # /api/analyses (needs X-Visitor-Id)
 │   ├── health.ts                     # GET /api/health
-│   ├── ingest.ts                     # POST /api/ingest (token, for other applications)
 │   └── shared.ts                     # GET /api/shared/:token (secret link, read-only)
 └── middleware/
     ├── clientAddress.ts              # caller address, trusted behind a proxy only with TRUST_PROXY
@@ -121,7 +120,6 @@ Tests (`*.test.ts`) sit next to the file they cover.
 | `GET`    | `/api/analyses`              | History of this visitor (lightweight summaries)                  |
 | `DELETE` | `/api/analyses`              | Delete this visitor's history                                    |
 | `DELETE` | `/api/analyses/:id`          | Delete one analysis of this visitor                              |
-| `POST`   | `/api/ingest`                | Analyze and save a log sent by an application (needs a token)    |
 | `GET`    | `/api/analyses/:id`          | A single analysis with its full report                           |
 | `PUT`    | `/api/analyses/:id/feedback` | Mark it useful (`true`), not useful (`false`), or clear (`null`) |
 | `POST`   | `/api/analyses/:id/share`    | Create the secret read-only link (or return the existing one)    |
@@ -130,10 +128,6 @@ Tests (`*.test.ts`) sit next to the file they cover.
 
 Every `/api/analyses` route needs the `X-Visitor-Id` header, or it answers `400`.
 The `/api/shared/:token` route needs no header: the token is the permission.
-
-`POST /api/ingest` is closed (404) until `INGEST_TOKEN` is set (at least 16 characters). Then every call sends
-`Authorization: Bearer <INGEST_TOKEN>` and the same body as `POST /api/analyses`. The log is saved under the
-visitor of `X-Visitor-Id` when one is sent, otherwise under the owner `ingest`. It counts against the hourly limits.
 
 `POST /api/analyses` body:
 

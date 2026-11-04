@@ -14,7 +14,7 @@ import type { AnalysisReport, Severity } from '../types/report';
 
 /** Everything needed to store a new analysis. */
 export interface CreateAnalysisInput {
-  source?: 'paste' | 'upload' | 'ingest';
+  source?: 'paste' | 'upload';
   fileName?: string | null;
   rawLog: string;
   title: string;
