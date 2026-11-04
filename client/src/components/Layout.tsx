@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { LAYOUT_TEXT } from '../content/layout';
 import { useText } from '../i18n/useText';
@@ -11,6 +11,7 @@ const NAV_TAB_CLASS =
 /** The frame around every page: the lit desk, brand, navigation, the page, the footer. */
 export function Layout() {
   const text = useText(LAYOUT_TEXT);
+  const location = useLocation();
   return (
     <div className="desk flex min-h-dvh flex-col">
       <a
@@ -21,7 +22,10 @@ export function Layout() {
       </a>
       <SiteHeader />
       <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 sm:px-6">
-        <Outlet />
+        {/* Keyed by the route, so every change of section plays the entrance again. */}
+        <div key={location.pathname} className="page-enter">
+          <Outlet />
+        </div>
       </main>
       <SiteFooter />
       <CommandPalette />
@@ -36,7 +40,7 @@ function SiteHeader() {
       <NavLink to="/" className="brand flex items-center gap-2.5">
         <BrandMark />
         <span className="flex flex-col">
-          <span className="text-lg leading-none font-black tracking-tight uppercase sm:text-2xl [font-stretch:125%]">
+          <span className="brand-word text-lg leading-none font-black tracking-tight uppercase sm:text-2xl [font-stretch:125%]">
             {text.brand}
           </span>
         </span>

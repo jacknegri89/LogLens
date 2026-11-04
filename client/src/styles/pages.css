@@ -895,56 +895,58 @@
   color: var(--color-ink-soft);
 }
 
-/* Language change: an ink stamp with the new language's code slams onto the page, then fades.
-   The text changes on the impact (see LanguageSwitch), so the visitor sees the stamp land on the new words. */
-.language-stamp {
+/* Language change: a felt curtain rises over the whole page, the words change behind it, then it
+   rolls away. The new code is stamped on the curtain, so the switch reads as a deliberate scene change. */
+.language-cover {
   position: fixed;
-  top: 42%;
-  left: 50%;
-  z-index: 60;
-  pointer-events: none;
-  translate: -50% -50%;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: var(--color-felt);
+  border-top: 12px solid var(--color-marker);
+  pointer-events: all;
+  animation: language-curtain 1s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+.language-cover-code {
   padding: 0.12em 0.45em 0.08em;
-  border: 4px double var(--color-pen);
-  color: var(--color-pen);
+  border: 5px double var(--color-marker);
+  color: var(--color-marker);
   font-family: var(--font-sans);
-  font-size: clamp(3.5rem, 14vw, 7rem);
+  font-size: clamp(4rem, 18vw, 9rem);
   font-weight: 900;
   font-stretch: 125%;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   line-height: 1;
-  background: rgb(241 233 210 / 0.9);
-  mix-blend-mode: multiply;
-  mask-image: var(--noise-stamp);
-  mask-size: 120px 120px;
-  animation: language-stamp 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  rotate: -6deg;
+  animation: language-code 0.6s 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
-@keyframes language-stamp {
+@keyframes language-curtain {
   0% {
-    opacity: 0;
-    scale: 2.6;
-    rotate: -18deg;
+    transform: translateY(100%);
   }
-  28% {
-    opacity: 1;
-    scale: 0.94;
-    rotate: -7deg;
+  40% {
+    transform: translateY(0);
   }
-  36% {
-    scale: 1.02;
-    rotate: -8deg;
-  }
-  44% {
-    scale: 1;
-    rotate: -7deg;
-  }
-  70% {
-    opacity: 1;
+  60% {
+    transform: translateY(0);
   }
   100% {
-    opacity: 0;
-    scale: 1.08;
+    transform: translateY(-100%);
   }
+}
+@keyframes language-code {
+  from {
+    opacity: 0;
+    scale: 1.8;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+.language-switch .language-option[aria-pressed='true'] {
+  animation: language-pop 0.35s 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) both;
 }
 @keyframes language-pop {
   from {
@@ -955,10 +957,181 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .language-stamp {
+  .language-cover {
     display: none;
   }
   .language-switch .language-option[aria-pressed='true'] {
     animation: none;
+  }
+}
+
+/* Remove under a history card: it sits on the felt, outside the card link. */
+.case-entry {
+  display: flex;
+  flex-direction: column;
+}
+.case-entry > .case-card {
+  flex: 1 1 auto;
+  height: auto;
+}
+.case-remove {
+  margin-top: 0.4rem;
+}
+.case-remove-button,
+.case-remove-yes,
+.case-remove-no {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.case-remove-button,
+.case-remove-no {
+  color: var(--color-chalk);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.case-remove-button {
+  display: block;
+  margin-left: auto;
+}
+.case-remove-button:hover,
+.case-remove-no:hover:not(:disabled) {
+  background: var(--color-marker);
+  color: var(--color-ink);
+}
+.case-remove-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem 0.5rem;
+}
+.case-remove-question {
+  margin-right: auto;
+  color: var(--color-paper);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.case-remove-yes {
+  border: 2px solid var(--color-ink);
+  background: var(--pen-ink);
+  color: var(--color-paper);
+}
+.case-remove-yes:hover:not(:disabled) {
+  background: var(--color-pen-deep);
+}
+.case-remove-yes:disabled,
+.case-remove-no:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+/* Notice that the page shows the copy kept in this browser: a blue-edged slip, flat so it reads easily. */
+.offline-notice {
+  max-width: 42rem;
+  padding: 0.85rem 1.25rem;
+  border-left: 8px solid var(--color-blueink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: var(--paper-shadow);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+.offline-notice > p + p {
+  margin-top: 0.25rem;
+  color: var(--color-ink-soft);
+}
+
+/* Change of section: the new page rises in softly, not in one frame. */
+.page-enter {
+  animation: page-enter 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Logo: the marker highlight sweeps under the wordmark once, the magnifier snaps in and wiggles
+   on hover. The wordmark is its own stacking context so the highlight sits behind the letters. */
+.brand-word {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+.brand-word::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -0.08em;
+  right: -0.08em;
+  bottom: -0.14em;
+  height: 0.2em;
+  border-radius: 999px;
+  background: var(--color-marker);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: brand-highlight 0.7s 0.45s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+}
+@keyframes brand-highlight {
+  to {
+    transform: scaleX(1);
+  }
+}
+.brand .brand-mark {
+  animation: brand-lens-in 0.7s 0.1s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+@keyframes brand-lens-in {
+  from {
+    opacity: 0;
+    transform: translateX(-14px) rotate(-120deg) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.brand:hover .brand-mark,
+.brand:focus-visible .brand-mark {
+  animation: brand-lens-wiggle 0.6s cubic-bezier(0.3, 1.5, 0.5, 1);
+  rotate: -14deg;
+}
+@keyframes brand-lens-wiggle {
+  0% {
+    rotate: 0deg;
+  }
+  35% {
+    rotate: -24deg;
+  }
+  70% {
+    rotate: -10deg;
+  }
+  100% {
+    rotate: -14deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .brand .brand-mark,
+  .brand:hover .brand-mark,
+  .brand-word::before {
+    animation: none;
+  }
+  .brand-word::before {
+    transform: scaleX(1);
   }
 }

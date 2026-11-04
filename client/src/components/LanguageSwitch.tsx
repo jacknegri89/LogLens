@@ -5,28 +5,29 @@ import { LANGUAGES, LANGUAGE_LABELS, type Language } from '../i18n/languages';
 import { useLanguage } from '../i18n/useLanguage';
 import { useText } from '../i18n/useText';
 
-/** The stamp lands on the page at this moment; the words change under it, as the stamp hits. */
-const IMPACT_DELAY_MS = 260;
+/** The curtain is closed fully at this moment; only then the words change, out of sight. */
+const CURTAIN_CLOSED_MS = 400;
 
 /**
  * "EN | IT": two toggle buttons in the header. Each is named and marked in its own language.
- * Changing language stamps the new code onto the page, and the words change when it lands.
+ * Changing language drops a curtain over the whole page, swaps the words while the page is hidden,
+ * then rolls the curtain away. The visitor never sees the words change.
  */
 export function LanguageSwitch() {
   const text = useText(LAYOUT_TEXT);
   const { language, setLanguage } = useLanguage();
-  const [stamp, setStamp] = useState<{ id: number; code: Language } | null>(null);
+  const [curtain, setCurtain] = useState<{ id: number; code: Language } | null>(null);
   const [pendingLanguage, setPendingLanguage] = useState<Language | null>(null);
 
   useEffect(() => {
     if (pendingLanguage === null) return;
-    const timer = window.setTimeout(() => setLanguage(pendingLanguage), IMPACT_DELAY_MS);
+    const timer = window.setTimeout(() => setLanguage(pendingLanguage), CURTAIN_CLOSED_MS);
     return () => window.clearTimeout(timer);
   }, [pendingLanguage, setLanguage]);
 
   function chooseLanguage(code: Language) {
     if (code === language) return;
-    setStamp((previous) => ({ id: (previous?.id ?? 0) + 1, code }));
+    setCurtain((previous) => ({ id: (previous?.id ?? 0) + 1, code }));
     setPendingLanguage(code);
   }
 
@@ -51,10 +52,15 @@ export function LanguageSwitch() {
           {LANGUAGE_LABELS[code].short}
         </button>
       ))}
-      {stamp && (
-        <span key={stamp.id} className="language-stamp" aria-hidden="true">
-          {LANGUAGE_LABELS[stamp.code].short}
-        </span>
+      {curtain && (
+        <div
+          key={curtain.id}
+          className="language-cover"
+          aria-hidden="true"
+          onAnimationEnd={() => setCurtain(null)}
+        >
+          <span className="language-cover-code">{LANGUAGE_LABELS[curtain.code].short}</span>
+        </div>
       )}
     </div>
   );
