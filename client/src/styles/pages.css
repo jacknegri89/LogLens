@@ -906,134 +906,122 @@
   color: var(--color-ink-soft);
 }
 
-/* Language change: ink falls from the pressed switch, lands with a splash, blooms over the whole
-   page while the words change under it, then is soaked back into the switch. Only transforms and
-   opacity animate. The sizes come from the component (--origin-x, --origin-y, --ink-scale). */
-.ink-drop-layer {
+/* Language change: a sheet of the case file drops over the page on a hinge, pinned with tape,
+   covers everything while the words change, then lifts away. Only transforms and opacity animate. */
+.case-sheet-layer {
   position: fixed;
   inset: 0;
   z-index: 80;
+  perspective: 1400px;
   pointer-events: none;
 }
-.ink-drop {
-  position: absolute;
-  left: var(--origin-x);
-  top: var(--origin-y);
-  width: 180px;
-  height: 180px;
-  margin: -90px 0 0 -90px;
-  display: grid;
-  place-items: center;
-  animation: ink-drop var(--drop-duration) linear both;
-}
-.ink-drop-shape {
+.case-sheet {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1.5rem 1.5rem;
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(90deg, transparent calc(50% - 0.5px), transparent 50%),
+    linear-gradient(
+      90deg,
+      transparent 4.5rem,
+      rgb(200 50 31 / 0.6) 4.5rem,
+      rgb(200 50 31 / 0.6) 4.55rem,
+      transparent 4.55rem
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 2.2rem,
+      rgb(29 90 128 / 0.22) 2.2rem 2.25rem
+    ),
+    var(--noise-dark);
+  background-size: auto, auto, auto, auto;
+  color: var(--color-ink);
+  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.55);
+  transform-origin: 50% 0;
+  animation: case-sheet-drop var(--sheet-duration) cubic-bezier(0.45, 0, 0.25, 1) both;
+  backface-visibility: hidden;
 }
-.ink-drop-body {
-  fill: var(--color-ink);
-}
-.ink-splatter {
+.case-sheet-tape {
   position: absolute;
-  left: var(--origin-x);
-  top: var(--origin-y);
-  width: var(--splat-size);
-  height: var(--splat-size);
-  margin: calc(var(--splat-size) / -2) 0 0 calc(var(--splat-size) / -2);
-  border-radius: 50%;
-  background: var(--color-marker);
-  opacity: 0;
-  animation: ink-splatter var(--drop-duration) linear both;
-}
-.ink-drop-code {
-  position: fixed;
+  top: -0.6rem;
   left: 50%;
-  top: 50%;
-  translate: -50% -50%;
-  color: var(--color-marker);
+  width: 9rem;
+  height: 2.2rem;
+  translate: -50% 0;
+  background: rgb(255 228 92 / 0.78);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  rotate: -2deg;
+}
+.case-sheet-head {
+  position: absolute;
+  top: 1rem;
+  left: 5.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-pen);
+}
+.case-sheet-code {
+  align-self: center;
+  justify-self: center;
+  padding: 0.1em 0.5em 0.06em;
+  border: 6px double var(--color-pen);
+  color: var(--color-pen);
   font-family: var(--font-sans);
-  font-size: clamp(3rem, 12vw, 7rem);
+  font-size: clamp(5rem, 22vw, 13rem);
   font-weight: 900;
   font-stretch: 125%;
-  letter-spacing: 0.06em;
-  opacity: 0;
-  animation: ink-code var(--drop-duration) linear both;
+  line-height: 1;
+  rotate: -5deg;
+  opacity: 1;
+  mix-blend-mode: multiply;
+  animation: case-sheet-stamp 0.55s 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
 }
-@keyframes ink-drop {
+.case-sheet-foot {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  color: var(--color-ink-soft);
+}
+@keyframes case-sheet-drop {
   0% {
-    transform: translateY(calc(-1 * var(--origin-y) - 70px)) scale(0.35, 1.5);
-    animation-timing-function: cubic-bezier(0.5, 0, 1, 0.6);
+    opacity: 1;
+    transform: perspective(1400px) rotateX(-78deg) translateY(-10%);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
   }
-  30% {
-    transform: translateY(0) scale(0.6, 0.45);
-    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
-  }
-  37% {
-    transform: translateY(0) scale(0.78, 0.6);
-    animation-timing-function: cubic-bezier(0.3, 0.6, 0.4, 1);
-  }
-  54% {
-    transform: translateY(0) scale(var(--ink-scale));
+  36% {
+    transform: perspective(1400px) rotateX(0deg) translateY(0);
     animation-timing-function: linear;
   }
-  72% {
-    transform: translateY(0) scale(var(--ink-scale));
-    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
-  }
-  100% {
-    transform: translateY(0) scale(0.03);
-    opacity: 0;
-  }
-}
-@keyframes ink-splatter {
-  0%,
-  29% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.3);
-  }
-  31% {
-    opacity: 1;
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: translate(var(--splat-x), var(--splat-y)) scale(1);
-  }
   56% {
-    opacity: 0;
-    transform: translate(var(--splat-x), var(--splat-y)) scale(0.6);
+    opacity: 1;
+    transform: perspective(1400px) rotateX(0deg) translateY(0);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.2);
   }
   100% {
+    transform: perspective(1400px) rotateX(72deg) translateY(-30%);
     opacity: 0;
   }
 }
-@keyframes ink-code {
-  0%,
-  42% {
+@keyframes case-sheet-stamp {
+  from {
     opacity: 0;
-    scale: 0.5;
+    scale: 1.6;
+    rotate: -12deg;
   }
-  50% {
-    opacity: 1;
-    scale: 1.08;
-  }
-  55% {
+  to {
     opacity: 1;
     scale: 1;
-  }
-  74% {
-    opacity: 1;
-    scale: 1;
-  }
-  84% {
-    opacity: 0;
-    scale: 0.9;
-  }
-  100% {
-    opacity: 0;
+    rotate: -5deg;
   }
 }
 .language-switch .language-option[aria-pressed='true'] {
@@ -1048,7 +1036,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ink-drop-layer {
+  .case-sheet-layer {
     display: none;
   }
   .language-switch .language-option[aria-pressed='true'] {
@@ -1318,4 +1306,16 @@
   .lens-handle {
     rotate: none;
   }
+}
+
+/* The desk lamp: a soft pool of light follows the pointer (see hooks/useLampSpot). */
+.desk {
+  background-color: var(--color-felt);
+  background-image:
+    radial-gradient(
+      circle 460px at var(--lamp-x, 50%) var(--lamp-y, 0%),
+      rgb(255 246 214 / 0.12),
+      transparent 70%
+    ),
+    radial-gradient(ellipse 70% 42rem at 50% -6rem, rgb(241 233 210 / 0.075), transparent 72%);
 }
