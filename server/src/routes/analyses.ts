@@ -15,6 +15,7 @@ import {
 import { createAnalysisBodySchema } from '../schemas/createAnalysis';
 import { feedbackBodySchema } from '../schemas/feedback';
 import { reserveAttempt } from '../services/attemptLimit';
+import { purgeExpiredAnalyses } from '../services/retention';
 import { analyzeAndSave } from '../services/saveAnalysis';
 import { parseLanguage } from '../types/language';
 
@@ -36,6 +37,7 @@ analysesRouter.post('/', async (req: Request, res: Response) => {
   const visitor = res.locals.visitor as Visitor;
   const language = parseLanguage(req.get('X-Language'));
 
+  await purgeExpiredAnalyses();
   await reserveAttempt(visitor.clientHash);
   const saved = await analyzeAndSave(parsed.data, visitor, language);
 
@@ -44,6 +46,7 @@ analysesRouter.post('/', async (req: Request, res: Response) => {
 
 // GET /api/analyses — the visitor's own history (lightweight summaries).
 analysesRouter.get('/', async (_req: Request, res: Response) => {
+  await purgeExpiredAnalyses();
   const analyses = await listAnalysisSummaries((res.locals.visitor as Visitor).owner);
   res.json(analyses);
 });

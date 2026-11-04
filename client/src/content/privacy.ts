@@ -39,15 +39,15 @@ export const PRIVACY_TEXT = defineText({
         heading: 'Who else receives data',
         body: [
           'Vercel, which hosts the site and runs the aggregated analytics. Vercel is based in the United States.',
-          'Neon, which hosts the database where analyses and attempt counts are saved. Region: [TODO: region of the database].',
+          'Neon, which hosts the database where analyses and attempt counts are saved. The database is hosted by AWS in the US East 1 region (N. Virginia, United States).',
           'OpenAI, only when the operator enables an OpenAI-based AI provider. In that case, an excerpt of the log, made of the lines selected for the analysis, is sent to OpenAI, which is based in the United States.',
-          'Transfers outside the European Economic Area rely on the safeguards offered by these providers. [TODO: confirm the safeguards with the providers before publishing].',
+          'Transfers outside the European Economic Area are covered by the data processing addenda of these providers, which include the European Commission’s standard contractual clauses.',
         ],
       },
       {
         heading: 'How long we keep it',
         body: [
-          'Analyses, with their logs and reports, stay in the database until you delete them from your history or revoke their share link. [TODO: decide whether to add an automatic deletion period].',
+          'Analyses, with their logs and reports, are deleted automatically 90 days after they are saved. You can delete them earlier from your history, and revoking a share link stops it from working at once.',
           'Analysis attempts, with the hashed address, are deleted after one hour, when they no longer count towards the limits.',
           'The copy of your history saved in your browser stays there until you clear it, from the history page or from the browser settings.',
         ],
@@ -110,15 +110,15 @@ export const PRIVACY_TEXT = defineText({
         heading: 'Chi altro riceve i dati',
         body: [
           'Vercel, che ospita il sito ed effettua le statistiche aggregate. Vercel ha sede negli Stati Uniti.',
-          'Neon, che ospita il database in cui vengono salvate le analisi e i conteggi dei tentativi. Regione: [TODO: regione del database].',
+          'Neon, che ospita il database in cui vengono salvate le analisi e i conteggi dei tentativi. Il database è ospitato da AWS nella regione US East 1 (Virginia del Nord, Stati Uniti).',
           'OpenAI, solo quando il gestore del sito attiva un fornitore di AI basato su OpenAI. In quel caso viene inviato a OpenAI, che ha sede negli Stati Uniti, un estratto del log composto dalle righe selezionate per l’analisi.',
-          'I trasferimenti fuori dallo Spazio economico europeo si basano sulle garanzie offerte da questi fornitori. [TODO: verificare le garanzie con i fornitori prima della pubblicazione].',
+          'I trasferimenti fuori dallo Spazio economico europeo sono coperti dagli addendum sul trattamento dei dati di questi fornitori, che includono le clausole contrattuali tipo della Commissione europea.',
         ],
       },
       {
         heading: 'Per quanto tempo li conserviamo',
         body: [
-          'Le analisi, con log e report, restano nel database finché non le cancelli dalla cronologia o non revochi il loro link di condivisione. [TODO: decidere se aggiungere una cancellazione automatica dopo un periodo].',
+          'Le analisi, con log e report, vengono cancellate automaticamente 90 giorni dopo il salvataggio. Puoi cancellarle prima dalla cronologia, e revocare un link di condivisione lo rende subito inaccessibile.',
           'I tentativi di analisi, con l’hash dell’indirizzo, vengono cancellati dopo un’ora, quando non contano più ai fini dei limiti.',
           'La copia della cronologia salvata nel browser resta lì finché non la cancelli dalla pagina della cronologia o dalle impostazioni del browser.',
         ],
