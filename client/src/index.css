@@ -721,11 +721,6 @@
     pointer-events: none;
     background: linear-gradient(160deg, rgb(255 255 255 / 0.12), transparent 40%, rgb(0 0 0 / 0.1));
   }
-  .printout-tag {
-    position: absolute;
-    right: 6px;
-    margin-top: 1px;
-  }
 
   /* The magnifying glass. Positioned with transform only, so moving it never relayouts. */
   .lens {
