@@ -45,20 +45,22 @@ function SiteHeader() {
           </span>
         </span>
       </NavLink>
-      <div className="flex w-full min-w-0 items-center justify-between sm:w-auto sm:gap-4">
-        <nav className="flex items-center sm:gap-2" aria-label={text.navLabel}>
-          <NavLink to="/" end className={NAV_TAB_CLASS}>
-            {text.analyze}
-          </NavLink>
-          <NavLink to="/workbench" className={NAV_TAB_CLASS}>
-            {text.workbench}
-          </NavLink>
-          <NavLink to="/history" className={NAV_TAB_CLASS}>
-            {text.history}
-          </NavLink>
-        </nav>
-        <LanguageSwitch />
-      </div>
+      <LanguageSwitch />
+      {/* On phones the tabs drop to their own full-width row; on desktop they sit beside the switch. */}
+      <nav
+        className="order-last flex w-full items-center justify-between sm:order-none sm:mr-2 sm:ml-auto sm:w-auto sm:justify-start sm:gap-2"
+        aria-label={text.navLabel}
+      >
+        <NavLink to="/" end className={NAV_TAB_CLASS}>
+          {text.analyze}
+        </NavLink>
+        <NavLink to="/workbench" className={NAV_TAB_CLASS}>
+          {text.workbench}
+        </NavLink>
+        <NavLink to="/history" className={NAV_TAB_CLASS}>
+          {text.history}
+        </NavLink>
+      </nav>
     </header>
   );
 }
