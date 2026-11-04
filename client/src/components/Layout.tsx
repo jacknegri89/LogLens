@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { LAYOUT_TEXT } from '../content/layout';
+import { useHeaderVisibility } from '../hooks/useHeaderVisibility';
 import { useText } from '../i18n/useText';
 import { CommandPalette } from '../workbench/palette/CommandPalette';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -35,32 +36,40 @@ export function Layout() {
 
 function SiteHeader() {
   const text = useText(LAYOUT_TEXT);
+  const isHeaderVisible = useHeaderVisibility();
+  // Solid background, so the page scrolling under it does not show through the letters.
+  // A hidden header is also made inert, so keyboard focus cannot land on links that are off screen.
   return (
-    <header className="relative z-10 mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-2 gap-y-3 px-4 py-4 sm:px-6 sm:py-5">
-      <NavLink to="/" className="brand flex items-center gap-2.5">
-        <BrandMark />
-        <span className="flex flex-col">
-          <span className="brand-word text-lg leading-none font-black tracking-tight uppercase sm:text-2xl [font-stretch:125%]">
-            {text.brand}
+    <header
+      inert={!isHeaderVisible}
+      className={`sticky top-0 z-20 w-full bg-felt transition-transform duration-300 motion-reduce:transition-none ${isHeaderVisible ? '' : '-translate-y-full'}`}
+    >
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-2 gap-y-3 px-4 py-4 sm:px-6 sm:py-5">
+        <NavLink to="/" className="brand flex items-center gap-2.5">
+          <BrandMark />
+          <span className="flex flex-col">
+            <span className="brand-word text-lg leading-none font-black tracking-tight uppercase sm:text-2xl [font-stretch:125%]">
+              {text.brand}
+            </span>
           </span>
-        </span>
-      </NavLink>
-      <LanguageSwitch />
-      {/* On phones the tabs drop to their own full-width row; on desktop they sit beside the switch. */}
-      <nav
-        className="order-last flex w-full items-center justify-between sm:order-none sm:mr-2 sm:ml-auto sm:w-auto sm:justify-start sm:gap-2"
-        aria-label={text.navLabel}
-      >
-        <NavLink to="/" end className={NAV_TAB_CLASS}>
-          {text.analyze}
         </NavLink>
-        <NavLink to="/workbench" className={NAV_TAB_CLASS}>
-          {text.workbench}
-        </NavLink>
-        <NavLink to="/history" className={NAV_TAB_CLASS}>
-          {text.history}
-        </NavLink>
-      </nav>
+        <LanguageSwitch />
+        {/* On phones the tabs drop to their own full-width row; on desktop they sit beside the switch. */}
+        <nav
+          className="order-last flex w-full items-center justify-between sm:order-none sm:mr-2 sm:ml-auto sm:w-auto sm:justify-start sm:gap-2"
+          aria-label={text.navLabel}
+        >
+          <NavLink to="/" end className={NAV_TAB_CLASS}>
+            {text.analyze}
+          </NavLink>
+          <NavLink to="/workbench" className={NAV_TAB_CLASS}>
+            {text.workbench}
+          </NavLink>
+          <NavLink to="/history" className={NAV_TAB_CLASS}>
+            {text.history}
+          </NavLink>
+        </nav>
+      </div>
     </header>
   );
 }
