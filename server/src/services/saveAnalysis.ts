@@ -25,7 +25,7 @@ function pickStoredReport(report: AIReport) {
 
 /** Runs the analysis on the submitted log, with the report in the given language, and stores it. */
 export async function analyzeAndSave(
-  input: Omit<CreateAnalysisBody, 'source'> & { source?: 'paste' | 'upload' | 'ingest' },
+  input: CreateAnalysisBody,
   submitter: Submitter,
   language: Language,
 ) {

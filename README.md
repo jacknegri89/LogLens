@@ -133,7 +133,6 @@ PostgreSQL on Neon through the Vercel integration. Both have a free tier.
    | `GLOBAL_LIMIT_PER_HOUR` | analysis attempts for everyone per hour (default `100`, `0` = no limit)                                    |
    | `TRUST_PROXY`           | `true` on Vercel, so the limit counts real visitors, not the proxy                                         |
    | `VISITOR_SALT`          | any long random text, used to hash visitor addresses                                                       |
-   | `INGEST_TOKEN`          | optional secret (16+ characters) that opens `POST /api/ingest` for other applications                      |
    | `CORS_ORIGIN`           | leave empty: client and API share the same domain                                                          |
 
 4. **Create the tables once**, from your computer, with the Neon URLs in `server/.env`:

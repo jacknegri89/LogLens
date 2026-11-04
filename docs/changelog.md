@@ -2,6 +2,10 @@
 
 Modifiche approvate, dalla più recente.
 
+## 2026-11-04
+
+- Rimosso l'endpoint `POST /api/ingest` con `INGEST_TOKEN`: route, test e variabile d'ambiente eliminati. Restano `POST`, `GET` e `DELETE /api/analyses` come prima.
+
 ## 2026-11-03
 
 - Analisi per tutti i provider: quadro generale, ordine degli eventi e findings calcolati dal server anche quando a rispondere è il modello (`server/src/services/addCorrelation.ts`).
