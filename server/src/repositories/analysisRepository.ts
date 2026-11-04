@@ -92,6 +92,14 @@ export async function deleteAnalysesByOwner(owner: string): Promise<number> {
   return result.count;
 }
 
+/** Removes analyses created before the retention period, for every visitor. Returns how many were deleted. */
+export async function deleteAnalysesOlderThan(days: number): Promise<number> {
+  const result = await prisma.analysis.deleteMany({
+    where: { createdAt: { lt: new Date(Date.now() - days * ONE_DAY_MS) } },
+  });
+  return result.count;
+}
+
 /** Removes one analysis of this visitor. Returns false when it is not theirs or does not exist. */
 export async function deleteAnalysisById(id: string, owner: string): Promise<boolean> {
   const result = await prisma.analysis.deleteMany({ where: { id, owner } });
@@ -192,6 +200,7 @@ export function toSharedReport(report: AnalysisReport): AnalysisReport {
 }
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * ONE_HOUR_MS;
 
 /** Saves one attempt before the AI runs. Returns its id, so a refused attempt can be removed. */
 export async function recordAttempt(clientHash: string): Promise<string> {
