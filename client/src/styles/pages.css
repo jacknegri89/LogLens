@@ -45,7 +45,7 @@
   color: var(--color-chalk);
 }
 .history-count {
-  filter: drop-shadow(2px 4px 3px rgb(0 0 0 / 0.45));
+  box-shadow: 3px 4px 0 rgb(0 0 0 / 0.4);
   transform: rotate(1.5deg);
 }
 .history-count span {
@@ -250,7 +250,7 @@
     var(--color-pen) 16% 62%,
     rgb(0 0 0 / 0.45)
   );
-  filter: drop-shadow(1px 3px 2px rgb(0 0 0 / 0.5));
+  box-shadow: 1px 3px 2px rgb(0 0 0 / 0.5);
   pointer-events: none;
 }
 .case-card-head {
@@ -980,7 +980,6 @@
   line-height: 1;
   rotate: -5deg;
   opacity: 1;
-  mix-blend-mode: multiply;
   animation: case-sheet-stamp 0.55s 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
 }
 .case-sheet-foot {
@@ -1278,19 +1277,6 @@
 .hero-stage {
   isolation: isolate;
 }
-.hero-stage::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at var(--x, 50%) var(--y, 50%),
-    rgb(255 250 226 / 0.42),
-    transparent 180px
-  );
-  mix-blend-mode: soft-light;
-}
 .lens-handle {
   rotate: var(--tilt, 0deg);
   transform-origin: 50% 0;
@@ -1308,14 +1294,66 @@
   }
 }
 
-/* The desk lamp: a soft pool of light follows the pointer (see hooks/useLampSpot). */
-.desk {
-  background-color: var(--color-felt);
-  background-image:
-    radial-gradient(
-      circle 460px at var(--lamp-x, 50%) var(--lamp-y, 0%),
-      rgb(255 246 214 / 0.12),
-      transparent 70%
-    ),
-    radial-gradient(ellipse 70% 42rem at 50% -6rem, rgb(241 233 210 / 0.075), transparent 72%);
+/* Calm mode: every animation stops and the paper shadows go soft. Set by hooks/useCalmMode. */
+html[data-calm='true'] *,
+html[data-calm='true'] *::before,
+html[data-calm='true'] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+html[data-calm='true'] .hero-wall-track {
+  display: none;
+}
+
+/* The header switch: a small box with a dot that lights up when it is on. */
+.calm-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.2rem;
+  padding: 0.3rem 0.7rem;
+  border: 2px solid var(--color-chalk-dim);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-chalk);
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+.calm-toggle:hover {
+  color: var(--color-paper);
+  border-color: var(--color-paper);
+}
+.calm-toggle-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+.calm-toggle[aria-pressed='true'] .calm-toggle-dot {
+  background: var(--color-marker);
+  border-color: var(--color-marker);
+}
+.calm-toggle[aria-pressed='true'] {
+  border-color: var(--color-marker);
+}
+
+/* On phones the switch shows only its dot, so the language switch keeps its place in the row. */
+@media (max-width: 639px) {
+  .calm-toggle {
+    min-height: 2.2rem;
+    padding: 0.3rem 0.45rem;
+  }
+  .calm-toggle-text {
+    display: none;
+  }
+  .language-option {
+    min-width: 2.2rem;
+    padding: 0.3rem 0.5rem;
+  }
 }
