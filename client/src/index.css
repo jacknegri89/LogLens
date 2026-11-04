@@ -95,8 +95,7 @@
       radial-gradient(ellipse 70% 42rem at 50% -6rem, rgb(241 233 210 / 0.075), transparent 72%),
       var(--color-felt);
   }
-  .desk::before,
-  .desk::after {
+  .desk::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -105,11 +104,6 @@
   .desk::before {
     z-index: -1;
     background: radial-gradient(ellipse 120% 90% at 50% 30%, transparent 48%, rgb(0 0 0 / 0.5));
-  }
-  .desk::after {
-    z-index: 60;
-    background-image: var(--noise-light);
-    opacity: 0.06;
   }
 
   /* `.lamp`: a soft cone of warm light from above, for any section that needs its own lamp. */
@@ -387,7 +381,6 @@
     stroke: var(--color-pen);
     stroke-width: 2.25;
     stroke-linecap: round;
-    filter: drop-shadow(0 2px 1.5px rgb(0 0 0 / 0.45));
   }
   .red-thread-draw {
     stroke-dasharray: 1;
@@ -663,7 +656,7 @@
   }
   .hero-wall-line {
     white-space: pre;
-    opacity: 0.42;
+    opacity: 0.24;
   }
   .hero-wall-flagged {
     opacity: 1;
