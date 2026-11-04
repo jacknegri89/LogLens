@@ -203,6 +203,17 @@ export async function removeAttempt(id: string): Promise<void> {
   await prisma.analysisAttempt.delete({ where: { id } });
 }
 
+/**
+ * Removes attempts older than the limit window. They no longer count towards any limit, so
+ * keeping their hashed addresses would only extend how long the data is stored.
+ */
+export async function deleteExpiredAttempts(): Promise<number> {
+  const result = await prisma.analysisAttempt.deleteMany({
+    where: { createdAt: { lt: new Date(Date.now() - ONE_HOUR_MS) } },
+  });
+  return result.count;
+}
+
 /** Attempts in the last hour by one client, or by everyone when no hash is given. */
 export function countAttemptsInLastHour(clientHash?: string): Promise<number> {
   const since = new Date(Date.now() - ONE_HOUR_MS);

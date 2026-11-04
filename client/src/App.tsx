@@ -20,6 +20,9 @@ const AnalysisDetailPage = lazy(() =>
 const SharedReportPage = lazy(() =>
   import('./pages/SharedReportPage').then((m) => ({ default: m.SharedReportPage })),
 );
+const PrivacyPage = lazy(() =>
+  import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
+);
 
 export function App() {
   return (
@@ -31,6 +34,7 @@ export function App() {
           <Route path="/history" element={<Suspended page={HistoryPage} />} />
           <Route path="/analyses/:id" element={<Suspended page={AnalysisDetailPage} />} />
           <Route path="/shared/:token" element={<Suspended page={SharedReportPage} />} />
+          <Route path="/privacy" element={<Suspended page={PrivacyPage} />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

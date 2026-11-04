@@ -2,6 +2,7 @@ import { env } from '../config/env';
 import { AppError } from '../middleware/errorHandler';
 import {
   countAttemptsInLastHour,
+  deleteExpiredAttempts,
   recordAttempt,
   removeAttempt,
 } from '../repositories/analysisRepository';
@@ -10,8 +11,10 @@ import {
  * Saves this attempt before the AI is called, so a failed call still uses up the limit.
  * The count includes the attempt itself, so a refused attempt is removed again. Two
  * requests that arrive together can both be refused, but never both be allowed past the limit.
+ * Attempts older than the window are removed first, so the stored hashes do not pile up.
  */
 export async function reserveAttempt(clientHash: string): Promise<void> {
+  await deleteExpiredAttempts();
   const attemptId = await recordAttempt(clientHash);
   const refusal = await findRefusal(clientHash);
   if (refusal) {

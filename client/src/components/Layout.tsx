@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { LAYOUT_TEXT } from '../content/layout';
+import { PRIVACY_TEXT } from '../content/privacy';
 import { useHeaderVisibility } from '../hooks/useHeaderVisibility';
 import { useText } from '../i18n/useText';
 import { CommandPalette } from '../workbench/palette/CommandPalette';
@@ -88,9 +89,13 @@ function BrandMark() {
 
 function SiteFooter() {
   const text = useText(LAYOUT_TEXT);
+  const privacyText = useText(PRIVACY_TEXT);
   return (
     <footer className="mx-auto w-full max-w-6xl border-t border-dashed border-chalk-dim/40 px-4 py-6 sm:px-6">
       <p className="max-w-3xl font-mono text-sm leading-relaxed text-chalk">{text.footerPrivacy}</p>
+      <NavLink to="/privacy" className="footer-link mt-3 inline-block">
+        {privacyText.footerLink}
+      </NavLink>
     </footer>
   );
 }

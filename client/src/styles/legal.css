@@ -1,0 +1,56 @@
+/* Privacy and cookie page: the same evidence-room look as the history drawer, in plain reading width. */
+.legal-page {
+  max-width: 46rem;
+  padding-top: 1rem;
+}
+.legal-title {
+  margin-top: 0;
+  font-size: clamp(2.5rem, 10vw, 6rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-stretch: 125%;
+}
+.legal-updated {
+  margin-top: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: var(--color-chalk-dim);
+}
+.legal-intro {
+  margin-top: 1.25rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--color-chalk);
+}
+.legal-section {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed rgb(127 154 140 / 0.4);
+}
+.legal-section-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-paper);
+}
+.legal-paragraph {
+  margin-top: 0.85rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-chalk);
+  overflow-wrap: anywhere;
+}
+.footer-link {
+  font-weight: 700;
+  color: var(--color-paper);
+  text-decoration: underline;
+  text-decoration-color: var(--color-marker);
+  text-underline-offset: 4px;
+}
+.footer-link:hover {
+  color: var(--color-marker);
+}
