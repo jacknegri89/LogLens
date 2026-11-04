@@ -906,21 +906,25 @@
   color: var(--color-ink-soft);
 }
 
-/* Language change: a drop of ink falls onto the page, spreads until it covers the screen, and the
-   words change under it. Then it soaks away. The blob's size is set by the component (--ink-scale). */
-.ink-drop {
+/* Language change: ink falls from the pressed switch, lands with a splash, blooms over the whole
+   page while the words change under it, then is soaked back into the switch. Only transforms and
+   opacity animate. The sizes come from the component (--origin-x, --origin-y, --ink-scale). */
+.ink-drop-layer {
   position: fixed;
-  left: 50%;
-  top: 50%;
+  inset: 0;
   z-index: 80;
+  pointer-events: none;
+}
+.ink-drop {
+  position: absolute;
+  left: var(--origin-x);
+  top: var(--origin-y);
   width: 180px;
   height: 180px;
   margin: -90px 0 0 -90px;
-  pointer-events: all;
   display: grid;
   place-items: center;
-  transform-origin: 50% 50%;
-  animation: ink-drop 1.1s linear both;
+  animation: ink-drop var(--drop-duration) linear both;
 }
 .ink-drop-shape {
   position: absolute;
@@ -929,54 +933,107 @@
   height: 100%;
   overflow: visible;
 }
-.ink-drop-shape circle {
+.ink-drop-body {
   fill: var(--color-ink);
 }
+.ink-splatter {
+  position: absolute;
+  left: var(--origin-x);
+  top: var(--origin-y);
+  width: var(--splat-size);
+  height: var(--splat-size);
+  margin: calc(var(--splat-size) / -2) 0 0 calc(var(--splat-size) / -2);
+  border-radius: 50%;
+  background: var(--color-marker);
+  opacity: 0;
+  animation: ink-splatter var(--drop-duration) linear both;
+}
 .ink-drop-code {
-  position: relative;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
   color: var(--color-marker);
   font-family: var(--font-sans);
-  font-size: 2.4rem;
+  font-size: clamp(3rem, 12vw, 7rem);
   font-weight: 900;
   font-stretch: 125%;
   letter-spacing: 0.06em;
   opacity: 0;
-  animation: ink-code 0.4s 0.3s ease-out both;
+  animation: ink-code var(--drop-duration) linear both;
 }
 @keyframes ink-drop {
   0% {
-    transform: translateY(-62vh) scale(0.42, 1.35);
-    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+    transform: translateY(calc(-1 * var(--origin-y) - 70px)) scale(0.35, 1.5);
+    animation-timing-function: cubic-bezier(0.5, 0, 1, 0.6);
   }
-  26% {
-    transform: translateY(0) scale(0.5, 0.62);
-    animation-timing-function: cubic-bezier(0.1, 0.6, 0.4, 1);
-  }
-  36% {
-    transform: translateY(0) scale(0.72, 0.5);
+  30% {
+    transform: translateY(0) scale(0.6, 0.45);
     animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
   }
-  52% {
-    transform: translateY(0) scale(var(--ink-scale));
-    opacity: 1;
+  37% {
+    transform: translateY(0) scale(0.78, 0.6);
+    animation-timing-function: cubic-bezier(0.3, 0.6, 0.4, 1);
   }
-  78% {
+  54% {
     transform: translateY(0) scale(var(--ink-scale));
-    opacity: 1;
+    animation-timing-function: linear;
+  }
+  72% {
+    transform: translateY(0) scale(var(--ink-scale));
+    animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
   }
   100% {
-    transform: translateY(0) scale(calc(var(--ink-scale) * 1.06));
+    transform: translateY(0) scale(0.03);
+    opacity: 0;
+  }
+}
+@keyframes ink-splatter {
+  0%,
+  29% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.3);
+  }
+  31% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(var(--splat-x), var(--splat-y)) scale(1);
+  }
+  56% {
+    opacity: 0;
+    transform: translate(var(--splat-x), var(--splat-y)) scale(0.6);
+  }
+  100% {
     opacity: 0;
   }
 }
 @keyframes ink-code {
-  from {
+  0%,
+  42% {
     opacity: 0;
-    scale: 0.6;
+    scale: 0.5;
   }
-  to {
+  50% {
+    opacity: 1;
+    scale: 1.08;
+  }
+  55% {
     opacity: 1;
     scale: 1;
+  }
+  74% {
+    opacity: 1;
+    scale: 1;
+  }
+  84% {
+    opacity: 0;
+    scale: 0.9;
+  }
+  100% {
+    opacity: 0;
   }
 }
 .language-switch .language-option[aria-pressed='true'] {
@@ -991,7 +1048,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ink-drop {
+  .ink-drop-layer {
     display: none;
   }
   .language-switch .language-option[aria-pressed='true'] {
