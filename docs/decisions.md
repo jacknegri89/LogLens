@@ -2,6 +2,13 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-04 — Prisma 7 e intestazioni di sicurezza
+
+- **Decisione:** Prisma 7 con l'adattatore PostgreSQL (`@prisma/adapter-pg`) e il client generato in `src/generated/prisma`; le URL del database stanno in `prisma.config.ts` (CLI) e in `src/db/prisma.ts` (applicazione). Ogni risposta riceve intestazioni di sicurezza da `config.json` generato da `scripts/build-vercel.mjs`: Content-Security-Policy che consente solo script, API e font di Google dichiarati, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS.
+- **Motivo:** la versione 6 aveva tre vulnerabilità alte nelle dipendenze di produzione, corrette solo dalla 7. Le intestazioni erano richieste dalle regole del progetto e mancavano.
+- **Vincoli:** lo stile usa attributi `style` di React, quindi la policy consente `unsafe-inline` solo per gli stili. Lo script di caricamento dei font inline è stato tolto, perché la policy lo bloccherebbe.
+- **Scartato:** aggiornare solo le dipendenze di sviluppo, lasciando Prisma 6 con le vulnerabilità in produzione.
+
 ## 2026-11-04 — Cancellazione automatica dopo 90 giorni
 
 - **Decisione:** le analisi (con log e report) vengono cancellate 90 giorni dopo il salvataggio, per tutti. La pulizia gira alla lettura e all'invio della cronologia, e una volta al giorno da Vercel Cron (`GET /api/cron/retention`, con `CRON_SECRET`).

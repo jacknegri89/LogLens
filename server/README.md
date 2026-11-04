@@ -37,7 +37,7 @@ curl http://localhost:3001/api/health
 
 ## Database
 
-- **ORM:** Prisma. Schema lives in `prisma/schema.prisma`.
+- **ORM:** Prisma 7, with the PostgreSQL driver adapter. Schema lives in `prisma/schema.prisma`; the CLI settings (direct URL, seed) live in `prisma.config.ts`. The client is generated into `src/generated/prisma` by `npm run prisma:generate` (also run after `npm install`).
 - **Provider:** PostgreSQL (Neon free tier works well; Supabase works too).
 - **Browse the data:** `npm run prisma:studio` opens a GUI in the browser.
 - **Two connection URLs are needed** (see `.env.example`):
@@ -71,7 +71,7 @@ src/
 ├── config/
 │   └── env.ts                        # validated env vars (Zod + dotenv)
 ├── db/
-│   └── prisma.ts                     # shared Prisma client (singleton)
+│   └── prisma.ts                     # shared Prisma client (singleton, PostgreSQL adapter)
 ├── parser/
 │   ├── logParser.ts                  # pure function: extract relevant lines
 │   └── lineFields.ts                 # time, level, address, hex code, event id of one line

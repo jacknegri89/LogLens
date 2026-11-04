@@ -1,8 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
-import type { Analysis } from '@prisma/client';
-
 import { prisma } from '../db/prisma';
+import type { Analysis } from '../generated/prisma/client';
 import type { AnalysisReport, Severity } from '../types/report';
 
 /**

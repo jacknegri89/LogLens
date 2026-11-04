@@ -1,6 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 import { env } from '../config/env';
+import { PrismaClient } from '../generated/prisma/client';
 
 /**
  * A single shared PrismaClient for the whole app.
@@ -12,28 +13,19 @@ import { env } from '../config/env';
  */
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-let logLevel: ('query' | 'warn' | 'error')[];
-if (env.NODE_ENV === 'development') {
-  logLevel = ['query', 'warn', 'error'];
-} else {
-  logLevel = ['warn', 'error'];
-}
+const logLevels: ('query' | 'warn' | 'error')[] =
+  env.NODE_ENV === 'development' ? ['query', 'warn', 'error'] : ['warn', 'error'];
 
 /**
- * Pooled connection strings (Neon, Supabase) go through PgBouncer, which needs
- * `pgbouncer=true` so Prisma does not reuse prepared statements.
+ * Prisma 7 talks to the database through a driver adapter. We pass the pooled URL
+ * (DATABASE_URL) here: the application's traffic is short queries, which the pooler handles.
  */
-function withPgbouncer(url: string): string {
-  if (!url.includes('-pooler') || url.includes('pgbouncer=')) {
-    return url;
-  }
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}pgbouncer=true`;
+function createPrismaClient(): PrismaClient {
+  const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
+  return new PrismaClient({ adapter, log: logLevels });
 }
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({ log: logLevel, datasourceUrl: withPgbouncer(env.DATABASE_URL) });
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
