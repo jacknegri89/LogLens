@@ -5,6 +5,9 @@ import { LANGUAGES, LANGUAGE_LABELS, type Language } from '../i18n/languages';
 import { useLanguage } from '../i18n/useLanguage';
 import { useText } from '../i18n/useText';
 
+/** Gives every drop a new key, so a second press starts a fresh animation. */
+let nextDropId = 0;
+
 /** The whole drop lasts this long: it falls, blooms over the page, then soaks back into the switch. */
 const DROP_DURATION_MS = 1300;
 /** The ink covers the whole page at about this moment; only then the words change, out of sight. */
@@ -71,7 +74,8 @@ export function LanguageSwitch() {
       return;
     }
     // Read the button's position now: React clears event.currentTarget after the handler returns.
-    setDrop(dropFrom(event, code, Date.now()));
+    nextDropId += 1;
+    setDrop(dropFrom(event, code, nextDropId));
     setPendingLanguage(code);
   }
 
