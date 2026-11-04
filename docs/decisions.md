@@ -2,6 +2,31 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-04 — Cancellazione automatica dopo 90 giorni
+
+- **Decisione:** le analisi (con log e report) vengono cancellate 90 giorni dopo il salvataggio, per tutti. La pulizia gira alla lettura e all'invio della cronologia, e una volta al giorno da Vercel Cron (`GET /api/cron/retention`, con `CRON_SECRET`).
+- **Motivo:** il log può contenere dati personali; non serve conservarlo oltre il necessario. Il proprietario ha scelto 90 giorni.
+- **Scartato:** una scadenza solo al momento della lettura, perché le analisi di chi non torna resterebbero per sempre. Una cancellazione a mano: non scala.
+- **Vincolo:** l'hosting esegue la pianificazione una volta al giorno. Se il sito non viene usato, le analisi scadute restano fino al primo accesso o alla pianificazione successiva.
+
+## 2026-11-04 — Hash dell'indirizzo con sale e pulizia dei tentativi
+
+- **Decisione:** il server salva solo l'hash SHA-256 dell'indirizzo con `VISITOR_SALT`, e cancella i tentativi più vecchi di un'ora.
+- **Motivo:** senza sale un hash di indirizzo IPv4 si inverte con poca fatica. I tentativi più vecchi di un'ora non servono più ai limiti.
+- **Scartato:** conservare i tentativi per statistiche, perché darebbe dati personali senza un uso chiaro.
+
+## 2026-11-04 — Link di condivisione redatti nelle statistiche
+
+- **Decisione:** prima dell'invio a Vercel Analytics il token del link di condivisione viene sostituito con `[redacted]`.
+- **Motivo:** il token nel percorso darebbe accesso al report a chiunque legga le statistiche.
+- **Scartato:** disattivare Analytics: le statistiche aggregate servono e non usano cookie.
+
+## 2026-11-04 — Pagina privacy e cookie
+
+- **Decisione:** pagina `/privacy` bilingue con titolare, dati, basi giuridiche, destinatari, conservazione, cookie e diritti. LogLens non usa cookie: usa `localStorage` per le scelte dell'utente.
+- **Motivo:** il sito tratta log che possono contenere dati personali e deve dirlo. Il testo è stato verificato da un professionista.
+- **Scartato:** un banner dei cookie, perché non ci sono cookie da accettare.
+
 ## 2026-11-03 — Il modello riceve solo righe rilevanti e un prompt in 4 fasi
 
 - **Decisione:** prima dell'invio il codice toglie il rumore di routine (health check, probe del load balancer, asset statici con esito normale) salvo che portino un errore o lo stesso trace id di una riga in errore, e dice al modello quanto ne ha tolto. Il system prompt apre con il testo del proprietario alla lettera; il contratto JSON, la scala di severità e le regole contro il prompt injection sono accodati.

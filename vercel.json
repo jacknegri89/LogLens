@@ -1,4 +1,10 @@
 {
   "installCommand": "npm ci && npm ci --prefix server && npm ci --prefix client",
-  "buildCommand": "npm run build:vercel"
+  "buildCommand": "npm run build:vercel",
+  "crons": [
+    {
+      "path": "/api/cron/retention",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }
