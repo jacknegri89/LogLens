@@ -8,9 +8,15 @@ import { SECURITY_TEXT } from './workbenchSecurity';
 const TABLES = { SECURITY_TEXT, EXPORT_TEXT, PALETTE_TEXT };
 
 function shapeOf(value: unknown): unknown {
-  if (typeof value === 'function') return 'function';
-  if (typeof value === 'string') return 'string';
-  if (Array.isArray(value)) return value.map(shapeOf);
+  if (typeof value === 'function') {
+    return 'function';
+  }
+  if (typeof value === 'string') {
+    return 'string';
+  }
+  if (Array.isArray(value)) {
+    return value.map(shapeOf);
+  }
   if (value && typeof value === 'object') {
     return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, shapeOf(inner)]));
   }
@@ -18,8 +24,12 @@ function shapeOf(value: unknown): unknown {
 }
 
 function stringsOf(value: unknown, path: string): [string, string][] {
-  if (typeof value === 'string') return [[path, value]];
-  if (!value || typeof value !== 'object') return [];
+  if (typeof value === 'string') {
+    return [[path, value]];
+  }
+  if (!value || typeof value !== 'object') {
+    return [];
+  }
   return Object.entries(value).flatMap(([key, inner]) => stringsOf(inner, `${path}.${key}`));
 }
 

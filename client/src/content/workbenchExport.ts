@@ -39,10 +39,12 @@ export const EXPORT_TEXT = defineText({
       title: 'Share link',
       intro:
         'Makes a link that holds the log and the report inside the address itself. Nothing is stored on a server.',
-      notice: (replaced: number) =>
-        replaced > 0
-          ? `The log in the link is sanitized first: ${withCount(replaced, ['item', 'items'])} replaced. Anyone with the link can still read the rest of it.`
-          : 'No sensitive value was found, so the log in the link is the log as loaded. Anyone with the link can read it.',
+      notice: (replaced: number) => {
+        if (replaced > 0) {
+          return `${withCount(replaced, ['item', 'items'])} replaced. Detection may miss sensitive data; review the log and report before sharing. Anyone with the link can read them.`;
+        }
+        return 'No sensitive value was detected. Detection can miss data; review the log and report before sharing. Anyone with the link can read them.';
+      },
       create: 'Create share link',
       creating: 'Creating',
       linkLabel: 'Share link',
@@ -148,10 +150,12 @@ export const EXPORT_TEXT = defineText({
       title: 'Link di condivisione',
       intro:
         'Crea un link che contiene log e report dentro l’indirizzo stesso. Nulla viene salvato su un server.',
-      notice: (replaced: number) =>
-        replaced > 0
-          ? `Il log nel link viene prima oscurato: ${withCount(replaced, ['elemento sostituito', 'elementi sostituiti'])}. Chi ha il link può comunque leggere il resto.`
-          : 'Nessun valore sensibile trovato, quindi il log nel link è quello caricato. Chi ha il link può leggerlo.',
+      notice: (replaced: number) => {
+        if (replaced > 0) {
+          return `${withCount(replaced, ['elemento sostituito', 'elementi sostituiti'])}. Il riconoscimento può non individuare tutti i dati sensibili: controlla log e report prima di condividere. Chi ha il link può leggerli.`;
+        }
+        return 'Nessun valore sensibile individuato. Il riconoscimento può non trovare tutto: controlla log e report prima di condividere. Chi ha il link può leggerli.';
+      },
       create: 'Crea link di condivisione',
       creating: 'Creazione in corso',
       linkLabel: 'Link di condivisione',

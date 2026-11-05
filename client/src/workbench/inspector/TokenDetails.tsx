@@ -31,17 +31,25 @@ function CodeBlock({ label, code }: { label: string; code: string }) {
 
 function JwtExpiry({ details, now }: { details: JwtDetails; now: number }) {
   const text = useText(INSPECTOR_TEXT);
-  if (details.expiresAtMilliseconds === null) return <p>{text.jwtNoExpiry}</p>;
+  if (details.expiresAtMilliseconds === null) {
+    return <p>{text.jwtNoExpiry}</p>;
+  }
   const expired = isExpired(details.expiresAtMilliseconds, now);
-  return (
-    <p className={expired ? 'inspect-alert' : undefined}>
-      {expired ? text.jwtExpired : text.jwtNotExpired}
-    </p>
-  );
+  let className: string | undefined;
+  let message = text.jwtNotExpired;
+  if (expired) {
+    className = 'inspect-alert';
+    message = text.jwtExpired;
+  }
+  return <p className={className}>{message}</p>;
 }
 
 function JwtView({ details, now }: { details: JwtDetails; now: number }) {
   const text = useText(INSPECTOR_TEXT);
+  let payload = <p>{text.jwtNoPayload}</p>;
+  if (details.payloadJson) {
+    payload = <CodeBlock label={text.jwtPayload} code={details.payloadJson} />;
+  }
   return (
     <>
       <p className="inspect-notice">{text.jwtNotice}</p>
@@ -56,11 +64,7 @@ function JwtView({ details, now }: { details: JwtDetails; now: number }) {
         </section>
       ))}
       <CodeBlock label={text.jwtHeader} code={details.headerJson} />
-      {details.payloadJson ? (
-        <CodeBlock label={text.jwtPayload} code={details.payloadJson} />
-      ) : (
-        <p>{text.jwtNoPayload}</p>
-      )}
+      {payload}
     </>
   );
 }

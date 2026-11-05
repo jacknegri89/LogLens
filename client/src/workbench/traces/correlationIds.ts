@@ -66,16 +66,23 @@ function isUsableId(value: string): boolean {
 }
 
 function kindOfField(key: string): CorrelationKind | null {
-  if (key in FIELD_KINDS) return FIELD_KINDS[key];
+  if (key in FIELD_KINDS) {
+    return FIELD_KINDS[key];
+  }
   const lastDot = key.lastIndexOf('.');
-  return lastDot > 0 ? (FIELD_KINDS[key.slice(lastDot + 1)] ?? null) : null;
+  if (lastDot > 0) {
+    return FIELD_KINDS[key.slice(lastDot + 1)] ?? null;
+  }
+  return null;
 }
 
 function idsFromFields(fields: Record<string, string>): LineIdMatch[] {
   const matches: LineIdMatch[] = [];
   for (const [key, value] of Object.entries(fields)) {
     const kind = kindOfField(key);
-    if (kind && isUsableId(value)) matches.push({ kind, id: value.trim(), needsRepeat: false });
+    if (kind && isUsableId(value)) {
+      matches.push({ kind, id: value.trim(), needsRepeat: false });
+    }
   }
   return matches;
 }
@@ -93,7 +100,9 @@ function idsFromMessage(raw: string): LineIdMatch[] {
     matches.push({ kind: 'request', id, needsRepeat: false });
   }
   for (const [, id] of raw.matchAll(BRACKETED_ID)) {
-    if (looksLikeOpaqueId(id)) matches.push({ kind: 'pattern', id, needsRepeat: true });
+    if (looksLikeOpaqueId(id)) {
+      matches.push({ kind: 'pattern', id, needsRepeat: true });
+    }
   }
   return matches;
 }
@@ -102,7 +111,9 @@ function idsFromMessage(raw: string): LineIdMatch[] {
 export function extractLineIds(line: ParsedLine): LineIdMatch[] {
   const seen = new Set<string>();
   return [...idsFromFields(line.fields), ...idsFromMessage(line.raw)].filter((match) => {
-    if (seen.has(match.id)) return false;
+    if (seen.has(match.id)) {
+      return false;
+    }
     seen.add(match.id);
     return true;
   });
@@ -125,8 +136,9 @@ function collectDrafts(lines: readonly ParsedLine[]): Map<string, Draft> {
         positions: [],
         confirmed: false,
       };
-      if (KIND_PRIORITY.indexOf(match.kind) < KIND_PRIORITY.indexOf(draft.kind))
+      if (KIND_PRIORITY.indexOf(match.kind) < KIND_PRIORITY.indexOf(draft.kind)) {
         draft.kind = match.kind;
+      }
       draft.confirmed ||= !match.needsRepeat;
       draft.positions.push(position);
       drafts.set(match.id, draft);
@@ -144,10 +156,20 @@ function timeRange(members: readonly ParsedLine[]): {
   let last: number | null = null;
   let timed = 0;
   for (const { timestamp } of members) {
-    if (timestamp === null) continue;
+    if (timestamp === null) {
+      continue;
+    }
     timed += 1;
-    first = first === null ? timestamp : Math.min(first, timestamp);
-    last = last === null ? timestamp : Math.max(last, timestamp);
+    if (first === null) {
+      first = timestamp;
+    } else {
+      first = Math.min(first, timestamp);
+    }
+    if (last === null) {
+      last = timestamp;
+    } else {
+      last = Math.max(last, timestamp);
+    }
   }
   return { first, last, timed };
 }
@@ -156,6 +178,10 @@ function summarize(draft: Draft, lines: readonly ParsedLine[]): Correlation {
   const members = draft.positions.map((position) => lines[position]);
   const { first, last, timed } = timeRange(members);
   const services = members.map((line) => line.service).filter((s): s is string => s !== null);
+  let durationMs: number | null = null;
+  if (timed >= 2 && first !== null && last !== null) {
+    durationMs = last - first;
+  }
   return {
     id: draft.id,
     kind: draft.kind,
@@ -164,7 +190,7 @@ function summarize(draft: Draft, lines: readonly ParsedLine[]): Correlation {
     faultCount: members.filter((line) => line.isFault).length,
     firstTimestamp: first,
     lastTimestamp: last,
-    durationMs: timed >= 2 && first !== null && last !== null ? last - first : null,
+    durationMs,
   };
 }
 
@@ -181,7 +207,9 @@ export function compareCorrelations(first: Correlation, second: Correlation): nu
 export function buildCorrelations(lines: readonly ParsedLine[]): Correlation[] {
   const found: Correlation[] = [];
   for (const draft of collectDrafts(lines).values()) {
-    if (draft.confirmed || draft.positions.length >= 2) found.push(summarize(draft, lines));
+    if (draft.confirmed || draft.positions.length >= 2) {
+      found.push(summarize(draft, lines));
+    }
   }
   return found.sort(compareCorrelations);
 }

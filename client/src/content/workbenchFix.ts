@@ -3,6 +3,7 @@ import { defineText } from '../i18n/defineText';
 /** Text of the Workbench "Fix" view: code patch, regression test, alert rule and runbook. */
 export const FIX_TEXT = defineText({
   en: {
+    unavailable: 'The Fix tools are not available yet.',
     gate: {
       title: 'Analyze the log first',
       body: 'The fix, the test, the alert rule and the runbook are built from the analysis of your log. Run the analysis to unlock them.',
@@ -189,6 +190,7 @@ export const FIX_TEXT = defineText({
     },
   },
   it: {
+    unavailable: 'Gli strumenti di correzione non sono ancora disponibili.',
     gate: {
       title: 'Prima analizza il log',
       body: 'La correzione, il test, la regola di allarme e il runbook nascono dall’analisi del tuo log. Avvia l’analisi per sbloccarli.',

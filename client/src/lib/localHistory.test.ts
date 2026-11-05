@@ -111,7 +111,9 @@ describe('localHistory', () => {
   it('drops the oldest analyses when the storage is full', () => {
     const storage = new MemoryStorage();
     storage.setItem = (key: string, value: string) => {
-      if (value.length > 700) throw new DOMException('full', 'QuotaExceededError');
+      if (value.length > 700) {
+        throw new DOMException('full', 'QuotaExceededError');
+      }
       MemoryStorage.prototype.setItem.call(storage, key, value);
     };
     vi.stubGlobal('localStorage', storage);

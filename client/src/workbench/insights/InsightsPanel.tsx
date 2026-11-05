@@ -16,17 +16,21 @@ export function InsightsPanel() {
   const text = useText(INSIGHTS_TEXT);
   const { report, topology, flameTree, latency } = useInsightsModel();
 
-  if (lines.length === 0) return <p className="insights-note">{text.noLog}</p>;
+  if (lines.length === 0) {
+    return <p className="insights-note">{text.noLog}</p>;
+  }
+  let reportContent = <AnalyzePrompt />;
+  if (report) {
+    reportContent = (
+      <>
+        <MetricsRow report={report} />
+        <CausesSection confidence={report.confidence} explanation={report.explanation} />
+      </>
+    );
+  }
   return (
     <div className="insights">
-      {report ? (
-        <>
-          <MetricsRow report={report} />
-          <CausesSection confidence={report.confidence} explanation={report.explanation} />
-        </>
-      ) : (
-        <AnalyzePrompt />
-      )}
+      {reportContent}
       <BlastRadius topology={topology} />
       <FlamegraphSection tree={flameTree} latency={latency} />
     </div>

@@ -7,7 +7,8 @@ const PREVIEW_LENGTH = 26;
 
 /** Short text for a token: the start of what was written in the line. */
 export function tokenPreview(token: DecodedToken): string {
-  return token.source.length > PREVIEW_LENGTH + 2
-    ? `${token.source.slice(0, PREVIEW_LENGTH)}…`
-    : token.source;
+  if (token.source.length > PREVIEW_LENGTH + 2) {
+    return `${token.source.slice(0, PREVIEW_LENGTH)}…`;
+  }
+  return token.source;
 }

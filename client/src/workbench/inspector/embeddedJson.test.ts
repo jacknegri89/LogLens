@@ -18,6 +18,12 @@ describe('findClosingIndex', () => {
     expect(findClosingIndex('{"a":[1}', 0)).toBe(-1);
     expect(findClosingIndex('{"a":"unterminated}', 0)).toBe(-1);
   });
+
+  it('rejects excessive nesting before parsing or rendering it', () => {
+    const nested = `${'['.repeat(8_000)}0${']'.repeat(8_000)}`;
+    expect(findClosingIndex(nested, 0)).toBe(-1);
+    expect(findJsonSegments(nested)).toEqual([]);
+  });
 });
 
 describe('findJsonSegments', () => {

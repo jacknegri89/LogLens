@@ -20,7 +20,14 @@ interface IconButtonProps {
 }
 
 function IconButton({ symbol, label, onClick, disabled, pressed, navigation }: IconButtonProps) {
-  const navigationAttribute = navigation ? { [NAVIGATION_ATTRIBUTE]: '' } : {};
+  let navigationAttribute = {};
+  if (navigation) {
+    navigationAttribute = { [NAVIGATION_ATTRIBUTE]: '' };
+  }
+  let clickHandler: (() => void) | undefined = onClick;
+  if (disabled) {
+    clickHandler = undefined;
+  }
   return (
     <button
       type="button"
@@ -28,7 +35,7 @@ function IconButton({ symbol, label, onClick, disabled, pressed, navigation }: I
       aria-label={label}
       aria-pressed={pressed}
       aria-disabled={disabled || undefined}
-      onClick={disabled ? undefined : onClick}
+      onClick={clickHandler}
       {...navigationAttribute}
     >
       <span aria-hidden="true">{symbol}</span>
@@ -39,6 +46,12 @@ function IconButton({ symbol, label, onClick, disabled, pressed, navigation }: I
 /** Title, previous/next, bookmark star and close. */
 export function InspectorHeader(props: InspectorHeaderProps) {
   const text = useText(INSPECTOR_TEXT);
+  let bookmarkSymbol = '☆';
+  let bookmarkLabel = text.bookmarkAdd;
+  if (props.bookmarked) {
+    bookmarkSymbol = '★';
+    bookmarkLabel = text.bookmarkRemove;
+  }
   return (
     <header className="inspect-header">
       <h2 id="inspector-title" className="inspect-title">
@@ -60,8 +73,8 @@ export function InspectorHeader(props: InspectorHeaderProps) {
           navigation
         />
         <IconButton
-          symbol={props.bookmarked ? '★' : '☆'}
-          label={props.bookmarked ? text.bookmarkRemove : text.bookmarkAdd}
+          symbol={bookmarkSymbol}
+          label={bookmarkLabel}
           pressed={props.bookmarked}
           onClick={props.onToggleBookmark}
         />

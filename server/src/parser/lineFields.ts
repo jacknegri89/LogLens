@@ -28,7 +28,10 @@ export interface LineField {
 export function extractLineFieldEntries(line: string): LineField[] {
   return FIELD_PATTERNS.flatMap(({ label, pattern }) => {
     const value = line.match(pattern)?.[0];
-    return value ? [{ label, value }] : [];
+    if (value) {
+      return [{ label, value }];
+    }
+    return [];
   });
 }
 

@@ -22,7 +22,9 @@ export function useSourceMapLab() {
   const [trace, setTrace] = useState('');
 
   const frames = useMemo(() => {
-    if (!loaded?.parsed.ok || trace.trim() === '') return null;
+    if (!loaded?.parsed.ok || trace.trim() === '') {
+      return null;
+    }
     return resolveTrace(loaded.parsed.map, trace);
   }, [loaded, trace]);
 
@@ -33,7 +35,9 @@ export function useSourceMapLab() {
 
   async function openFile(file: File) {
     const result = await readTextFile(file, MAX_MAP_FILE_MEGABYTES * MEGABYTE);
-    if (!result.ok) return setFileProblem(result.reason);
+    if (!result.ok) {
+      return setFileProblem(result.reason);
+    }
     setFileProblem(null);
     setLoaded({ name: file.name, parsed: parseSourceMap(result.text) });
   }

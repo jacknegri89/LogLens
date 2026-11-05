@@ -14,6 +14,12 @@ interface CopyActionProps {
 export function CopyAction({ text, label, ariaLabel }: CopyActionProps) {
   const { copied, copy } = useCopyFeedback();
   const content = useText(FIX_TEXT).copy;
+  let buttonText = label;
+  let statusText = '';
+  if (copied) {
+    buttonText = content.copied;
+    statusText = content.copied;
+  }
 
   return (
     <>
@@ -23,10 +29,10 @@ export function CopyAction({ text, label, ariaLabel }: CopyActionProps) {
         aria-label={ariaLabel}
         className="fix-button"
       >
-        {copied ? content.copied : label}
+        {buttonText}
       </button>
       <span role="status" className="sr-only">
-        {copied ? content.copied : ''}
+        {statusText}
       </span>
     </>
   );

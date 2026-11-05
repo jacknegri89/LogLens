@@ -25,7 +25,17 @@ export type RegexBuild =
 const NESTED_REPEAT = /\((?:[^()\\]|\\.)*[+*](?:[^()\\]|\\.)*\)(?:[+*]|\{\d+,\d*\})/;
 
 export function flagsToText(flags: RegexFlagState): string {
-  return (flags.ignoreCase ? 'i' : '') + (flags.multiline ? 'm' : '') + (flags.dotAll ? 's' : '');
+  let text = '';
+  if (flags.ignoreCase) {
+    text += 'i';
+  }
+  if (flags.multiline) {
+    text += 'm';
+  }
+  if (flags.dotAll) {
+    text += 's';
+  }
+  return text;
 }
 
 export function looksCatastrophic(pattern: string): boolean {
@@ -38,13 +48,22 @@ export function looksCatastrophic(pattern: string): boolean {
  * carries the visitor's own choice of the `g` flag.
  */
 export function buildRegex(pattern: string, flags: RegexFlagState): RegexBuild {
-  if (pattern === '') return { status: 'empty' };
-  if (looksCatastrophic(pattern)) return { status: 'risky' };
+  if (pattern === '') {
+    return { status: 'empty' };
+  }
+  if (looksCatastrophic(pattern)) {
+    return { status: 'risky' };
+  }
   try {
     const regex = new RegExp(pattern, `g${flagsToText(flags)}`);
     return { status: 'ready', regex, firstMatchOnly: !flags.global };
   } catch (failure) {
-    const message = failure instanceof Error ? failure.message : String(failure);
+    let message: string;
+    if (failure instanceof Error) {
+      message = failure.message;
+    } else {
+      message = String(failure);
+    }
     return { status: 'invalid', message };
   }
 }

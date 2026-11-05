@@ -46,18 +46,24 @@ export const INSIGHTS_TEXT = defineText({
         faultRatio: (percent: number) => `${percent}% of the lines are errors or stack frames`,
         findings: (count: number) =>
           `${withCount(count, ['finding', 'findings'])}, 1 point each up to 5`,
-        rootCause: (effects: number) =>
-          effects > 0
-            ? `One failure set off ${withCount(effects, ['other event', 'other events'])}`
-            : 'No failure set off another one',
-        security: (count: number) =>
-          count > 0
-            ? `${withCount(count, ['security finding', 'security findings'])}`
-            : 'None found',
-        burst: (count: number) =>
-          count > 0
-            ? `${withCount(count, ['burst', 'bursts'])} of 5 or more errors within 10 seconds`
-            : 'No 5 errors within 10 seconds',
+        rootCause: (effects: number) => {
+          if (effects > 0) {
+            return `One failure set off ${withCount(effects, ['other event', 'other events'])}`;
+          }
+          return 'No failure set off another one';
+        },
+        security: (count: number) => {
+          if (count > 0) {
+            return withCount(count, ['security finding', 'security findings']);
+          }
+          return 'None found';
+        },
+        burst: (count: number) => {
+          if (count > 0) {
+            return `${withCount(count, ['burst', 'bursts'])} of 5 or more errors within 10 seconds`;
+          }
+          return 'No 5 errors within 10 seconds';
+        },
       },
       points: (points: number, maxPoints: number) => `${points} of ${maxPoints}`,
       total: 'Total',
@@ -203,18 +209,24 @@ export const INSIGHTS_TEXT = defineText({
         faultRatio: (percent: number) => `${percent}% delle righe sono errori o frame di stack`,
         findings: (count: number) =>
           `${withCount(count, ['problema', 'problemi'])}, 1 punto ciascuno fino a 5`,
-        rootCause: (effects: number) =>
-          effects > 0
-            ? `Un guasto ne ha innescati altri ${effects}`
-            : 'Nessun guasto ne ha innescato un altro',
-        security: (count: number) =>
-          count > 0
-            ? withCount(count, ['segnalazione di sicurezza', 'segnalazioni di sicurezza'])
-            : 'Nessuna trovata',
-        burst: (count: number) =>
-          count > 0
-            ? `${withCount(count, ['raffica', 'raffiche'])} di 5 o più errori in 10 secondi`
-            : 'Nessun gruppo di 5 errori in 10 secondi',
+        rootCause: (effects: number) => {
+          if (effects > 0) {
+            return `Un guasto ne ha innescati altri ${effects}`;
+          }
+          return 'Nessun guasto ne ha innescato un altro';
+        },
+        security: (count: number) => {
+          if (count > 0) {
+            return withCount(count, ['segnalazione di sicurezza', 'segnalazioni di sicurezza']);
+          }
+          return 'Nessuna trovata';
+        },
+        burst: (count: number) => {
+          if (count > 0) {
+            return `${withCount(count, ['raffica', 'raffiche'])} di 5 o più errori in 10 secondi`;
+          }
+          return 'Nessun gruppo di 5 errori in 10 secondi';
+        },
       },
       points: (points: number, maxPoints: number) => `${points} su ${maxPoints}`,
       total: 'Totale',

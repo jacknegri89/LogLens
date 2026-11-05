@@ -92,7 +92,9 @@ export function findRanges(
       regex.lastIndex += 1;
     } else {
       ranges.push({ start: match.index, end: match.index + match[0].length });
-      if (firstMatchOnly) break;
+      if (firstMatchOnly) {
+        break;
+      }
     }
     match = regex.exec(text);
   }
@@ -116,8 +118,12 @@ function scanOneLine(scan: Scan, line: ParsedLine): void {
   const searched = line.raw.slice(0, scan.options.maxLineLength);
   const room = scan.options.maxMatches - scan.matchCount;
   const ranges = findRanges(searched, scan.regex, scan.firstMatchOnly, room);
-  if (ranges.length > 0) recordLine(scan, line, ranges);
-  if (scan.matchCount >= scan.options.maxMatches) scan.stoppedEarly = true;
+  if (ranges.length > 0) {
+    recordLine(scan, line, ranges);
+  }
+  if (scan.matchCount >= scan.options.maxMatches) {
+    scan.stoppedEarly = true;
+  }
 }
 
 /**
@@ -134,7 +140,9 @@ export function advanceScan(
     scanOneLine(scan, scan.lines[scan.nextLine]);
     scan.nextLine += 1;
   }
-  if (scan.stoppedEarly && scan.nextLine >= scan.lines.length) scan.stoppedEarly = false;
+  if (scan.stoppedEarly && scan.nextLine >= scan.lines.length) {
+    scan.stoppedEarly = false;
+  }
 }
 
 const MAX_LISTED_VALUES = 100;

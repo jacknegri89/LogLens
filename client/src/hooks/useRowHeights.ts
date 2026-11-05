@@ -9,11 +9,18 @@ export function useRowHeights(mirrorRef: RefObject<HTMLDivElement | null>, text:
 
   useLayoutEffect(() => {
     const mirror = mirrorRef.current;
-    if (!mirror) return;
+    if (!mirror) {
+      return;
+    }
 
     function measure() {
       const next = Array.from(mirror!.children, (row) => (row as HTMLElement).offsetHeight);
-      setHeights((previous) => (previous.join() === next.join() ? previous : next));
+      setHeights((previous) => {
+        if (previous.join() === next.join()) {
+          return previous;
+        }
+        return next;
+      });
     }
 
     measure();

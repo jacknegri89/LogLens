@@ -26,31 +26,54 @@ export function isValidIpv4(value: string): boolean {
 
 /** Plain IPv6 text: hexadecimal groups with at most one "::". Zone ids and IPv4 tails are refused. */
 export function isValidIpv6(value: string): boolean {
-  if (!/^[0-9a-f:]+$/i.test(value)) return false;
+  if (!/^[0-9a-f:]+$/i.test(value)) {
+    return false;
+  }
   const halves = value.split('::');
-  if (halves.length > 2) return false;
-  const groups = halves.flatMap((half) => (half === '' ? [] : half.split(':')));
-  if (!groups.every((group) => HEX_GROUP.test(group))) return false;
-  return halves.length === 2 ? groups.length <= 7 : groups.length === 8;
+  if (halves.length > 2) {
+    return false;
+  }
+  const groups = halves.flatMap((half) => {
+    if (half === '') {
+      return [];
+    }
+    return half.split(':');
+  });
+  if (!groups.every((group) => HEX_GROUP.test(group))) {
+    return false;
+  }
+  if (halves.length === 2) {
+    return groups.length <= 7;
+  }
+  return groups.length === 8;
 }
 
 /** The address in its one written form (IPv6 in lower case), or null when it is not a valid address. */
 export function canonicalAddress(value: string): string | null {
   const trimmed = value.trim();
-  if (isValidIpv4(trimmed)) return trimmed;
-  return isValidIpv6(trimmed) ? trimmed.toLowerCase() : null;
+  if (isValidIpv4(trimmed)) {
+    return trimmed;
+  }
+  if (isValidIpv6(trimmed)) {
+    return trimmed.toLowerCase();
+  }
+  return null;
 }
 
 /** Loopback, unspecified and broadcast addresses are never worth blocking. */
 export function isBlockableAddress(address: string): boolean {
-  if (!isValidIpv4(address)) return address !== '::' && address !== '::1';
+  if (!isValidIpv4(address)) {
+    return address !== '::' && address !== '::1';
+  }
   return !address.startsWith('127.') && address !== '0.0.0.0' && address !== '255.255.255.255';
 }
 
 function firstValidMatch(pattern: RegExp, text: string): { address: string; index: number } | null {
   for (const match of text.matchAll(pattern)) {
     const address = canonicalAddress(match[0]);
-    if (address) return { address, index: match.index };
+    if (address) {
+      return { address, index: match.index };
+    }
   }
   return null;
 }
@@ -58,8 +81,12 @@ function firstValidMatch(pattern: RegExp, text: string): { address: string; inde
 function addressFromFields(fields: Record<string, string>): string | null {
   for (const name of ADDRESS_FIELDS) {
     const first = fields[name]?.split(',')[0];
-    const address = first ? canonicalAddress(first) : null;
-    if (address) return address;
+    if (first) {
+      const address = canonicalAddress(first);
+      if (address) {
+        return address;
+      }
+    }
   }
   return null;
 }
@@ -67,7 +94,9 @@ function addressFromFields(fields: Record<string, string>): string | null {
 /** The client address of a line: a known field first, otherwise the first address written in the text. */
 export function extractAddress(raw: string, fields: Record<string, string>): string | null {
   const fromField = addressFromFields(fields);
-  if (fromField) return fromField;
+  if (fromField) {
+    return fromField;
+  }
   const candidates = [firstValidMatch(IPV4_CANDIDATE, raw), firstValidMatch(IPV6_CANDIDATE, raw)];
   const found = candidates.filter((candidate) => candidate !== null);
   found.sort((left, right) => left.index - right.index);

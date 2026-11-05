@@ -15,7 +15,10 @@ function placeChildren(rect: FlameRect, into: FlameRect[]): void {
   const { node } = rect;
   let cursor = rect.x;
   for (const child of node.children) {
-    const width = node.total > 0 ? (rect.width * child.total) / node.total : 0;
+    let width = 0;
+    if (node.total > 0) {
+      width = (rect.width * child.total) / node.total;
+    }
     placeNode({ node: child, depth: rect.depth + 1, x: cursor, width }, into);
     cursor += width;
   }
@@ -37,10 +40,14 @@ export function layoutFlame(top: FlameNode, width: number): FlameRect[] {
 }
 
 export function findFlameNode(root: FlameNode, id: string): FlameNode | null {
-  if (root.id === id) return root;
+  if (root.id === id) {
+    return root;
+  }
   for (const child of root.children) {
     const found = findFlameNode(child, id);
-    if (found) return found;
+    if (found) {
+      return found;
+    }
   }
   return null;
 }
@@ -53,7 +60,14 @@ export function fitLabel(
   padding = 12,
 ): string {
   const fits = Math.floor((width - padding) / characterWidth);
-  if (fits <= 0) return '';
-  if (label.length <= fits) return label;
-  return fits === 1 ? '…' : `${label.slice(0, fits - 1)}…`;
+  if (fits <= 0) {
+    return '';
+  }
+  if (label.length <= fits) {
+    return label;
+  }
+  if (fits === 1) {
+    return '…';
+  }
+  return `${label.slice(0, fits - 1)}…`;
 }

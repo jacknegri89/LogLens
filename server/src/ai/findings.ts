@@ -14,8 +14,12 @@ function toFinding(rule: Rule, line: string, severityHint: Severity, language: L
     category: rule.category,
     evidence: line.slice(0, MAX_EVIDENCE_LENGTH),
   };
-  if (rule.mitre) finding.technique = rule.mitre;
-  if (rule.owasp) finding.owasp = rule.owasp;
+  if (rule.mitre) {
+    finding.technique = rule.mitre;
+  }
+  if (rule.owasp) {
+    finding.owasp = rule.owasp;
+  }
   return finding;
 }
 
@@ -25,7 +29,9 @@ function groupByRule(lines: string[], severityHint: Severity, language: Language
   const findings: Finding[] = [];
   for (const line of lines) {
     const rule = pickRule(line);
-    if (rule === FALLBACK_RULE || seenRules.has(rule)) continue;
+    if (rule === FALLBACK_RULE || seenRules.has(rule)) {
+      continue;
+    }
     seenRules.add(rule);
     findings.push(toFinding(rule, line, severityHint, language));
   }
@@ -47,7 +53,9 @@ export function buildFindings(
 ): Finding[] {
   const lines = excerpt.split('\n').filter((line) => line.trim() !== '');
   const findings = groupByRule(lines, severityHint, language);
-  if (findings.length < MIN_FINDINGS_TO_REPORT) return [];
+  if (findings.length < MIN_FINDINGS_TO_REPORT) {
+    return [];
+  }
   // Array.prototype.sort is stable, so equal severities keep their order in the log.
   return findings.sort((a, b) => rank(b.severity) - rank(a.severity)).slice(0, MAX_FINDINGS);
 }

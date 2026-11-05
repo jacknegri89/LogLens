@@ -14,6 +14,10 @@ export function AnalyzeFirstCard({ text }: { text: AnalyzeFirstText }) {
   const { rawLog, analysis, analyze } = useWorkbench();
   const hasLog = rawLog.trim() !== '';
   const loading = analysis.status === 'loading';
+  let buttonText = text.action;
+  if (loading) {
+    buttonText = text.running;
+  }
 
   return (
     <section className="fix-gate" aria-labelledby="fix-gate-title">
@@ -28,7 +32,7 @@ export function AnalyzeFirstCard({ text }: { text: AnalyzeFirstText }) {
         disabled={!hasLog || loading}
         className="btn-ink px-6 py-2.5 text-sm font-bold tracking-wide uppercase disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {loading ? text.running : text.action}
+        {buttonText}
       </button>
     </section>
   );

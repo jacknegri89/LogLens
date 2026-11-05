@@ -30,7 +30,9 @@ describe('preset logs', () => {
 
 describe('explorer text table', () => {
   function shapeOf(value: unknown): unknown {
-    if (typeof value !== 'object' || value === null) return typeof value;
+    if (typeof value !== 'object' || value === null) {
+      return typeof value;
+    }
     return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, shapeOf(inner)]));
   }
 

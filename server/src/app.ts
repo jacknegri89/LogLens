@@ -17,7 +17,14 @@ import { sharedRouter } from './routes/shared';
  */
 function corsOrigin(): string | false {
   const open = env.CORS_ORIGIN === '' || env.CORS_ORIGIN === '*';
-  return open && env.NODE_ENV === 'production' ? false : env.CORS_ORIGIN;
+  if (open && env.NODE_ENV === 'production') {
+    return false;
+  }
+  return env.CORS_ORIGIN;
+}
+
+export function isSensitiveRequestUrl(url: string): boolean {
+  return /^\/api\/shared(?:\/|\?|$)/i.test(url);
 }
 
 /**
@@ -39,7 +46,8 @@ export function createApp() {
 
   // Log each request in dev/prod, but stay quiet during tests.
   if (env.NODE_ENV !== 'test') {
-    app.use(morgan('dev'));
+    // Shared URLs contain bearer tokens: never write them to application logs.
+    app.use(morgan('dev', { skip: (req) => isSensitiveRequestUrl(req.originalUrl) }));
   }
 
   // Routes

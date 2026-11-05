@@ -70,7 +70,9 @@ function tokenCount(command: string): number {
 function endsClause(text: string, index: number): boolean {
   const character = text[index];
   const next = text[index + 1];
-  if (character === '.' || character === ',') return next === undefined || next === ' ';
+  if (character === '.' || character === ',') {
+    return next === undefined || next === ' ';
+  }
   return STOP_WORD.test(text.slice(index, index + 9));
 }
 
@@ -81,13 +83,17 @@ function cutCommand(text: string): string {
   for (let index = 0; index < text.length; index++) {
     const character = text[index];
     if (quote) {
-      if (character === quote) quote = '';
+      if (character === quote) {
+        quote = '';
+      }
     } else if (character === '"' || character === "'") {
       quote = character;
     } else if (character === '(') {
       depth++;
     } else if (character === ')') {
-      if (depth === 0) return text.slice(0, index);
+      if (depth === 0) {
+        return text.slice(0, index);
+      }
       depth--;
     } else if (endsClause(text, index)) {
       return text.slice(0, index);

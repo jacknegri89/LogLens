@@ -56,7 +56,10 @@ function extractAddresses(line: string): Entity[] {
 function extractUsers(line: string): Entity[] {
   return USER_PATTERNS.flatMap((pattern) => {
     const user = pattern.exec(line)?.[1];
-    return user ? [{ kind: 'user' as const, key: user, shown: user }] : [];
+    if (user) {
+      return [{ kind: 'user' as const, key: user, shown: user }];
+    }
+    return [];
   });
 }
 
@@ -72,7 +75,9 @@ function groupByKey(
   const groups = new Map<string, { shown: Set<string>; events: Set<TimelineEvent> }>();
   for (const event of timeline) {
     for (const entity of extractEntities(event.finding.evidence)) {
-      if (entity.kind !== kind) continue;
+      if (entity.kind !== kind) {
+        continue;
+      }
       const group = groups.get(entity.key) ?? { shown: new Set(), events: new Set() };
       group.shown.add(entity.shown);
       group.events.add(event);
@@ -86,13 +91,14 @@ function groupByKey(
 function findShared(timeline: TimelineEvent[], kind: EntityKind): SharedEntity[] {
   return [...groupByKey(timeline, kind)]
     .filter(([, group]) => group.events.size >= 2)
-    .map(([key, group]) => ({
-      kind,
-      key,
+    .map(([key, group]) => {
       // Different ports on one address are different connections: show the address alone.
-      shown: group.shown.size === 1 ? [...group.shown][0] : key,
-      events: [...group.events],
-    }));
+      let shown = key;
+      if (group.shown.size === 1) {
+        shown = [...group.shown][0];
+      }
+      return { kind, key, shown, events: [...group.events] };
+    });
 }
 
 function categoriesOf(shared: SharedEntity): string {
@@ -134,8 +140,12 @@ export function describeSharedEntities(
   const address = findShared(timeline, 'address')[0];
   const user = findShared(timeline, 'user').find(allSuspicious);
   const { sameUser } = overviewText(language);
-  return [
-    ...(address ? [describeAddress(address, lines, language)] : []),
-    ...(user ? [sameUser(user.shown, user.events.length, categoriesOf(user))] : []),
-  ];
+  const descriptions: string[] = [];
+  if (address) {
+    descriptions.push(describeAddress(address, lines, language));
+  }
+  if (user) {
+    descriptions.push(sameUser(user.shown, user.events.length, categoriesOf(user)));
+  }
+  return descriptions;
 }

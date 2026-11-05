@@ -1,6 +1,31 @@
 import { describe, expect, it } from 'vitest';
 
-import { createMappingsReader, findSegment, MappingsError, readVlq } from './mappings';
+import {
+  createMappingsReader,
+  findSegment,
+  MappingsError,
+  MappingsLimitError,
+  readVlq,
+} from './mappings';
+
+it('rejects source maps that exceed the decoding limits', () => {
+  expect(() => createMappingsReader(';'.repeat(100_001)).readLine(100_000)).toThrow(
+    MappingsLimitError,
+  );
+  expect(() => createMappingsReader('A,'.repeat(250_001)).readLine(0)).toThrow(MappingsLimitError);
+});
+
+it('reports a line outside an already completed short map', () => {
+  const reader = createMappingsReader('A');
+  expect(reader.readLine(0)).toHaveLength(1);
+  expect(reader.readLine(100_000)).toBeNull();
+});
+
+it('shares the segment limit across readers for an indexed source map', () => {
+  const budget = { decodedLines: 0, decodedSegments: 249_999 };
+  expect(createMappingsReader('A', budget).readLine(0)).toHaveLength(1);
+  expect(() => createMappingsReader('A', budget).readLine(0)).toThrow(MappingsLimitError);
+});
 import { parseFrameLine, parseStackTrace } from './parseStackTrace';
 import { buildSnippet, joinSourcePath, resolvePosition } from './resolvePosition';
 import { parseSourceMap, type LoadedSourceMap } from './sourceMap';
@@ -27,7 +52,9 @@ const MAP_TEXT = JSON.stringify({
 
 function loadMap(text: string): LoadedSourceMap {
   const parsed = parseSourceMap(text);
-  if (!parsed.ok) throw new Error(`Map did not load: ${parsed.problem}`);
+  if (!parsed.ok) {
+    throw new Error(`Map did not load: ${parsed.problem}`);
+  }
   return parsed.map;
 }
 
@@ -129,7 +156,10 @@ describe('parseSourceMap', () => {
   it('names the problem of a bad file', () => {
     const problem = (text: string) => {
       const parsed = parseSourceMap(text);
-      return parsed.ok ? 'none' : parsed.problem;
+      if (parsed.ok) {
+        return 'none';
+      }
+      return parsed.problem;
     };
     expect(problem('{ not json')).toBe('invalidJson');
     expect(problem('[1, 2]')).toBe('notSourceMap');
@@ -196,7 +226,10 @@ describe('resolvePosition', () => {
   it('says why a frame cannot be resolved', () => {
     const reason = (line: number, column: number) => {
       const resolved = resolvePosition(map, line, column);
-      return resolved.status === 'unresolved' ? resolved.reason : 'resolved';
+      if (resolved.status === 'unresolved') {
+        return resolved.reason;
+      }
+      return 'resolved';
     };
     expect(reason(3, 1)).toBe('lineOutsideMap');
     expect(reason(2, 1)).toBe('noMappingAtColumn');

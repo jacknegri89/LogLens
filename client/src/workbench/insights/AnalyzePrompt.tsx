@@ -9,6 +9,10 @@ export function AnalyzePrompt() {
   const { analyze, analysis } = useWorkbench();
   const text = useText(INSIGHTS_TEXT).analyze;
   const loading = analysis.status === 'loading';
+  let buttonText = text.button;
+  if (loading) {
+    buttonText = text.loading;
+  }
 
   return (
     <div className="insights-prompt evidence-sheet">
@@ -24,7 +28,7 @@ export function AnalyzePrompt() {
         className="btn-ink insights-prompt-button"
       >
         {loading && <span className="insights-spinner" aria-hidden="true" />}
-        {loading ? text.loading : text.button}
+        {buttonText}
       </button>
     </div>
   );

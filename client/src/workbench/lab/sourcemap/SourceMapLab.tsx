@@ -47,8 +47,14 @@ interface TraceOutcomeProps {
 
 function TraceOutcome({ frames, mapReady, traceEmpty }: TraceOutcomeProps) {
   const text = useText(LAB_TEXT).sourceMaps;
-  if (!mapReady) return <p className="lab-empty">{text.needMap}</p>;
-  if (traceEmpty || !frames) return <p className="lab-empty">{text.needTrace}</p>;
-  if (frames.length === 0) return <p className="lab-warning">{text.noFrames}</p>;
+  if (!mapReady) {
+    return <p className="lab-empty">{text.needMap}</p>;
+  }
+  if (traceEmpty || !frames) {
+    return <p className="lab-empty">{text.needTrace}</p>;
+  }
+  if (frames.length === 0) {
+    return <p className="lab-warning">{text.noFrames}</p>;
+  }
   return <FrameList frames={frames} />;
 }

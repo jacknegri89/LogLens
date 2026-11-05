@@ -22,9 +22,13 @@ export function MirrorText({
       aria-hidden="true"
       className="invisible pl-4 whitespace-pre-wrap [overflow-wrap:anywhere]"
     >
-      {lines.map((line, i) => (
-        <div key={i}>{line === '' ? ' ' : line}</div>
-      ))}
+      {lines.map((line, i) => {
+        let displayedLine = line;
+        if (line === '') {
+          displayedLine = ' ';
+        }
+        return <div key={i}>{displayedLine}</div>;
+      })}
     </div>
   );
 }

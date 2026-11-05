@@ -16,23 +16,24 @@ export function RawLineView({ raw, tokens, activeId, onToggle }: RawLineViewProp
   const text = useText(INSPECTOR_TEXT);
   return (
     <pre className="inspect-raw evidence-sheet">
-      {splitSegments(raw, tokens).map(({ text: piece, token }, position) =>
-        token ? (
-          <button
-            key={token.id}
-            type="button"
-            className="inspect-token"
-            title={text.tokenKinds[token.kind]}
-            aria-expanded={token.id === activeId}
-            aria-controls={TOKEN_PANEL_ID}
-            onClick={() => onToggle(token.id)}
-          >
-            {piece}
-          </button>
-        ) : (
-          <span key={position}>{piece}</span>
-        ),
-      )}
+      {splitSegments(raw, tokens).map(({ text: piece, token }, position) => {
+        if (token) {
+          return (
+            <button
+              key={token.id}
+              type="button"
+              className="inspect-token"
+              title={text.tokenKinds[token.kind]}
+              aria-expanded={token.id === activeId}
+              aria-controls={TOKEN_PANEL_ID}
+              onClick={() => onToggle(token.id)}
+            >
+              {piece}
+            </button>
+          );
+        }
+        return <span key={position}>{piece}</span>;
+      })}
     </pre>
   );
 }

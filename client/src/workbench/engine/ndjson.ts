@@ -21,12 +21,23 @@ function eventsOfLine(line: string): StreamEvent[] {
   } catch {
     return [{ type: 'error', message: 'Malformed line in the response' }];
   }
-  if (!isRecord(data)) return [{ type: 'error', message: 'Unexpected line in the response' }];
-  if (typeof data.error === 'string') return [{ type: 'error', message: data.error }];
+  if (!isRecord(data)) {
+    return [{ type: 'error', message: 'Unexpected line in the response' }];
+  }
+  if (typeof data.error === 'string') {
+    return [{ type: 'error', message: data.error }];
+  }
   const events: StreamEvent[] = [];
-  const content = isRecord(data.message) ? data.message.content : undefined;
-  if (typeof content === 'string' && content !== '') events.push({ type: 'token', text: content });
-  if (data.done === true) events.push({ type: 'done' });
+  let content: unknown;
+  if (isRecord(data.message)) {
+    content = data.message.content;
+  }
+  if (typeof content === 'string' && content !== '') {
+    events.push({ type: 'token', text: content });
+  }
+  if (data.done === true) {
+    events.push({ type: 'done' });
+  }
   return events;
 }
 

@@ -15,6 +15,10 @@ interface QueryBarProps {
 export function QueryBar(props: QueryBarProps) {
   const text = useText(WORKBENCH_EXPLORER_TEXT).explorer;
   const unread = props.unreadParts.length > 0;
+  let hint = text.syntaxHint;
+  if (unread) {
+    hint = text.unreadHint(props.unreadParts.join(' '));
+  }
 
   return (
     <div className="wbx-querybar">
@@ -33,7 +37,7 @@ export function QueryBar(props: QueryBarProps) {
         </p>
       </div>
       <p id="wbx-query-help" className="wbx-help" data-warning={unread || undefined}>
-        {unread ? text.unreadHint(props.unreadParts.join(' ')) : text.syntaxHint}
+        {hint}
       </p>
     </div>
   );

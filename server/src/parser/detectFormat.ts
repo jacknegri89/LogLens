@@ -25,7 +25,9 @@ function countMatching(lines: string[], isMatch: (line: string) => boolean): num
 
 function isJsonObject(line: string): boolean {
   const text = line.trim();
-  if (!text.startsWith('{') || !text.endsWith('}')) return false;
+  if (!text.startsWith('{') || !text.endsWith('}')) {
+    return false;
+  }
   try {
     const value: unknown = JSON.parse(text);
     return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -41,8 +43,29 @@ const WINDOWS_EVENT = /^\s*(?:Log Name|Event ID|Task Category):|<Event xmlns=|\b
 const PYTHON_TRACEBACK = /^\s*Traceback \(most recent call last\):|^\s+File "[^"]+", line \d+/;
 const JAVA_STACK_TRACE =
   /^\s+at [\w$.<>]+\([\w$]+\.(?:java|kt|scala):\d+\)|^Exception in thread "|^Caused by: [\w$]+(?:\.[\w$]+)+/;
-const NODE_ERROR =
-  /^\s+at .*\(node:internal[^)]*\)|^\s+at (?:.+ \()?[^\s()]+\.(?:[cm]?js|ts):\d+:\d+\)?$|UnhandledPromiseRejection/;
+const NODE_FRAME_START = /^\s+at /;
+const NODE_FRAME_PATH = /^[^\s()]+\.(?:[cm]?js|ts):\d+:\d+\)?$/;
+
+function isNodeError(line: string): boolean {
+  if (line.includes('UnhandledPromiseRejection')) {
+    return true;
+  }
+  const start = NODE_FRAME_START.exec(line);
+  if (!start) {
+    return false;
+  }
+  const frame = line.slice(start[0].length);
+  const internalStart = frame.indexOf('(node:internal');
+  if (internalStart !== -1 && frame.indexOf(')', internalStart) !== -1) {
+    return true;
+  }
+  const pathStart = frame.lastIndexOf(' (');
+  let path = frame;
+  if (pathStart !== -1) {
+    path = frame.slice(pathStart + 2);
+  }
+  return NODE_FRAME_PATH.test(path);
+}
 // Docker timestamps carry nanoseconds; Kubernetes klog starts with a level letter and MMDD.
 const CONTAINER_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6,9}Z /;
 const KUBERNETES_SIGNAL =
@@ -61,7 +84,7 @@ const FORMAT_TESTS: { key: FormatKey; test: LinesTest }[] = [
   { key: 'windowsEvent', test: anyLine(WINDOWS_EVENT) },
   { key: 'pythonTraceback', test: anyLine(PYTHON_TRACEBACK) },
   { key: 'javaStackTrace', test: anyLine(JAVA_STACK_TRACE) },
-  { key: 'nodeError', test: anyLine(NODE_ERROR) },
+  { key: 'nodeError', test: (lines) => lines.some(isNodeError) },
   {
     key: 'dockerKubernetes',
     test: (lines) => mostLines(CONTAINER_TIMESTAMP)(lines) || anyLine(KUBERNETES_SIGNAL)(lines),
@@ -85,7 +108,9 @@ function sampleLines(rawLog: string): string[] {
  */
 export function detectFormat(rawLog: string, language: Language = DEFAULT_LANGUAGE): string {
   const lines = sampleLines(rawLog);
-  if (lines.length === 0) return formatLabel('plainText', language);
+  if (lines.length === 0) {
+    return formatLabel('plainText', language);
+  }
   const match = FORMAT_TESTS.find(({ test }) => test(lines));
   return formatLabel(match?.key ?? 'plainText', language);
 }

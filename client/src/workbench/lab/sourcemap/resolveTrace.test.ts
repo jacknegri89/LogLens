@@ -13,7 +13,9 @@ const MAP_TEXT = JSON.stringify({
 
 function loadMap(): LoadedSourceMap {
   const parsed = parseSourceMap(MAP_TEXT);
-  if (!parsed.ok) throw new Error('Map did not load');
+  if (!parsed.ok) {
+    throw new Error('Map did not load');
+  }
   return parsed.map;
 }
 
@@ -44,9 +46,12 @@ describe('resolveTrace', () => {
       'at e (https://cdn.test/min.js:9:1)',
       'at e (https://cdn.test/min.js:2:1)',
     ].join('\n');
-    const reasons = resolveTrace(loadMap(), trace).map((item) =>
-      item.resolution.status === 'unresolved' ? item.resolution.reason : 'resolved',
-    );
+    const reasons = resolveTrace(loadMap(), trace).map((item) => {
+      if (item.resolution.status === 'unresolved') {
+        return item.resolution.reason;
+      }
+      return 'resolved';
+    });
     expect(reasons).toEqual(['noPosition', 'lineOutsideMap', 'noMappingAtColumn']);
   });
 

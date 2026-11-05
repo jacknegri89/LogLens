@@ -10,8 +10,12 @@ const TABLES = { FIX_TEXT, ASK_TEXT };
 
 /** The shape of a value: objects by key, arrays by length, strings by kind. */
 function shapeOf(value: unknown): unknown {
-  if (typeof value === 'string') return 'string';
-  if (Array.isArray(value)) return value.map(shapeOf);
+  if (typeof value === 'string') {
+    return 'string';
+  }
+  if (Array.isArray(value)) {
+    return value.map(shapeOf);
+  }
   if (value && typeof value === 'object') {
     return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, shapeOf(inner)]));
   }
@@ -19,8 +23,12 @@ function shapeOf(value: unknown): unknown {
 }
 
 function stringsOf(value: unknown, path: string): [string, string][] {
-  if (typeof value === 'string') return [[path, value]];
-  if (!value || typeof value !== 'object') return [];
+  if (typeof value === 'string') {
+    return [[path, value]];
+  }
+  if (!value || typeof value !== 'object') {
+    return [];
+  }
   return Object.entries(value).flatMap(([key, inner]) => stringsOf(inner, `${path}.${key}`));
 }
 

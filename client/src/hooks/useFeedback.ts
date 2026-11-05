@@ -16,7 +16,11 @@ export function useFeedback(analysisId: string, initialHelpful: boolean | null) 
     setSaving(true);
     clearFailure();
     try {
-      const saved = await api.setFeedback(analysisId, helpful === verdict ? null : verdict);
+      let nextVerdict: boolean | null = verdict;
+      if (helpful === verdict) {
+        nextVerdict = null;
+      }
+      const saved = await api.setFeedback(analysisId, nextVerdict);
       setHelpful(saved.helpful);
     } catch (err: unknown) {
       fail(err, text.saveFailed);

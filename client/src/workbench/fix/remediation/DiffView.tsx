@@ -6,7 +6,9 @@ import { toSideBySideRows, type DiffLine, type SideBySideRow } from './diff';
 const MARKS = { same: ' ', removed: '-', added: '+' } as const;
 
 function DiffRow({ line }: { line: DiffLine | null }) {
-  if (!line) return <div className="fix-diff-line fix-diff-filler" aria-hidden="true" />;
+  if (!line) {
+    return <div className="fix-diff-line fix-diff-filler" aria-hidden="true" />;
+  }
   return (
     <div className="fix-diff-line" data-kind={line.kind}>
       <span className="fix-diff-sign">{MARKS[line.kind]}</span>

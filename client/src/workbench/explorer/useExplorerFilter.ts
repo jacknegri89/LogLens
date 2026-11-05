@@ -16,7 +16,12 @@ export function useExplorerFilter(
 ) {
   const deferredText = useDeferredValue(queryText);
   const query = useMemo(() => parseQuery(deferredText), [deferredText]);
-  const marks = useMemo(() => (focusFaults ? faultFocusMarks(lines) : null), [lines, focusFaults]);
+  const marks = useMemo(() => {
+    if (focusFaults) {
+      return faultFocusMarks(lines);
+    }
+    return null;
+  }, [lines, focusFaults]);
   const rows = useMemo(
     () => filterLines(lines, query, marks && ((position) => marks[position] === 1)),
     [lines, query, marks],

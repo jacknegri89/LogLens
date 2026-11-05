@@ -17,7 +17,12 @@ export function ExplorerPanel() {
   const [focusFaults, setFocusFaults] = useState(false);
   const filter = useExplorerFilter(lines, queryText, focusFaults);
 
-  if (lines.length === 0) return <ExplorerNotice kind={parsing ? 'parsing' : 'empty'} />;
+  if (lines.length === 0) {
+    if (parsing) {
+      return <ExplorerNotice kind="parsing" />;
+    }
+    return <ExplorerNotice kind="empty" />;
+  }
   return (
     <div className="wbx-explorer">
       <div className="wbx-toolbar">
@@ -33,9 +38,8 @@ export function ExplorerPanel() {
         <TimeModeSwitch />
       </div>
       {parsing && <ExplorerNotice kind="parsing" />}
-      {filter.rows.length === 0 ? (
-        <ExplorerNotice kind="noMatches" />
-      ) : (
+      {filter.rows.length === 0 && <ExplorerNotice kind="noMatches" />}
+      {filter.rows.length > 0 && (
         <LineList lines={lines} rows={filter.rows} highlights={filter.highlights} />
       )}
     </div>
@@ -52,10 +56,16 @@ function ExplorerNotice({ kind }: { kind: 'empty' | 'noMatches' | 'parsing' }) {
     );
   }
   const empty = kind === 'empty';
+  let title = text.noMatchesTitle;
+  let body = text.noMatchesBody;
+  if (empty) {
+    title = text.emptyTitle;
+    body = text.emptyBody;
+  }
   return (
     <div className="wbx-notice">
-      <p className="wbx-notice-title">{empty ? text.emptyTitle : text.noMatchesTitle}</p>
-      <p className="wbx-notice-body">{empty ? text.emptyBody : text.noMatchesBody}</p>
+      <p className="wbx-notice-title">{title}</p>
+      <p className="wbx-notice-body">{body}</p>
     </div>
   );
 }

@@ -25,7 +25,8 @@ export function DiffSlotCard(props: DiffSlotCardProps) {
       <h3 id={`lab-slot-${props.id}`} className="lab-label">
         {props.title}
       </h3>
-      {filled ? <SlotSummary slot={props.slot} /> : <PasteArea {...props} />}
+      {filled && <SlotSummary slot={props.slot} />}
+      {!filled && <PasteArea {...props} />}
       <SlotActions {...props} />
       {props.error && <SlotProblem error={props.error} />}
     </section>
@@ -58,7 +59,9 @@ function SlotActions({ title, slot, onFile, onUseLoaded, onClear }: DiffSlotCard
         onChange={(event) => {
           const file = event.target.files?.[0];
           event.target.value = '';
-          if (file) onFile(file);
+          if (file) {
+            onFile(file);
+          }
         }}
       />
     </div>
@@ -85,8 +88,10 @@ function PasteArea({ id, title, slot, onPaste }: DiffSlotCardProps) {
 function SlotSummary({ slot }: { slot: Slot }) {
   const text = useText(LAB_TEXT).diff.source;
   const lineCount = useMemo(() => parseLines(slot.text).length, [slot.text]);
-  const label =
-    slot.source === 'file' ? text.file(slot.name ?? '', lineCount) : text.workbench(lineCount);
+  let label = text.workbench(lineCount);
+  if (slot.source === 'file') {
+    label = text.file(slot.name ?? '', lineCount);
+  }
   return <p className="lab-summary-line">{label}</p>;
 }
 

@@ -117,7 +117,9 @@ function isSecurity(input: RiskInput): boolean {
 }
 
 function faultPercent(lines: ParsedLine[]): number {
-  if (lines.length === 0) return 0;
+  if (lines.length === 0) {
+    return 0;
+  }
   const faults = lines.filter((line) => line.isFault).length;
   return Math.round((faults / lines.length) * 100);
 }
@@ -129,8 +131,13 @@ function factor(id: RiskFactorId, points: number, maxPoints: number, value: numb
 function buildFactors(input: RiskInput): RiskFactor[] {
   const percent = faultPercent(input.lines);
   const findingCount = input.findings.length;
-  const flat = (id: RiskFactorId, active: boolean, value: number) =>
-    factor(id, active ? FLAT_FACTOR_POINTS : 0, FLAT_FACTOR_POINTS, value);
+  const flat = (id: RiskFactorId, active: boolean, value: number) => {
+    let points = 0;
+    if (active) {
+      points = FLAT_FACTOR_POINTS;
+    }
+    return factor(id, points, FLAT_FACTOR_POINTS, value);
+  };
   return [
     factor(
       'severity',

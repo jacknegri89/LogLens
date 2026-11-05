@@ -7,8 +7,13 @@ import { findLinePosition } from './linePosition';
 /** Opens beside the log when a line is selected, on every Workbench view. */
 export function LineInspector() {
   const { lines, selectedIndex, select, bookmarks, toggleBookmark } = useWorkbench();
-  const position = selectedIndex === null ? -1 : findLinePosition(lines, selectedIndex);
-  if (position === -1) return null;
+  let position = -1;
+  if (selectedIndex !== null) {
+    position = findLinePosition(lines, selectedIndex);
+  }
+  if (position === -1) {
+    return null;
+  }
   return (
     <InspectorDrawer
       line={lines[position]}

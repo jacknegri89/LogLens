@@ -21,16 +21,23 @@ export function useScrubLog(): ScrubControls {
 
   const scrub = useCallback(() => {
     const { text, occurrences } = anonymizeLog(rawLog);
-    if (occurrences > 0) setLog(text, fileName);
+    if (occurrences > 0) {
+      setLog(text, fileName);
+    }
     writeScrub({ before: rawLog, beforeName: fileName, after: text, occurrences });
   }, [rawLog, fileName, setLog]);
 
   const undo = useCallback(() => {
-    if (!snapshot) return;
+    if (!snapshot) {
+      return;
+    }
     setLog(snapshot.before, snapshot.beforeName);
     writeScrub(null);
   }, [snapshot, setLog]);
 
-  const result = snapshot && snapshot.after === rawLog ? snapshot : null;
+  let result: ScrubSnapshot | null = null;
+  if (snapshot && snapshot.after === rawLog) {
+    result = snapshot;
+  }
   return { scrub, undo, canScrub: rawLog.trim() !== '', result };
 }

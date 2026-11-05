@@ -25,7 +25,9 @@ export function SectionTabs<Id extends string>(props: SectionTabsProps<Id>) {
 
   function onKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const next = nextTabIndex(event.key, index, tabs.length);
-    if (next === null) return;
+    if (next === null) {
+      return;
+    }
     event.preventDefault();
     onChange(tabs[next].id);
     document.getElementById(tabElementId(idPrefix, tabs[next].id))?.focus();
@@ -33,22 +35,26 @@ export function SectionTabs<Id extends string>(props: SectionTabsProps<Id>) {
 
   return (
     <div role="tablist" aria-label={label} className="fix-tabs">
-      {tabs.map((tab, index) => (
-        <button
+      {tabs.map((tab, index) => {
+        let tabIndex = -1;
+        if (tab.id === active) {
+          tabIndex = 0;
+        }
+        return <button
           key={tab.id}
           id={tabElementId(idPrefix, tab.id)}
           type="button"
           role="tab"
           aria-selected={tab.id === active}
           aria-controls={panelElementId(idPrefix, tab.id)}
-          tabIndex={tab.id === active ? 0 : -1}
+          tabIndex={tabIndex}
           onClick={() => onChange(tab.id)}
           onKeyDown={(event) => onKeyDown(event, index)}
           className="fix-tab"
         >
           {tab.label}
-        </button>
-      ))}
+        </button>;
+      })}
     </div>
   );
 }

@@ -33,15 +33,16 @@ function PreviewLine({ preview }: { preview: LinePreview }) {
         {preview.lineIndex + 1}
       </span>
       <span className="lab-line-text">
-        {splitSegments(preview.raw, preview.ranges).map((segment, index) =>
-          segment.matched ? (
-            <mark key={index} className="lab-mark">
-              {segment.text}
-            </mark>
-          ) : (
-            <span key={index}>{segment.text}</span>
-          ),
-        )}
+        {splitSegments(preview.raw, preview.ranges).map((segment, index) => {
+          if (segment.matched) {
+            return (
+              <mark key={index} className="lab-mark">
+                {segment.text}
+              </mark>
+            );
+          }
+          return <span key={index}>{segment.text}</span>;
+        })}
       </span>
     </li>
   );

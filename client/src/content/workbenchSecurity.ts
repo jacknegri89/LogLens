@@ -4,9 +4,10 @@ import { withCount } from '../i18n/plural';
 /** "N attack signals from M addresses"; the address part is left out when no address was readable. */
 function alertLine(signals: number, addresses: number, forms: Forms): string {
   const signalPart = withCount(signals, forms.signals);
-  return addresses > 0
-    ? `${signalPart} ${forms.from} ${withCount(addresses, forms.addresses)}`
-    : signalPart;
+  if (addresses > 0) {
+    return `${signalPart} ${forms.from} ${withCount(addresses, forms.addresses)}`;
+  }
+  return signalPart;
 }
 
 interface Forms {

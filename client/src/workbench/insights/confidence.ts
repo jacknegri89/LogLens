@@ -98,10 +98,12 @@ function positionPoints(index: number): number {
 }
 
 function evidencePoints(shared: string[]): number {
-  const points = shared.reduce(
-    (sum, term) => sum + (isSpecificTerm(term) ? SPECIFIC_TERM_POINTS : PLAIN_TERM_POINTS),
-    0,
-  );
+  const points = shared.reduce((sum, term) => {
+    if (isSpecificTerm(term)) {
+      return sum + SPECIFIC_TERM_POINTS;
+    }
+    return sum + PLAIN_TERM_POINTS;
+  }, 0);
   return Math.min(points, EVIDENCE_TERMS_MAX);
 }
 
@@ -111,7 +113,10 @@ function rootEntries(timeline: TimelineEntry[]): TimelineEntry[] {
 
 function rootPoints(causeTerms: Set<string>, rootTerms: Set<string>): number {
   const shared = sharedTerms(causeTerms, rootTerms);
-  return shared.some(isSpecificTerm) ? ROOT_CAUSE_POINTS : 0;
+  if (shared.some(isSpecificTerm)) {
+    return ROOT_CAUSE_POINTS;
+  }
+  return 0;
 }
 
 function corroborationPoints(causeTerms: Set<string>, findings: Finding[]): number {
@@ -119,7 +124,9 @@ function corroborationPoints(causeTerms: Set<string>, findings: Finding[]): numb
     const findingTerms = significantTerms(`${finding.title} ${finding.evidence}`);
     return sharedTerms(causeTerms, findingTerms).some(isSpecificTerm);
   });
-  if (matching.length < 2) return 0;
+  if (matching.length < 2) {
+    return 0;
+  }
   return Math.min(matching.length * CORROBORATION_POINTS, CORROBORATION_MAX);
 }
 
@@ -161,8 +168,12 @@ export function shareUnits(weights: number[], units: number): number[] {
 function distribute(points: number[]): { causes: number[]; other: number } {
   const causes = shareUnits(points, TENTHS_IN_TOTAL);
   const capUnits = TOP_CONFIDENCE_CAP * 10;
-  if (causes[0] <= capUnits) return { causes, other: 0 };
-  if (points.length === 1) return { causes: [capUnits], other: TENTHS_IN_TOTAL - capUnits };
+  if (causes[0] <= capUnits) {
+    return { causes, other: 0 };
+  }
+  if (points.length === 1) {
+    return { causes: [capUnits], other: TENTHS_IN_TOTAL - capUnits };
+  }
   const rest = shareUnits(points.slice(1), TENTHS_IN_TOTAL - capUnits);
   return { causes: [capUnits, ...rest], other: 0 };
 }
@@ -172,7 +183,9 @@ function distribute(points: number[]): { causes: number[]; other: number } {
  * plus `otherPercent` always add up to exactly 100.
  */
 export function rankCauses(input: ConfidenceInput): ConfidenceResult {
-  if (input.causes.length === 0) return { causes: [], otherPercent: 0 };
+  if (input.causes.length === 0) {
+    return { causes: [], otherPercent: 0 };
+  }
   const ranked = input.causes
     .map((cause, index) => scoreCause(cause, index, input))
     .sort((first, second) => second.points - first.points || first.index - second.index);

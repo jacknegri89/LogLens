@@ -13,8 +13,12 @@ export function isUnsafeCode(code: number): boolean {
 
 function escapeCharacter(character: string): string {
   const code = character.charCodeAt(0);
-  if (character in NAMED_ESCAPES) return NAMED_ESCAPES[character];
-  if (!isUnsafeCode(code)) return character;
+  if (character in NAMED_ESCAPES) {
+    return NAMED_ESCAPES[character];
+  }
+  if (!isUnsafeCode(code)) {
+    return character;
+  }
   return '\\u' + code.toString(16).padStart(4, '0');
 }
 

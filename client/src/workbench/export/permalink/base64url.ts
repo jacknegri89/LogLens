@@ -14,7 +14,9 @@ export function toBase64Url(bytes: Uint8Array): string {
 
 /** The bytes of URL-safe base64; any other character, or an impossible length, is corrupt data. */
 export function fromBase64Url(text: string): Uint8Array {
-  if (!BASE64URL.test(text) || text.length % 4 === 1) throw new PermalinkError('corrupt');
+  if (!BASE64URL.test(text) || text.length % 4 === 1) {
+    throw new PermalinkError('corrupt');
+  }
   const padded = text
     .replace(/-/g, '+')
     .replace(/_/g, '/')

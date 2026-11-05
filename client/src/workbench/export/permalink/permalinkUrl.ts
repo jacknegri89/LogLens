@@ -7,5 +7,8 @@ export function buildPermalinkUrl(origin: string, data: string): string {
 
 /** The data after `#s=` in a location hash, or null when the hash is not a share link. */
 export function readPermalinkData(hash: string): string | null {
-  return hash.startsWith(HASH_PREFIX) ? hash.slice(HASH_PREFIX.length) : null;
+  if (hash.startsWith(HASH_PREFIX)) {
+    return hash.slice(HASH_PREFIX.length);
+  }
+  return null;
 }

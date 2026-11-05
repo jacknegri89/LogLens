@@ -3,6 +3,18 @@ import { expect, test } from '@playwright/test';
 const LONG_LINE = 'ERROR ' + 'connect ECONNREFUSED 10.0.2.15:5432 '.repeat(8);
 const LOG = ['INFO server listening', LONG_LINE, 'short', LONG_LINE].join('\n');
 
+test('rejects an oversized file without replacing the current log', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#log-input').fill('Existing log');
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'large.log',
+    mimeType: 'text/plain',
+    buffer: Buffer.alloc(600_001, 'a'),
+  });
+  await expect(page.getByRole('alert')).toContainText(/600 KB/i);
+  await expect(page.locator('#log-input')).toHaveValue('Existing log');
+});
+
 test('wrapped log lines keep one line number each and never scroll sideways', async ({ page }) => {
   await page.goto('/');
   await page.locator('#log-input').fill(LOG);

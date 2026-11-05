@@ -26,7 +26,9 @@ export function useHeaderVisibility(): boolean {
       }
 
       const scrolledBy = currentScrollY - lastScrollY;
-      if (Math.abs(scrolledBy) < SCROLL_JITTER_PX) return;
+      if (Math.abs(scrolledBy) < SCROLL_JITTER_PX) {
+        return;
+      }
 
       const isScrollingDown = scrolledBy > 0;
       setIsVisible(!isScrollingDown);

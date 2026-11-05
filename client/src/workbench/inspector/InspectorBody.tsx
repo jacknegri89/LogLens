@@ -52,7 +52,13 @@ export function InspectorBody({ line, lines, bookmarks, onJump }: InspectorBodyP
   const now = useCurrentTime();
   const tokens = useMemo(() => findLineTokens(line), [line]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const toggle = (id: string) => setActiveId((current) => (current === id ? null : id));
+  const toggle = (id: string) =>
+    setActiveId((current) => {
+      if (current === id) {
+        return null;
+      }
+      return id;
+    });
 
   return (
     <div className="inspect-body">

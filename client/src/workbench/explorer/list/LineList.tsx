@@ -26,6 +26,10 @@ export function LineList({ lines, rows, highlights }: LineListProps) {
   const navigation = useListNavigation({ listRef, lines, rows, selectedIndex, select });
   const visible = visibleWindow(viewport.scrollTop, viewport.height, rows.length);
   const activeShown = navigation.activeRow >= visible.start && navigation.activeRow < visible.end;
+  let activeDescendant: string | undefined;
+  if (activeShown) {
+    activeDescendant = `wbx-line-${lines[rows[navigation.activeRow]].index}`;
+  }
 
   return (
     <div
@@ -34,9 +38,7 @@ export function LineList({ lines, rows, highlights }: LineListProps) {
       role="listbox"
       tabIndex={0}
       aria-label={text.listLabel}
-      aria-activedescendant={
-        activeShown ? `wbx-line-${lines[rows[navigation.activeRow]].index}` : undefined
-      }
+      aria-activedescendant={activeDescendant}
       onScroll={viewport.onScroll}
       onKeyDown={navigation.onKeyDown}
     >
@@ -69,7 +71,10 @@ function VisibleRows({ lines, rows, highlights, range, navigation }: VisibleRows
 
   return rows.slice(range.start, range.end).map((position, offset) => {
     const line = lines[position];
-    const previous = previousTimed[position] === -1 ? null : lines[previousTimed[position]];
+    let previous: ParsedLine | null = null;
+    if (previousTimed[position] !== -1) {
+      previous = lines[previousTimed[position]];
+    }
     return (
       <LineRow
         key={line.index}

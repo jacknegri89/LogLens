@@ -5,7 +5,9 @@ import type { ScanResult } from './scan/types';
 /** The red stamp shown when any high-severity attack signal exists. */
 export function ThreatBanner({ result }: { result: ScanResult }) {
   const text = useText(SECURITY_TEXT).panel;
-  if (result.highSignals === 0) return null;
+  if (result.highSignals === 0) {
+    return null;
+  }
 
   return (
     <div role="alert" className="sec-banner evidence-sheet">

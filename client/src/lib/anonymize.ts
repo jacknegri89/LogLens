@@ -105,7 +105,8 @@ const RULES: Rule[] = [
   {
     kind: 'EMAIL',
     // Not the "user@" of a connection string: the host after it is not a mail domain.
-    pattern: /(?<value>[A-Za-z0-9._%+-]+(?<!:\/\/[^\s/@]*)@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})/g,
+    pattern:
+      /(?<![A-Za-z0-9._%+-])(?<value>[A-Za-z0-9._%+-]+(?<!:\/\/[^\s/@]*)@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})/g,
   },
   {
     kind: 'IP',
@@ -148,7 +149,9 @@ export function createAnonymizer(): Anonymizer {
 function applyRule(text: string, rule: Rule, registry: Registry): string {
   return text.replace(rule.pattern, (...args) => {
     const groups = args[args.length - 1] as { prefix?: string; value: string };
-    if (isLeftAlone(rule, groups.value)) return args[0];
+    if (isLeftAlone(rule, groups.value)) {
+      return args[0];
+    }
     registry.occurrences += 1;
     return (groups.prefix ?? '') + placeholderFor(registry, rule.kind, groups.value);
   });
@@ -162,7 +165,9 @@ function isLeftAlone(rule: Rule, value: string): boolean {
 function placeholderFor(registry: Registry, kind: PlaceholderKind, value: string): string {
   const key = `${kind}:${normalizeValue(kind, value)}`;
   const known = registry.tokens.get(key);
-  if (known) return known;
+  if (known) {
+    return known;
+  }
   const count = (registry.counts[kind] ?? 0) + 1;
   registry.counts[kind] = count;
   const token = `${kind}-${count}`;
@@ -172,7 +177,10 @@ function placeholderFor(registry: Registry, kind: PlaceholderKind, value: string
 
 // E-mail addresses and IPv6 groups differ only by case.
 function normalizeValue(kind: PlaceholderKind, value: string): string {
-  return kind === 'EMAIL' || kind === 'IP' ? value.toLowerCase() : value;
+  if (kind === 'EMAIL' || kind === 'IP') {
+    return value.toLowerCase();
+  }
+  return value;
 }
 
 function isMixedCaseWithDigit(value: string): boolean {

@@ -34,7 +34,9 @@ export function useClearHistory(onCleared: () => void) {
   const { clearing, error, deleteAll } = useDeleteHistory();
 
   async function clear() {
-    if (!(await deleteAll())) return;
+    if (!(await deleteAll())) {
+      return;
+    }
     setConfirming(false);
     onCleared();
   }

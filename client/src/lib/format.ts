@@ -67,5 +67,8 @@ export function editorRows(text: string): number {
 
 /** Number of lines in the editor; an empty text has none. */
 export function countLines(text: string): number {
-  return text === '' ? 0 : text.split('\n').length;
+  if (text === '') {
+    return 0;
+  }
+  return text.split('\n').length;
 }

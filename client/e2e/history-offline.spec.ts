@@ -39,8 +39,12 @@ async function mockApi(page: Page, state: { serverDown: boolean; deleted: string
   await page.route(/\/api\/analyses(\/[^/]*)?$/, async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
-    if (request.method() === 'POST') return route.fulfill({ json: records[created++] });
-    if (state.serverDown) return route.abort('connectionrefused');
+    if (request.method() === 'POST') {
+      return route.fulfill({ json: records[created++] });
+    }
+    if (state.serverDown) {
+      return route.abort('connectionrefused');
+    }
     if (request.method() === 'DELETE') {
       state.deleted.push(path);
       return route.fulfill({ json: { deleted: 1 } });

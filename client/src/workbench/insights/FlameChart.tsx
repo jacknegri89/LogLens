@@ -19,7 +19,8 @@ export function FlameChart({ tree }: { tree: FlameNode }) {
   const width = useElementWidth(container);
   const top = findFlameNode(tree, zoomId) ?? tree;
   const rects = useMemo(() => layoutFlame(top, width), [top, width]);
-  const height = (Math.max(...rects.map((rect) => rect.depth)) + 1) * ROW_HEIGHT;
+  const maxDepth = rects.reduce((largest, rect) => Math.max(largest, rect.depth), 0);
+  const height = (maxDepth + 1) * ROW_HEIGHT;
   const zoomTo = (id: string) => {
     setHovered(null);
     setZoomId(id);

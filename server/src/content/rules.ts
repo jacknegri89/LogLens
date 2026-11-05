@@ -959,7 +959,10 @@ export const FALLBACK_RULE: Rule = {
       return ['The excerpt holds normal activity only: no line in it reports a failure.'];
     }
     const fields = failureLineFields.map(({ label, value }) => `${label} ${value}`);
-    const fieldText = fields.length > 0 ? ` Read from the line: ${fields.join('; ')}.` : '';
+    let fieldText = '';
+    if (fields.length > 0) {
+      fieldText = ` Read from the line: ${fields.join('; ')}.`;
+    }
     return [
       `The failing line is: "${failureLine}".${fieldText}`,
       'The rules hold no entry for this exact message, so the cause is in the code that writes it: search for this text to find the function.',

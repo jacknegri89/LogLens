@@ -15,8 +15,14 @@ export function isAbort(error: unknown): boolean {
 
 /** How a message ends when its request did not finish. */
 export function failureChange(error: unknown): Partial<ChatMessage> {
-  if (isAbort(error)) return { status: 'stopped' };
-  return { status: 'failed', failure: error instanceof OllamaError ? error.reason : 'stream' };
+  if (isAbort(error)) {
+    return { status: 'stopped' };
+  }
+  let failure: ChatMessage['failure'] = 'stream';
+  if (error instanceof OllamaError) {
+    failure = error.reason;
+  }
+  return { status: 'failed', failure };
 }
 
 /** Streams the answer into a new assistant message; a failure or a stop is kept on that message. */

@@ -90,9 +90,8 @@ function SignatureSection({ heading, items, children }: SignatureSectionProps) {
         </h3>
         {children}
       </div>
-      {items.length === 0 ? (
-        <p className="lab-note">{text.none}</p>
-      ) : (
+      {items.length === 0 && <p className="lab-note">{text.none}</p>}
+      {items.length > 0 && (
         <ul className="lab-signatures">
           {items.slice(0, MAX_LISTED_SIGNATURES).map((item) => (
             <SignatureRow key={item.signature} item={item} />
@@ -108,7 +107,10 @@ function SignatureSection({ heading, items, children }: SignatureSectionProps) {
 
 function SignatureRow({ item }: { item: SignatureChange | SignatureShift }) {
   const text = useText(LAB_TEXT).diff;
-  const direction = 'direction' in item ? text.direction[item.direction] : null;
+  let direction: string | null = null;
+  if ('direction' in item) {
+    direction = text.direction[item.direction];
+  }
 
   return (
     <li className="lab-signature">

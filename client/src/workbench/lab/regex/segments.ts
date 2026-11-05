@@ -15,11 +15,17 @@ export function splitSegments(text: string, ranges: readonly MatchRange[]): Text
   for (const range of ranges) {
     const start = Math.max(range.start, cursor);
     const end = Math.min(range.end, text.length);
-    if (end <= start) continue;
-    if (start > cursor) segments.push({ text: text.slice(cursor, start), matched: false });
+    if (end <= start) {
+      continue;
+    }
+    if (start > cursor) {
+      segments.push({ text: text.slice(cursor, start), matched: false });
+    }
     segments.push({ text: text.slice(start, end), matched: true });
     cursor = end;
   }
-  if (cursor < text.length) segments.push({ text: text.slice(cursor), matched: false });
+  if (cursor < text.length) {
+    segments.push({ text: text.slice(cursor), matched: false });
+  }
   return segments;
 }

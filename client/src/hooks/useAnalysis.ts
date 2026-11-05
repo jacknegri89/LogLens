@@ -20,7 +20,10 @@ async function requestAnalysis(input: CreateAnalysisInput, signal: AbortSignal):
   try {
     return { result: await api.createAnalysis(input, signal) };
   } catch (failure) {
-    return isAbort(failure) ? null : { failure };
+    if (isAbort(failure)) {
+      return null;
+    }
+    return { failure };
   }
 }
 
@@ -31,7 +34,9 @@ export function useAnalysis() {
   const abortRef = useRef<AbortController | null>(null);
 
   function settle(outcome: Outcome) {
-    if (!outcome) return;
+    if (!outcome) {
+      return;
+    }
     if ('failure' in outcome) {
       fail(outcome.failure);
       setState({ status: 'error', result: null });
@@ -41,12 +46,17 @@ export function useAnalysis() {
   }
 
   async function run(input: CreateAnalysisInput) {
+    abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     clearFailure();
     setState({ status: 'loading', result: null });
-    settle(await requestAnalysis(input, controller.signal));
+    const outcome = await requestAnalysis(input, controller.signal);
+    if (abortRef.current !== controller) {
+      return;
+    }
     abortRef.current = null;
+    settle(outcome);
   }
 
   function cancel() {

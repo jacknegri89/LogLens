@@ -11,7 +11,10 @@ export function useFatalIntercept(expectedFatalLine: string | null): number | nu
   const last = lines[lines.length - 1];
   const intercepted =
     expectedFatalLine !== null && last?.level === 'FATAL' && last.raw === expectedFatalLine;
-  const fatalLineNumber = intercepted ? last.index + 1 : null;
+  let fatalLineNumber: number | null = null;
+  if (intercepted) {
+    fatalLineNumber = last.index + 1;
+  }
 
   // An effect event reads the newest `analyze`, which holds the log with the fatal line in it.
   const analyzeAndOpenInsights = useEffectEvent(() => {
@@ -19,7 +22,9 @@ export function useFatalIntercept(expectedFatalLine: string | null): number | nu
     setActiveTab('insights');
   });
   useEffect(() => {
-    if (fatalLineNumber !== null) analyzeAndOpenInsights();
+    if (fatalLineNumber !== null) {
+      analyzeAndOpenInsights();
+    }
   }, [fatalLineNumber]);
 
   return fatalLineNumber;

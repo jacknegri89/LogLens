@@ -9,7 +9,10 @@ export interface LatencySummary {
 /** "1840ms" or "12.5 ms" as a number of milliseconds, or null when it is not one. */
 export function parseMilliseconds(value: string): number | null {
   const match = value.trim().match(/^(\d+(?:\.\d+)?)\s*ms$/i);
-  return match ? Number.parseFloat(match[1]) : null;
+  if (match) {
+    return Number.parseFloat(match[1]);
+  }
+  return null;
 }
 
 /** Nearest-rank percentile of an ascending list. */
@@ -25,10 +28,14 @@ export function summarizeLatencies(
   const samples: number[] = [];
   for (const [value, count] of valueCounts) {
     const milliseconds = parseMilliseconds(value);
-    if (milliseconds === null) continue;
+    if (milliseconds === null) {
+      continue;
+    }
     for (let repeat = 0; repeat < count; repeat += 1) samples.push(milliseconds);
   }
-  if (samples.length === 0) return null;
+  if (samples.length === 0) {
+    return null;
+  }
   samples.sort((first, second) => first - second);
   const total = samples.reduce((sum, sample) => sum + sample, 0);
   return {

@@ -43,6 +43,11 @@ describe('findBruteForce', () => {
     expect(flaggedLines(lines)).toEqual([0, 1, 2, 3, 4]);
   });
 
+  it('flags a large group of overlapping windows without changing the count', () => {
+    const lines = Array.from({ length: 20_000 }, () => sshFailure(0));
+    expect(flaggedLines(lines)).toHaveLength(lines.length);
+  });
+
   it('does not flag four failures', () => {
     expect(flaggedLines([0, 20, 40, 60].map((second) => sshFailure(second)))).toEqual([]);
   });

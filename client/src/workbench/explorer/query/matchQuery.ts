@@ -2,39 +2,94 @@ import type { ParsedLine } from '../../types';
 import type { ParsedQuery, QueryTerm } from './parseQuery';
 
 function fieldValue(line: ParsedLine, field: string): string | null {
-  if (field === 'level') return line.level;
-  if (field === 'service') return line.service;
-  if (field === 'message') return line.message;
-  if (field === 'latency') return line.latencyMs === null ? null : String(line.latencyMs);
-  return line.fields[field] ?? null;
+  if (field === 'level') {
+    return line.level;
+  }
+  if (field === 'service') {
+    return line.service;
+  }
+  if (field === 'message') {
+    return line.message;
+  }
+  if (field === 'latency') {
+    if (line.latencyMs === null) {
+      return null;
+    }
+    return String(line.latencyMs);
+  }
+  if (Object.hasOwn(line.fields, field)) {
+    return line.fields[field];
+  }
+  return null;
 }
 
 function compare(actual: number, term: Extract<QueryTerm, { kind: 'compare' }>): boolean {
-  if (term.comparison === '>') return actual > term.value;
-  if (term.comparison === '>=') return actual >= term.value;
-  if (term.comparison === '<') return actual < term.value;
+  if (term.comparison === '>') {
+    return actual > term.value;
+  }
+  if (term.comparison === '>=') {
+    return actual >= term.value;
+  }
+  if (term.comparison === '<') {
+    return actual < term.value;
+  }
   return actual <= term.value;
+}
+
+/** Match literal sections in order without backtracking through a regular expression. */
+function matchesWildcard(value: string, parts: string[]): boolean {
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  if (!value.startsWith(first) || !value.endsWith(last)) {
+    return false;
+  }
+  const lastStart = value.length - last.length;
+  let position = first.length;
+  for (const part of parts.slice(1, -1)) {
+    const found = value.indexOf(part, position);
+    if (found < 0 || found + part.length > lastStart) {
+      return false;
+    }
+    if (/[\n\r\u2028\u2029]/.test(value.slice(position, found))) {
+      return false;
+    }
+    position = found + part.length;
+  }
+  return position <= lastStart && !/[\n\r\u2028\u2029]/.test(value.slice(position, lastStart));
 }
 
 function matchesField(line: ParsedLine, term: Extract<QueryTerm, { kind: 'field' }>): boolean {
   const value = fieldValue(line, term.field);
-  if (value === null) return false;
-  if (term.pattern) return term.pattern.test(value);
+  if (value === null) {
+    return false;
+  }
   const lower = value.toLowerCase();
+  if (term.pattern) {
+    return matchesWildcard(lower, term.pattern);
+  }
   // A message is long prose: searching inside it is what people mean.
-  return term.field === 'message' ? lower.includes(term.needle) : lower === term.needle;
+  if (term.field === 'message') {
+    return lower.includes(term.needle);
+  }
+  return lower === term.needle;
 }
 
 function matchesTerm(line: ParsedLine, term: QueryTerm): boolean {
-  if (term.kind === 'text') return line.raw.toLowerCase().includes(term.needle);
-  if (term.kind === 'field') return matchesField(line, term);
+  if (term.kind === 'text') {
+    return line.raw.toLowerCase().includes(term.needle);
+  }
+  if (term.kind === 'field') {
+    return matchesField(line, term);
+  }
   const value = Number.parseFloat(fieldValue(line, term.field) ?? '');
   return !Number.isNaN(value) && compare(value, term);
 }
 
 /** True when the line satisfies every term of at least one OR group (or the query is empty). */
 export function matchesQuery(line: ParsedLine, query: ParsedQuery): boolean {
-  if (query.groups.length === 0) return true;
+  if (query.groups.length === 0) {
+    return true;
+  }
   return query.groups.some((group) =>
     group.every((term) => matchesTerm(line, term) !== term.negated),
   );
@@ -51,25 +106,35 @@ export function filterLines(
 ): number[] {
   const positions: number[] = [];
   lines.forEach((line, position) => {
-    if ((!allowed || allowed(position)) && matchesQuery(line, query)) positions.push(position);
+    if ((!allowed || allowed(position)) && matchesQuery(line, query)) {
+      positions.push(position);
+    }
   });
   return positions;
 }
 
 function longestLiteral(pattern: string): string {
-  return pattern
-    .split('*')
-    .reduce((longest, part) => (part.length > longest.length ? part : longest), '');
+  let longest = '';
+  for (const part of pattern.split('*')) {
+    if (part.length > longest.length) {
+      longest = part;
+    }
+  }
+  return longest;
 }
 
 /** The words worth marking in a matching row: positive text terms and searched field values. */
 export function highlightTerms(query: ParsedQuery): string[] {
   const terms = new Set<string>();
   for (const term of query.groups.flat()) {
-    if (term.negated || term.kind === 'compare') continue;
-    if (term.kind === 'text') terms.add(term.needle);
-    else if (term.field !== 'level' && term.field !== 'service')
+    if (term.negated || term.kind === 'compare') {
+      continue;
+    }
+    if (term.kind === 'text') {
+      terms.add(term.needle);
+    } else if (term.field !== 'level' && term.field !== 'service') {
       terms.add(longestLiteral(term.needle));
+    }
   }
   return [...terms].filter((term) => term.length >= 2);
 }

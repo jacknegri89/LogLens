@@ -15,7 +15,10 @@ export interface VisibleWindow {
 }
 
 function finiteOrZero(value: number): number {
-  return Number.isFinite(value) && value > 0 ? value : 0;
+  if (Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  return 0;
 }
 
 /** The rows a scrolled list must render: the visible ones plus a few above and below. */
@@ -43,8 +46,12 @@ export function scrollTopToReveal(
   rowHeight = ROW_HEIGHT,
 ): number | null {
   const rowTop = row * rowHeight;
-  if (rowTop < scrollTop) return rowTop;
-  if (rowTop + rowHeight > scrollTop + viewportHeight) return rowTop + rowHeight - viewportHeight;
+  if (rowTop < scrollTop) {
+    return rowTop;
+  }
+  if (rowTop + rowHeight > scrollTop + viewportHeight) {
+    return rowTop + rowHeight - viewportHeight;
+  }
   return null;
 }
 
@@ -52,17 +59,31 @@ const STEP_KEYS: Record<string, number> = { ArrowUp: -1, ArrowDown: 1 };
 
 /** The row a navigation key moves to, or null when the key does not navigate. */
 export function nextRow(key: string, current: number, rowCount: number, pageSize: number) {
-  if (rowCount === 0) return null;
+  if (rowCount === 0) {
+    return null;
+  }
   const page = Math.max(1, pageSize);
+  let pageDown = current + page;
+  if (current < 0) {
+    pageDown = page - 1;
+  }
   const targets: Record<string, number> = {
     Home: 0,
     End: rowCount - 1,
     PageUp: current - page,
-    PageDown: current < 0 ? page - 1 : current + page,
+    PageDown: pageDown,
   };
   const step = STEP_KEYS[key];
-  const target = step === undefined ? targets[key] : current < 0 ? 0 : current + step;
-  if (target === undefined) return null;
+  let target = targets[key];
+  if (step !== undefined) {
+    target = current + step;
+    if (current < 0) {
+      target = 0;
+    }
+  }
+  if (target === undefined) {
+    return null;
+  }
   return Math.min(rowCount - 1, Math.max(0, target));
 }
 
@@ -73,9 +94,14 @@ function binarySearch(length: number, valueAt: (position: number) => number, val
   while (low <= high) {
     const middle = (low + high) >> 1;
     const found = valueAt(middle);
-    if (found === value) return middle;
-    if (found < value) low = middle + 1;
-    else high = middle - 1;
+    if (found === value) {
+      return middle;
+    }
+    if (found < value) {
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
   }
   return -1;
 }
@@ -92,5 +118,8 @@ export function rowOfLine(
   lineIndex: number,
 ): number {
   const position = binarySearch(lines.length, (at) => lines[at].index, lineIndex);
-  return position === -1 ? -1 : findSorted(rows, position);
+  if (position === -1) {
+    return -1;
+  }
+  return findSorted(rows, position);
 }

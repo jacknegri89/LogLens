@@ -9,6 +9,12 @@ export function LiveTailControl() {
   const text = useText(LIVE_TAIL_TEXT);
   const { tail, fatalLine, start, stop, dismiss } = useLiveTail();
   const running = tail.scenario !== null;
+  let action = start;
+  let label = text.start;
+  if (running) {
+    action = stop;
+    label = text.stop;
+  }
 
   return (
     <div className="live-tail">
@@ -16,11 +22,11 @@ export function LiveTailControl() {
         type="button"
         aria-pressed={running}
         title={text.startHint}
-        onClick={running ? stop : start}
+        onClick={action}
         className="btn-paper live-tail-button"
       >
         {running && <span className="live-dot" aria-hidden="true" />}
-        {running ? text.stop : text.start}
+        {label}
       </button>
       {tail.scenario && (
         <span className="live-tail-info">

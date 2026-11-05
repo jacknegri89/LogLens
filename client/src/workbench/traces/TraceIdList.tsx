@@ -19,8 +19,12 @@ function IdMeta({ correlation }: { correlation: Correlation }) {
     text.lines(correlation.positions.length),
     text.services(correlation.services.length),
   ];
-  if (correlation.durationMs !== null) parts.push(formatDelta(correlation.durationMs).slice(1));
-  if (correlation.faultCount > 0) parts.push(text.faults(correlation.faultCount));
+  if (correlation.durationMs !== null) {
+    parts.push(formatDelta(correlation.durationMs).slice(1));
+  }
+  if (correlation.faultCount > 0) {
+    parts.push(text.faults(correlation.faultCount));
+  }
   return (
     <span className="trace-id-meta">
       <span className="trace-kind">{text.kinds[correlation.kind]}</span>

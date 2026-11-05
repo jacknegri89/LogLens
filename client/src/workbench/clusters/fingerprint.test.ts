@@ -74,4 +74,12 @@ describe('fingerprint: edge cases', () => {
     expect(fingerprint('a   b \t c')).toBe('a b c');
     expect(fingerprint('word '.repeat(500)).length).toBeLessThanOrEqual(300);
   });
+
+  it('bounds normalization work for an exceptionally long line', () => {
+    expect(fingerprint('a'.repeat(100_000))).toBe('a'.repeat(300));
+  });
+
+  it('does not expose a quoted value cut by the input limit', () => {
+    expect(fingerprint(`value="${'a'.repeat(2_000)}"`)).toBe('value=<str>');
+  });
 });

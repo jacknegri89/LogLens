@@ -35,7 +35,9 @@ export function PaletteInput({
       Enter: onRun,
     };
     const action = actions[event.key];
-    if (!action) return;
+    if (!action) {
+      return;
+    }
     event.preventDefault();
     action();
   }

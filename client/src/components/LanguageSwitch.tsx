@@ -30,13 +30,17 @@ export function LanguageSwitch() {
   const sheetCount = useRef(0);
 
   useEffect(() => {
-    if (pendingLanguage === null) return;
+    if (pendingLanguage === null) {
+      return;
+    }
     const timer = window.setTimeout(() => setLanguage(pendingLanguage), SHEET_COVERS_PAGE_MS);
     return () => window.clearTimeout(timer);
   }, [pendingLanguage, setLanguage]);
 
   function chooseLanguage(code: Language) {
-    if (code === language) return;
+    if (code === language) {
+      return;
+    }
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) {
       setLanguage(code);

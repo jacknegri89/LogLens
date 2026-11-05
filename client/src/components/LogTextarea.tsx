@@ -24,7 +24,9 @@ export function LogTextarea({
       value={text}
       onChange={(event) => onTextChange(event.target.value)}
       onKeyDown={(event) => {
-        if (!isSubmitShortcut(event)) return;
+        if (!isSubmitShortcut(event)) {
+          return;
+        }
         event.preventDefault();
         onSubmitShortcut();
       }}

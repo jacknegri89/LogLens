@@ -264,6 +264,41 @@ describe('buildShareState', () => {
     expect(state).toEqual({ v: 1, language: 'it', log: 'plain line' });
   });
 
+  it('scrubs sensitive text from every free-text report field', async () => {
+    const email = 'ana@example.com';
+    const sensitiveRecord: AnalysisRecord = {
+      ...record,
+      category: email,
+      report: {
+        ...record.report,
+        format: email,
+        findings: [
+          {
+            title: email,
+            severity: 'high',
+            category: email,
+            evidence: email,
+            technique: email,
+            owasp: email,
+          },
+        ],
+        timeline: [
+          {
+            time: email,
+            title: email,
+            category: email,
+            severity: 'high',
+            role: 'root',
+            evidence: email,
+          },
+        ],
+      },
+    };
+    const { state } = buildShareState('en', 'plain', sensitiveRecord);
+    const decoded = await decodePermalinkState(await encodePermalinkState(state));
+    expect(JSON.stringify(decoded)).not.toContain(email);
+  });
+
   it('builds a state that survives the round trip', async () => {
     const { state } = buildShareState('en', 'from 203.0.113.9', record);
     expect(await decodePermalinkState(await encodePermalinkState(state))).toEqual(state);

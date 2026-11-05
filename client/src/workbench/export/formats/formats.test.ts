@@ -17,6 +17,14 @@ const LOG = [
   'plain line without level',
 ].join('\n');
 
+it('computes a time range for a large number of lines', () => {
+  const line = parseLines('2026-11-03T10:00:00Z INFO started')[0];
+  const lines = Array.from({ length: 200_000 }, () => line);
+  const result = computeLineStatistics(lines);
+  expect(result.firstTime).toBe('2026-11-03T10:00:00.000Z');
+  expect(result.lastTime).toBe('2026-11-03T10:00:00.000Z');
+});
+
 const RECORD: AnalysisRecord = {
   id: 'abc-123',
   createdAt: '2026-11-03T10:05:00.000Z',

@@ -6,11 +6,24 @@ import type { PermalinkState, SharedReport } from './permalinkState';
 type Scrub = (text: string) => string;
 
 function scrubFinding(finding: Finding, scrub: Scrub): Finding {
-  return { ...finding, title: scrub(finding.title), evidence: scrub(finding.evidence) };
+  return {
+    ...finding,
+    title: scrub(finding.title),
+    category: scrub(finding.category),
+    evidence: scrub(finding.evidence),
+    ...(finding.technique !== undefined && { technique: scrub(finding.technique) }),
+    ...(finding.owasp !== undefined && { owasp: scrub(finding.owasp) }),
+  };
 }
 
 function scrubTimelineEntry(entry: TimelineEntry, scrub: Scrub): TimelineEntry {
-  return { ...entry, title: scrub(entry.title), evidence: scrub(entry.evidence) };
+  return {
+    ...entry,
+    title: scrub(entry.title),
+    category: scrub(entry.category),
+    evidence: scrub(entry.evidence),
+    ...(entry.time !== undefined && { time: scrub(entry.time) }),
+  };
 }
 
 function scrubReport(record: AnalysisRecord, scrub: Scrub): SharedReport {
@@ -18,13 +31,13 @@ function scrubReport(record: AnalysisRecord, scrub: Scrub): SharedReport {
   return {
     title: scrub(record.title),
     severity: record.severity,
-    category: record.category,
+    category: scrub(record.category),
     report: {
       keyLines: report.keyLines.map(scrub),
       causes: report.causes.map(scrub),
       debugSteps: report.debugSteps.map(scrub),
       bugReportMarkdown: scrub(report.bugReportMarkdown),
-      ...(report.format !== undefined && { format: report.format }),
+      ...(report.format !== undefined && { format: scrub(report.format) }),
       ...(report.findings && {
         findings: report.findings.map((item) => scrubFinding(item, scrub)),
       }),
@@ -44,7 +57,7 @@ export interface ShareState {
 
 /**
  * The state to embed in a link. The log and every text of the report are anonymized with one
- * numbering, so IP-1 in the report is still IP-1 in the log. The link never holds the original text.
+ * numbering, so IP-1 in the report is still IP-1 in the log. Detection is heuristic.
  */
 export function buildShareState(
   language: Language,
@@ -53,7 +66,10 @@ export function buildShareState(
 ): ShareState {
   const anonymizer = createAnonymizer();
   const log = anonymizer.anonymize(rawLog);
-  const report = record ? scrubReport(record, anonymizer.anonymize) : undefined;
+  let report: SharedReport | undefined;
+  if (record) {
+    report = scrubReport(record, anonymizer.anonymize);
+  }
   return {
     state: { v: 1, language, log, ...(report && { report }) },
     occurrences: anonymizer.summary().occurrences,

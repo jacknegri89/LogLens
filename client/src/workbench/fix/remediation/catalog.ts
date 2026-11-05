@@ -21,7 +21,9 @@ const ALL_SCENARIOS: RemediationScenario[] = [
 /** Scenarios in the display order of SCENARIO_IDS. */
 export const REMEDIATION_CATALOG: RemediationScenario[] = SCENARIO_IDS.map((id) => {
   const scenario = ALL_SCENARIOS.find((candidate) => candidate.id === id);
-  if (!scenario) throw new Error('Missing remediation scenario: ' + id);
+  if (!scenario) {
+    throw new Error('Missing remediation scenario: ' + id);
+  }
   return scenario;
 });
 
@@ -40,11 +42,16 @@ export function resolveLanguage(
   preferred: CodeLanguageId | null,
 ): CodeLanguageId {
   const languages = availableLanguages(scenario);
-  return preferred && languages.includes(preferred) ? preferred : languages[0];
+  if (preferred && languages.includes(preferred)) {
+    return preferred;
+  }
+  return languages[0];
 }
 
 export function sampleFor(scenario: RemediationScenario, language: CodeLanguageId): CodeSample {
   const sample = scenario.samples[resolveLanguage(scenario, language)];
-  if (!sample) throw new Error('Scenario without samples: ' + scenario.id);
+  if (!sample) {
+    throw new Error('Scenario without samples: ' + scenario.id);
+  }
   return sample;
 }

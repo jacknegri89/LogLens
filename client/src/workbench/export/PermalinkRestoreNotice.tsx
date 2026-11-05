@@ -8,17 +8,22 @@ import { usePermalinkRestore } from './usePermalinkRestore';
 export function PermalinkRestoreNotice() {
   const text = useText(EXPORT_TEXT);
   const { outcome, dismiss } = usePermalinkRestore();
-  if (outcome.kind === 'idle') return null;
+  if (outcome.kind === 'idle') {
+    return null;
+  }
 
   const failed = outcome.kind === 'failed';
-  const message = failed
-    ? text.share.errors[outcome.code]
-    : outcome.withReport
-      ? text.restored.withReport
-      : text.restored.logOnly;
+  let message = text.restored.logOnly;
+  let role: 'alert' | 'status' = 'status';
+  if (outcome.kind === 'failed') {
+    message = text.share.errors[outcome.code];
+    role = 'alert';
+  } else if (outcome.withReport) {
+    message = text.restored.withReport;
+  }
 
   return (
-    <div role={failed ? 'alert' : 'status'} className="exp-notice mt-4" data-failed={failed}>
+    <div role={role} className="exp-notice mt-4" data-failed={failed}>
       <p>{message}</p>
       <button type="button" onClick={dismiss} className="exp-notice-close">
         {text.restored.dismiss}

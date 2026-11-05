@@ -19,14 +19,19 @@ function rank(severity: Severity): number {
 /** The lowest severity the log itself allows, whatever the model says. */
 function severityFloor({ excerpt, severityHint }: AnalyzeInput): Severity {
   const isAttack = ATTACK_SIGNATURE.test(excerpt) || INJECTION_PHRASE.test(excerpt);
-  return isAttack || severityHint === 'high' ? 'high' : 'informational';
+  if (isAttack || severityHint === 'high') {
+    return 'high';
+  }
+  return 'informational';
 }
 
 /** Evidence has to be a whole line of the log: a line the model made up is dropped. */
 function keepRealLines(keyLines: string[], excerpt: string): string[] {
   const logLines = excerpt.split('\n').map((line) => line.trim());
   const real = keyLines.filter((line) => line.trim() !== '' && logLines.includes(line.trim()));
-  if (real.length > 0) return real;
+  if (real.length > 0) {
+    return real;
+  }
   return logLines.filter((line) => line !== '').slice(0, FALLBACK_EVIDENCE_LINES);
 }
 
@@ -38,7 +43,12 @@ function cleanText(text: string, excerpt: string): string {
   return text
     .replace(MARKDOWN_IMAGE, '')
     .replace(HTML_TAG, '')
-    .replace(URL_PATTERN, (url) => (excerpt.includes(url) ? url : '[link removed]'));
+    .replace(URL_PATTERN, (url) => {
+      if (excerpt.includes(url)) {
+        return url;
+      }
+      return '[link removed]';
+    });
 }
 
 /** A step that pipes a download into a shell is never advice LogLens gives. */
@@ -53,7 +63,10 @@ function keepSafeSteps(steps: string[]): string[] {
  */
 export function guardReport(report: AIReport, input: AnalyzeInput): AIReport {
   const floor = severityFloor(input);
-  const severity = rank(report.severity) < rank(floor) ? floor : report.severity;
+  let severity = report.severity;
+  if (rank(report.severity) < rank(floor)) {
+    severity = floor;
+  }
   const clean = (text: string) => cleanText(text, input.excerpt);
   return {
     ...report,

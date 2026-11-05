@@ -35,7 +35,9 @@ interface DriverState {
 }
 
 function release(state: DriverState, timers: Timers): void {
-  if (state.handle !== null) timers.clearTimer(state.handle);
+  if (state.handle !== null) {
+    timers.clearTimer(state.handle);
+  }
   state.handle = null;
   state.queue = [];
   state.sink = null;
@@ -51,13 +53,22 @@ function step(state: DriverState, timers: Timers, nextDelay: () => number): void
   const line = state.queue.shift();
   const { sink } = state;
   state.handle = null;
-  if (line === undefined || !sink) return finish(state, timers, 'finished');
+  if (line === undefined || !sink) {
+    return finish(state, timers, 'finished');
+  }
   state.appended += 1;
   sink.onLine(line, state.appended);
   // The sink may have stopped the stream from inside onLine.
-  if (state.sink !== sink) return;
-  if (state.queue.length === 0)
-    return finish(state, timers, state.truncated ? 'limit' : 'finished');
+  if (state.sink !== sink) {
+    return;
+  }
+  if (state.queue.length === 0) {
+    let reason: 'finished' | 'limit' = 'finished';
+    if (state.truncated) {
+      reason = 'limit';
+    }
+    return finish(state, timers, reason);
+  }
   state.handle = timers.setTimer(() => step(state, timers, nextDelay), nextDelay());
 }
 
@@ -75,7 +86,9 @@ export function createStreamDriver(
 
   return {
     start(lines, sink) {
-      if (state.sink) return false;
+      if (state.sink) {
+        return false;
+      }
       state.queue = lines.slice(0, cap);
       state.truncated = lines.length > cap;
       state.appended = 0;

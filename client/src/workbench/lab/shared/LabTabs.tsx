@@ -25,6 +25,10 @@ interface TabButtonProps {
 }
 
 function TabButton({ id, label, selected, onSelect, onKeyDown, buttonRef }: TabButtonProps) {
+  let tabIndex = -1;
+  if (selected) {
+    tabIndex = 0;
+  }
   return (
     <button
       ref={buttonRef}
@@ -33,7 +37,7 @@ function TabButton({ id, label, selected, onSelect, onKeyDown, buttonRef }: TabB
       role="tab"
       aria-selected={selected}
       aria-controls={labPanelId(id)}
-      tabIndex={selected ? 0 : -1}
+      tabIndex={tabIndex}
       onClick={onSelect}
       onKeyDown={onKeyDown}
       className="lab-tab"
@@ -49,7 +53,9 @@ export function LabTabs<Id extends string>({ label, tabs, active, onChange }: La
 
   function moveWithKey(event: KeyboardEvent, index: number) {
     const next = nextTabIndex(index, event.key, tabs.length);
-    if (next === null) return;
+    if (next === null) {
+      return;
+    }
     event.preventDefault();
     onChange(tabs[next].id);
     buttons.current[next]?.focus();

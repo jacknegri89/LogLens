@@ -28,6 +28,10 @@ describe('IP addresses', () => {
 });
 
 describe('e-mail addresses', () => {
+  it('handles a long non-email word without changing it', () => {
+    const text = 'z'.repeat(100_000);
+    expect(anonymized(text)).toBe(text);
+  });
   it('replaces addresses and ignores case when matching repeats', () => {
     const result = anonymizeLog(
       'mail Ana.Rossi@example.com, then ana.rossi@EXAMPLE.com, bob@corp.io',

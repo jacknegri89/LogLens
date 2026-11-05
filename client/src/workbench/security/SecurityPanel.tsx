@@ -14,13 +14,17 @@ export function SecurityPanel() {
   const { lines } = useWorkbench();
   const text = useText(SECURITY_TEXT).panel;
   const result = useMemo(() => scanLines(lines), [lines]);
+  let intro = text.intro;
+  if (lines.length === 0) {
+    intro = text.empty;
+  }
 
   return (
     <section aria-labelledby="security-title" className="sec-panel">
       <h2 id="security-title" className="sec-title">
         {text.title}
       </h2>
-      <p className="sec-intro">{lines.length === 0 ? text.empty : text.intro}</p>
+      <p className="sec-intro">{intro}</p>
       {lines.length > 0 && (
         <>
           <ThreatBanner result={result} />

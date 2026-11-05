@@ -169,18 +169,28 @@ export interface SharedAnalysis {
 }
 
 export async function getSharedAnalysis(shareToken: string): Promise<SharedAnalysis | null> {
-  const row = await prisma.analysis.findUnique({ where: { shareToken } });
+  const row = await prisma.analysis.findUnique({
+    where: { shareToken },
+    select: {
+      id: true,
+      createdAt: true,
+      title: true,
+      severity: true,
+      category: true,
+      report: true,
+    },
+  });
   if (!row) {
     return null;
   }
-  const record = toRecord(row);
+  const report = JSON.parse(row.report) as AnalysisReport;
   return {
-    id: record.id,
-    createdAt: record.createdAt,
-    title: record.title,
-    severity: record.severity as Severity,
-    category: record.category,
-    report: toSharedReport(record.report),
+    id: row.id,
+    createdAt: row.createdAt,
+    title: row.title,
+    severity: row.severity as Severity,
+    category: row.category,
+    report: toSharedReport(report),
   };
 }
 
@@ -225,7 +235,11 @@ export async function deleteExpiredAttempts(): Promise<number> {
 /** Attempts in the last hour by one client, or by everyone when no hash is given. */
 export function countAttemptsInLastHour(clientHash?: string): Promise<number> {
   const since = new Date(Date.now() - ONE_HOUR_MS);
+  const where: { createdAt: { gte: Date }; clientHash?: string } = { createdAt: { gte: since } };
+  if (clientHash) {
+    where.clientHash = clientHash;
+  }
   return prisma.analysisAttempt.count({
-    where: { createdAt: { gte: since }, ...(clientHash ? { clientHash } : {}) },
+    where,
   });
 }

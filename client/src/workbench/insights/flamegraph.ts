@@ -32,15 +32,22 @@ const MAX_LABEL_LENGTH = 60;
 
 /** An id, a number or a hash in a path or a sentence becomes ":id", so equal calls group together. */
 export function normalizeSegment(segment: string): string {
-  return NUMBER.test(segment) || UUID.test(segment) || LONG_HEX.test(segment) ? ':id' : segment;
+  if (NUMBER.test(segment) || UUID.test(segment) || LONG_HEX.test(segment)) {
+    return ':id';
+  }
+  return segment;
 }
 
 /** "GET /orders/42" -> "GET /orders/:id"; without a request, the first three words of the message. */
 export function operationName(message: string): string {
   const request = message.match(HTTP_REQUEST);
-  if (request) return `${request[1]} ${request[2].split('/').map(normalizeSegment).join('/')}`;
+  if (request) {
+    return `${request[1]} ${request[2].split('/').map(normalizeSegment).join('/')}`;
+  }
   const words = message.trim().split(/\s+/).filter(Boolean).slice(0, 3);
-  if (words.length === 0) return UNKNOWN_SERVICE;
+  if (words.length === 0) {
+    return UNKNOWN_SERVICE;
+  }
   return words.map(normalizeSegment).join(' ').slice(0, MAX_LABEL_LENGTH);
 }
 
@@ -79,7 +86,9 @@ function byTotalThenLabel(first: FlameNode, second: FlameNode): number {
 function groupByService(lines: ParsedLine[]): Map<string, Map<string, Totals>> {
   const services = new Map<string, Map<string, Totals>>();
   for (const line of lines) {
-    if (line.latencyMs === null || line.latencyMs <= 0) continue;
+    if (line.latencyMs === null || line.latencyMs <= 0) {
+      continue;
+    }
     const service = line.service ?? UNKNOWN_SERVICE;
     const operations = services.get(service) ?? new Map<string, Totals>();
     addSample(operations, operationName(line.message), line.latencyMs);
@@ -90,7 +99,9 @@ function groupByService(lines: ParsedLine[]): Map<string, Map<string, Totals>> {
 
 /** Keeps the largest operations and folds the rest into one `other` block. */
 function mergeSmallOperations(operations: FlameNode[], serviceId: string): FlameNode[] {
-  if (operations.length <= MAX_OPERATIONS_PER_SERVICE) return operations;
+  if (operations.length <= MAX_OPERATIONS_PER_SERVICE) {
+    return operations;
+  }
   const kept = operations.slice(0, MAX_OPERATIONS_PER_SERVICE - 1);
   const tail = operations.slice(MAX_OPERATIONS_PER_SERVICE - 1);
   const other = makeNode({
@@ -135,7 +146,10 @@ function numberServices(services: FlameNode[]): void {
 }
 
 function fillShares(node: FlameNode, wholeTotal: number): void {
-  node.share = wholeTotal > 0 ? node.total / wholeTotal : 0;
+  node.share = 0;
+  if (wholeTotal > 0) {
+    node.share = node.total / wholeTotal;
+  }
   node.children.forEach((child) => fillShares(child, wholeTotal));
 }
 
@@ -145,7 +159,9 @@ function fillShares(node: FlameNode, wholeTotal: number): void {
  */
 export function buildFlameTree(lines: ParsedLine[]): FlameNode | null {
   const grouped = groupByService(lines);
-  if (grouped.size === 0) return null;
+  if (grouped.size === 0) {
+    return null;
+  }
   const services = [...grouped]
     .map(([service, operations]) => buildService(service, operations))
     .sort(byTotalThenLabel);

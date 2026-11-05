@@ -11,7 +11,9 @@ const SAMPLE_LINES = 5;
 function countAddresses(hits: readonly AttackHit[]): AddressCount[] {
   const counts = new Map<string, number>();
   for (const hit of hits) {
-    if (hit.address) counts.set(hit.address, (counts.get(hit.address) ?? 0) + 1);
+    if (hit.address) {
+      counts.set(hit.address, (counts.get(hit.address) ?? 0) + 1);
+    }
   }
   const ranked = [...counts].map(([address, count]) => ({ address, count }));
   return ranked.sort(
@@ -33,9 +35,18 @@ function buildGroup(type: AttackTypeId, hits: AttackHit[]): AttackGroup {
 
 function groupByType(hits: readonly AttackHit[]): AttackGroup[] {
   const byType = new Map<AttackTypeId, AttackHit[]>();
-  for (const hit of hits) byType.set(hit.type, [...(byType.get(hit.type) ?? []), hit]);
+  for (const hit of hits) {
+    const group = byType.get(hit.type) ?? [];
+    group.push(hit);
+    byType.set(hit.type, group);
+  }
   const groups = [...byType].map(([type, typeHits]) => buildGroup(type, typeHits));
-  const rank = (group: AttackGroup) => (group.severity === 'high' ? 0 : 1);
+  const rank = (group: AttackGroup) => {
+    if (group.severity === 'high') {
+      return 0;
+    }
+    return 1;
+  };
   return groups.sort((left, right) => rank(left) - rank(right) || right.count - left.count);
 }
 

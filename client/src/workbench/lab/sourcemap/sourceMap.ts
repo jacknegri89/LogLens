@@ -1,4 +1,4 @@
-import { createMappingsReader, type MappingsReader } from './mappings';
+import { createMappingsReader, type MappingsBudget, type MappingsReader } from './mappings';
 
 /** One v3 map, ready to be searched. The mappings are decoded only when a line is asked for. */
 export interface MapData {
@@ -40,43 +40,73 @@ function isObject(value: unknown): value is Json {
 }
 
 function asStrings(value: unknown): string[] | null {
-  if (!Array.isArray(value)) return null;
-  return value.map((item) => (typeof item === 'string' ? item : ''));
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  return value.map((item) => {
+    if (typeof item === 'string') {
+      return item;
+    }
+    return '';
+  });
 }
 
 function asContents(value: unknown, count: number): Array<string | null> {
-  const contents = Array.isArray(value) ? value : [];
-  return Array.from({ length: count }, (_, index) =>
-    typeof contents[index] === 'string' ? (contents[index] as string) : null,
-  );
+  let contents: unknown[] = [];
+  if (Array.isArray(value)) {
+    contents = value;
+  }
+  return Array.from({ length: count }, (_, index) => {
+    if (typeof contents[index] === 'string') {
+      return contents[index] as string;
+    }
+    return null;
+  });
 }
 
-function toMapData(json: Json): MapData | SourceMapProblem {
+function toMapData(json: Json, budget: MappingsBudget): MapData | SourceMapProblem {
   const sources = asStrings(json.sources);
-  if (!sources) return 'missingSources';
-  if (typeof json.mappings !== 'string') return 'missingMappings';
+  if (!sources) {
+    return 'missingSources';
+  }
+  if (typeof json.mappings !== 'string') {
+    return 'missingMappings';
+  }
+  let sourceRoot = '';
+  if (typeof json.sourceRoot === 'string') {
+    sourceRoot = json.sourceRoot;
+  }
   return {
     sources,
     names: asStrings(json.names) ?? [],
     sourcesContent: asContents(json.sourcesContent, sources.length),
-    sourceRoot: typeof json.sourceRoot === 'string' ? json.sourceRoot : '',
-    reader: createMappingsReader(json.mappings),
+    sourceRoot,
+    reader: createMappingsReader(json.mappings, budget),
   };
 }
 
-function toSection(entry: unknown): MapSection | SourceMapProblem {
-  if (!isObject(entry) || !isObject(entry.offset) || !isObject(entry.map)) return 'badSection';
+function toSection(entry: unknown, budget: MappingsBudget): MapSection | SourceMapProblem {
+  if (!isObject(entry) || !isObject(entry.offset) || !isObject(entry.map)) {
+    return 'badSection';
+  }
   const { line, column } = entry.offset;
-  if (typeof line !== 'number' || typeof column !== 'number') return 'badSection';
-  const map = toMapData(entry.map);
-  return typeof map === 'string' ? map : { line, column, map };
+  if (typeof line !== 'number' || typeof column !== 'number') {
+    return 'badSection';
+  }
+  const map = toMapData(entry.map, budget);
+  if (typeof map === 'string') {
+    return map;
+  }
+  return { line, column, map };
 }
 
-function toIndexMap(sections: unknown[]): ParsedSourceMap {
+function toIndexMap(sections: unknown[], budget: MappingsBudget): ParsedSourceMap {
   const loaded: MapSection[] = [];
   for (const entry of sections) {
-    const section = toSection(entry);
-    if (typeof section === 'string') return { ok: false, problem: section };
+    const section = toSection(entry, budget);
+    if (typeof section === 'string') {
+      return { ok: false, problem: section };
+    }
     loaded.push(section);
   }
   loaded.sort((first, second) => first.line - second.line || first.column - second.column);
@@ -84,10 +114,17 @@ function toIndexMap(sections: unknown[]): ParsedSourceMap {
 }
 
 function parseJsonMap(json: Json): ParsedSourceMap {
-  if (json.version !== 3) return { ok: false, problem: 'unsupportedVersion' };
-  if (Array.isArray(json.sections)) return toIndexMap(json.sections);
-  const data = toMapData(json);
-  if (typeof data === 'string') return { ok: false, problem: data };
+  if (json.version !== 3) {
+    return { ok: false, problem: 'unsupportedVersion' };
+  }
+  const budget = { decodedLines: 0, decodedSegments: 0 };
+  if (Array.isArray(json.sections)) {
+    return toIndexMap(json.sections, budget);
+  }
+  const data = toMapData(json, budget);
+  if (typeof data === 'string') {
+    return { ok: false, problem: data };
+  }
   return { ok: true, map: { sections: [{ line: 0, column: 0, map: data }] } };
 }
 
@@ -99,5 +136,8 @@ export function parseSourceMap(text: string): ParsedSourceMap {
   } catch {
     return { ok: false, problem: 'invalidJson' };
   }
-  return isObject(value) ? parseJsonMap(value) : { ok: false, problem: 'notSourceMap' };
+  if (!isObject(value)) {
+    return { ok: false, problem: 'notSourceMap' };
+  }
+  return parseJsonMap(value);
 }

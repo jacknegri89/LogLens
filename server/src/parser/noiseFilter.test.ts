@@ -8,6 +8,29 @@ function lines(...contents: string[]) {
 }
 
 describe('separateNoise', () => {
+  it('handles a long incomplete static asset request without discarding it', () => {
+    const input = `GET /${'a.js?'.repeat(20_000)}x`;
+    const result = separateNoise(lines(input));
+    expect(result.kept).toHaveLength(1);
+    expect(result.noise.removed).toBe(0);
+  });
+
+  it('recognises static files with query strings and extensionless assets', () => {
+    const result = separateNoise(
+      lines('GET /app.js?v=2 HTTP/1.1 200', 'HEAD /assets/logo HTTP/1.1 304'),
+    );
+    expect(result.noise.byKind['static-asset']).toBe(2);
+  });
+
+  it('checks all requests in a line, but not extensions only in query parameters', () => {
+    const result = separateNoise(
+      lines(
+        'GET /index HTTP/1.1 200 GET /app.js HTTP/1.1 200',
+        'GET /download?file=app.js HTTP/1.1 200',
+      ),
+    );
+    expect(result.kept.map((line) => line.lineNumber)).toEqual([2]);
+  });
   it('removes health checks, load balancer probes and static assets answered normally', () => {
     const { kept, noise } = separateNoise(
       lines(

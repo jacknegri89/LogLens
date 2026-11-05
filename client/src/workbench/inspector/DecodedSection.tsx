@@ -39,7 +39,9 @@ function TokenChip({ token, open, onToggle }: TokenChipProps) {
 export function DecodedSection(props: DecodedSectionProps) {
   const text = useText(INSPECTOR_TEXT);
   const active = props.tokens.find((token) => token.id === props.activeId);
-  if (props.tokens.length === 0) return null;
+  if (props.tokens.length === 0) {
+    return null;
+  }
   return (
     <section aria-labelledby="inspector-decoded-title">
       <h3 id="inspector-decoded-title" className="inspect-heading">

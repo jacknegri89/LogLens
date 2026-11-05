@@ -8,8 +8,15 @@ const UNREACHABLE_PATTERN = /ECONNREFUSED|Failed to fetch|fetch failed|net::ERR_
  * own message is kept; the fallback is for a failure that is not an Error.
  */
 export function errorMessage(error: unknown, fallback: string, text: ErrorText): string {
-  if (!(error instanceof Error)) return fallback;
+  if (!(error instanceof Error)) {
+    return fallback;
+  }
   if (error instanceof RequestError && error.message === '')
-    return text.requestFailed(error.status);
-  return UNREACHABLE_PATTERN.test(error.message) ? text.unreachable : error.message;
+    {
+      return text.requestFailed(error.status);
+    }
+  if (UNREACHABLE_PATTERN.test(error.message)) {
+    return text.unreachable;
+  }
+  return error.message;
 }

@@ -9,10 +9,15 @@ export function detectInLine(line: ParsedLine): AttackHit[] {
   const decoded = decodeForMatching(line.raw);
   const target = requestTarget(line.raw, line.fields);
   const matching = SIGNATURES.filter((signature) => {
-    const subject = signature.scope === 'request' ? target : decoded;
+    let subject: string | null = decoded;
+    if (signature.scope === 'request') {
+      subject = target;
+    }
     return subject !== null && signature.pattern.test(subject);
   });
-  if (matching.length === 0) return [];
+  if (matching.length === 0) {
+    return [];
+  }
   const address = extractAddress(line.raw, line.fields);
   return matching.map((signature) => ({
     lineIndex: line.index,

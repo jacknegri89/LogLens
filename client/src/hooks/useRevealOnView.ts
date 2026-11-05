@@ -8,7 +8,9 @@ import { useLayoutEffect, type RefObject } from 'react';
 export function useRevealOnView(elementRef: RefObject<HTMLElement | null>, threshold = 0.25) {
   useLayoutEffect(() => {
     const element = elementRef.current;
-    if (!element || element.dataset.reveal === 'playing') return;
+    if (!element || element.dataset.reveal === 'playing') {
+      return;
+    }
     if (typeof IntersectionObserver === 'undefined') {
       element.dataset.reveal = 'playing';
       return;
@@ -16,7 +18,9 @@ export function useRevealOnView(elementRef: RefObject<HTMLElement | null>, thres
     element.dataset.reveal = 'waiting';
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting) return;
+        if (!entry.isIntersecting) {
+          return;
+        }
         element.dataset.reveal = 'playing';
         observer.disconnect();
       },

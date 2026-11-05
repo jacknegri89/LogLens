@@ -174,6 +174,17 @@ describe('cron script', () => {
   it('runs on the schedule of the window', () => {
     expect(generateAlert('cron', { ...BASE, windowMinutes: 15 })).toContain('*/15 * * * *');
   });
+
+  it('keeps its state in an owned private directory and refuses symlinks', () => {
+    expect(script).toContain(
+      'STATE_DIR="${HOME:?HOME must point to a private home directory}/.loglens-alert"',
+    );
+    expect(script).toContain('mkdir -p -m 700 -- "$STATE_DIR"');
+    expect(script).toContain('[ -L "$STATE_DIR" ]');
+    expect(script).toContain('[ -L "$STATE_FILE" ]');
+    expect(script).toContain('$(stat -c %u "$STATE_DIR")');
+    expect(script).toContain('$(stat -c %a "$STATE_DIR")');
+  });
 });
 
 describe.each(ADVERSARIAL_PATTERNS)('adversarial pattern %j', (rawPattern) => {

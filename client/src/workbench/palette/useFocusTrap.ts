@@ -9,8 +9,16 @@ function wrapTarget(container: HTMLElement, backwards: boolean): HTMLElement | n
   const first = focusable[0] ?? container;
   const last = focusable[focusable.length - 1] ?? container;
   const active = document.activeElement;
-  if (backwards) return active === first || !container.contains(active) ? last : null;
-  return active === last || !container.contains(active) ? first : null;
+  if (backwards) {
+    if (active === first || !container.contains(active)) {
+      return last;
+    }
+    return null;
+  }
+  if (active === last || !container.contains(active)) {
+    return first;
+  }
+  return null;
 }
 
 /** Keeps Tab inside the container while it is mounted and gives focus back to where it came from. */
@@ -19,16 +27,22 @@ export function useFocusTrap(containerRef: RefObject<HTMLElement | null>): void 
     const container = containerRef.current;
     const opener = document.activeElement;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== 'Tab' || !container) return;
+      if (event.key !== 'Tab' || !container) {
+        return;
+      }
       const target = wrapTarget(container, event.shiftKey);
-      if (!target) return;
+      if (!target) {
+        return;
+      }
       event.preventDefault();
       target.focus();
     }
     document.addEventListener('keydown', onKeyDown);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      if (opener instanceof HTMLElement) opener.focus();
+      if (opener instanceof HTMLElement) {
+        opener.focus();
+      }
     };
   }, [containerRef]);
 }

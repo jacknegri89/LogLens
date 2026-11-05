@@ -16,19 +16,27 @@ function leftZone(event: ZoneEvent): boolean {
 function createDropZone(setDragging: DraggingSetter, onFileDrop: FileHandler) {
   return {
     onDragOver: (event: ZoneEvent) => {
-      if (!carriesFiles(event)) return;
+      if (!carriesFiles(event)) {
+        return;
+      }
       event.preventDefault();
       setDragging(true);
     },
     onDragLeave: (event: ZoneEvent) => {
-      if (leftZone(event)) setDragging(false);
+      if (leftZone(event)) {
+        setDragging(false);
+      }
     },
     onDrop: (event: ZoneEvent) => {
-      if (!carriesFiles(event)) return;
+      if (!carriesFiles(event)) {
+        return;
+      }
       event.preventDefault();
       setDragging(false);
       const file = event.dataTransfer.files?.[0];
-      if (file) onFileDrop(file);
+      if (file) {
+        onFileDrop(file);
+      }
     },
   };
 }

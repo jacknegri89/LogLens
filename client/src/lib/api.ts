@@ -67,6 +67,9 @@ async function createAnalysis(input: CreateAnalysisInput, signal?: AbortSignal) 
     body: JSON.stringify(input),
     signal,
   });
+  if (signal?.aborted) {
+    throw new DOMException('Aborted', 'AbortError');
+  }
   saveLocalAnalysis(record);
   return record;
 }
@@ -78,7 +81,9 @@ async function listAnalyses(): Promise<AnalysisList> {
     return { items: await request<AnalysisSummary[]>('/api/analyses'), offline: false };
   } catch (failure) {
     const items = listLocalAnalyses();
-    if (!isServerUnreachable(failure) || items.length === 0) throw failure;
+    if (!isServerUnreachable(failure) || items.length === 0) {
+      throw failure;
+    }
     return { items, offline: true };
   }
 }
@@ -87,29 +92,37 @@ async function getAnalysis(id: string): Promise<LoadedAnalysis> {
   try {
     return { analysis: await request<AnalysisRecord>(`/api/analyses/${id}`), offline: false };
   } catch (failure) {
-    const analysis = isServerUnreachable(failure) ? getLocalAnalysis(id) : null;
-    if (!analysis) throw failure;
+    let analysis: AnalysisRecord | null = null;
+    if (isServerUnreachable(failure)) {
+      analysis = getLocalAnalysis(id);
+    }
+    if (!analysis) {
+      throw failure;
+    }
     return { analysis, offline: true };
   }
 }
 
-// The local copy goes whatever the server answers: the visitor asked for it to be gone.
+// Keep the local copy until the server confirms the deletion, so it can be retried offline.
 async function deleteAnalysis(id: string) {
   try {
-    return await request<{ deleted: number }>(`/api/analyses/${encodeURIComponent(id)}`, {
+    const result = await request<{ deleted: number }>(`/api/analyses/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     });
-  } finally {
     removeLocalAnalysis(id);
+    return result;
+  } catch (failure) {
+    if (failure instanceof RequestError && failure.status === 404) {
+      removeLocalAnalysis(id);
+    }
+    throw failure;
   }
 }
 
 async function deleteAnalyses() {
-  try {
-    return await request<{ deleted: number }>('/api/analyses', { method: 'DELETE' });
-  } finally {
-    clearLocalAnalyses();
-  }
+  const result = await request<{ deleted: number }>('/api/analyses', { method: 'DELETE' });
+  clearLocalAnalyses();
+  return result;
 }
 
 export const api = {

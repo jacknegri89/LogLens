@@ -4,8 +4,13 @@ export type AlertSeverity = 'critical' | 'warning' | 'info';
 
 /** The three levels every alerting tool understands. */
 export function alertSeverity(severity: Severity): AlertSeverity {
-  if (severity === 'critical' || severity === 'high') return 'critical';
-  return severity === 'medium' ? 'warning' : 'info';
+  if (severity === 'critical' || severity === 'high') {
+    return 'critical';
+  }
+  if (severity === 'medium') {
+    return 'warning';
+  }
+  return 'info';
 }
 
 interface Interval {

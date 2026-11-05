@@ -13,8 +13,10 @@ import { PrismaClient } from '../generated/prisma/client';
  */
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-const logLevels: ('query' | 'warn' | 'error')[] =
-  env.NODE_ENV === 'development' ? ['query', 'warn', 'error'] : ['warn', 'error'];
+const logLevels: ('query' | 'warn' | 'error')[] = ['warn', 'error'];
+if (env.NODE_ENV === 'development') {
+  logLevels.unshift('query');
+}
 
 /**
  * Prisma 7 talks to the database through a driver adapter. We pass the pooled URL

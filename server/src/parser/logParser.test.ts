@@ -34,6 +34,12 @@ describe('parseLog', () => {
     expect(result.matchedCount).toBe(0);
   });
 
+  it('preserves long leading whitespace and removes trailing whitespace', () => {
+    const input = `${' '.repeat(100_000)}x  `;
+    const result = parseLog(input, { maxLineLength: 200_000 });
+    expect(result.relevantLines[0].content).toBe(`${' '.repeat(100_000)}x`);
+  });
+
   // ── Category classification ──────────────────────────────────────────────
 
   it('classifies ERROR lines as error', () => {

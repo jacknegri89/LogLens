@@ -48,7 +48,9 @@ export function buildSignatureTable(lines: readonly ParsedLine[]): Map<string, S
     const signature = signatureOf(line);
     const entry = table.get(signature) ?? { signature, count: 0, faultCount: 0, sample: line.raw };
     entry.count += 1;
-    if (line.isFault) entry.faultCount += 1;
+    if (line.isFault) {
+      entry.faultCount += 1;
+    }
     table.set(signature, entry);
   }
   return table;
@@ -100,8 +102,13 @@ function findShifts(
   const shifts: SignatureShift[] = [];
   for (const [signature, canaryEntry] of canary) {
     const baselineEntry = baseline.get(signature);
-    if (!baselineEntry || !isBigShift(baselineEntry.count, canaryEntry.count)) continue;
-    const direction = canaryEntry.count > baselineEntry.count ? 'up' : 'down';
+    if (!baselineEntry || !isBigShift(baselineEntry.count, canaryEntry.count)) {
+      continue;
+    }
+    let direction: 'up' | 'down' = 'down';
+    if (canaryEntry.count > baselineEntry.count) {
+      direction = 'up';
+    }
     shifts.push({ ...change(canaryEntry, baselineEntry.count, canaryEntry.count), direction });
   }
   return shifts.sort(byImportance);
@@ -114,8 +121,14 @@ function onlyIn(
 ): SignatureChange[] {
   const changes: SignatureChange[] = [];
   for (const [signature, entry] of source) {
-    if (other.has(signature)) continue;
-    changes.push(fromCanary ? change(entry, 0, entry.count) : change(entry, entry.count, 0));
+    if (other.has(signature)) {
+      continue;
+    }
+    if (fromCanary) {
+      changes.push(change(entry, 0, entry.count));
+    } else {
+      changes.push(change(entry, entry.count, 0));
+    }
   }
   return changes.sort(byImportance);
 }
@@ -143,6 +156,12 @@ export function hasDifferences(result: DiffResult): boolean {
 /** The new signatures as plain text for a ticket or a chat: count, kind and template per line. */
 export function formatNewSignatures(result: DiffResult): string {
   return result.added
-    .map((item) => `${item.canaryCount}x ${item.isFault ? '[fault]' : '[info]'} ${item.signature}`)
+    .map((item) => {
+      let kind = '[info]';
+      if (item.isFault) {
+        kind = '[fault]';
+      }
+      return `${item.canaryCount}x ${kind} ${item.signature}`;
+    })
     .join('\n');
 }

@@ -12,6 +12,10 @@ interface CausesSectionProps {
 /** The report's probable causes ranked by heuristic confidence, with the reasoning open to check. */
 export function CausesSection({ confidence, explanation }: CausesSectionProps) {
   const text = useText(INSIGHTS_TEXT);
+  let content = <CauseRanking confidence={confidence} />;
+  if (confidence.causes.length === 0) {
+    content = <p className="insights-note">{text.causes.empty}</p>;
+  }
   return (
     <InsightSection title={text.sections.causes}>
       {explanation && (
@@ -19,11 +23,7 @@ export function CausesSection({ confidence, explanation }: CausesSectionProps) {
           <span className="evidence-label">{text.causes.lead}</span> {explanation}
         </p>
       )}
-      {confidence.causes.length === 0 ? (
-        <p className="insights-note">{text.causes.empty}</p>
-      ) : (
-        <CauseRanking confidence={confidence} />
-      )}
+      {content}
     </InsightSection>
   );
 }
@@ -60,6 +60,10 @@ interface CauseRowProps {
 
 function CauseRow({ rank, cause, percent }: CauseRowProps) {
   const text = useText(INSIGHTS_TEXT).causes;
+  let barLabel = text.percent(percent);
+  if (rank !== null) {
+    barLabel = text.barLabel(rank, percent);
+  }
   return (
     <li className="insights-cause" data-muted={rank === null}>
       <span className="insights-cause-rank" aria-hidden="true">
@@ -67,11 +71,7 @@ function CauseRow({ rank, cause, percent }: CauseRowProps) {
       </span>
       <p className="insights-cause-text">{cause}</p>
       <span className="insights-cause-percent">{text.percent(percent)}</span>
-      <span
-        className="insights-cause-bar"
-        role="img"
-        aria-label={rank === null ? text.percent(percent) : text.barLabel(rank, percent)}
-      >
+      <span className="insights-cause-bar" role="img" aria-label={barLabel}>
         <span style={{ width: `${percent}%` }} />
       </span>
     </li>

@@ -17,7 +17,10 @@ export type RestoreOutcome =
 let handledData: string | null = null;
 
 function codeOf(failure: unknown): PermalinkErrorCode {
-  return failure instanceof PermalinkError ? failure.code : 'unsupported';
+  if (failure instanceof PermalinkError) {
+    return failure.code;
+  }
+  return 'unsupported';
 }
 
 /** Opens `/workbench#s=...`: loads the shared log and report, or says why it cannot. */
@@ -29,7 +32,9 @@ export function usePermalinkRestore() {
 
   useEffect(() => {
     const data = readPermalinkData(hash);
-    if (data === null || data === handledData) return;
+    if (data === null || data === handledData) {
+      return;
+    }
     handledData = data;
     decodePermalinkState(data).then(
       (state) => {

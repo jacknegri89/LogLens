@@ -21,7 +21,9 @@ interface ZipEntryInfo {
 }
 
 export function isZip(bytes: Uint8Array): boolean {
-  if (bytes.length < 4 || bytes[0] !== 0x50 || bytes[1] !== 0x4b) return false;
+  if (bytes.length < 4 || bytes[0] !== 0x50 || bytes[1] !== 0x4b) {
+    return false;
+  }
   return (bytes[2] === 3 && bytes[3] === 4) || (bytes[2] === 5 && bytes[3] === 6);
 }
 
@@ -30,13 +32,17 @@ function findEndRecord(view: DataView): number {
   const last = view.byteLength - END_RECORD_SIZE;
   const first = Math.max(0, last - MAX_COMMENT_SIZE);
   for (let offset = last; offset >= first; offset -= 1) {
-    if (view.getUint32(offset, true) === END_SIGNATURE) return offset;
+    if (view.getUint32(offset, true) === END_SIGNATURE) {
+      return offset;
+    }
   }
   throw new ArchiveError('corrupt');
 }
 
 function readCentralRecord(view: DataView, offset: number) {
-  if (view.getUint32(offset, true) !== CENTRAL_SIGNATURE) throw new ArchiveError('corrupt');
+  if (view.getUint32(offset, true) !== CENTRAL_SIGNATURE) {
+    throw new ArchiveError('corrupt');
+  }
   const nameLength = view.getUint16(offset + 28, true);
   const nameStart = offset + 46;
   const nameBytes = new Uint8Array(view.buffer, view.byteOffset + nameStart, nameLength);
@@ -55,7 +61,9 @@ function readCentralRecord(view: DataView, offset: number) {
 function readDirectory(view: DataView, limits: ArchiveLimits): ZipEntryInfo[] {
   const end = findEndRecord(view);
   const count = view.getUint16(end + 10, true);
-  if (count > limits.maxEntries) throw new ArchiveError('tooManyEntries');
+  if (count > limits.maxEntries) {
+    throw new ArchiveError('tooManyEntries');
+  }
   const entries: ZipEntryInfo[] = [];
   let offset = view.getUint32(end + 16, true);
   for (let position = 0; position < count; position += 1) {
@@ -76,22 +84,34 @@ function checkDeclaredSizes(files: ZipEntryInfo[], limits: ArchiveLimits): void 
     throw new ArchiveError('unsupported');
   }
   const declared = files.reduce((sum, info) => sum + info.uncompressedSize, 0);
-  if (declared > limits.maxTotalBytes) throw new ArchiveError('tooBig');
+  if (declared > limits.maxTotalBytes) {
+    throw new ArchiveError('tooBig');
+  }
 }
 
 function compressedData(view: DataView, bytes: Uint8Array, info: ZipEntryInfo): Uint8Array {
   const at = info.localOffset;
-  if (view.getUint32(at, true) !== LOCAL_SIGNATURE) throw new ArchiveError('corrupt');
+  if (view.getUint32(at, true) !== LOCAL_SIGNATURE) {
+    throw new ArchiveError('corrupt');
+  }
   const start = at + 30 + view.getUint16(at + 26, true) + view.getUint16(at + 28, true);
   const end = start + info.compressedSize;
-  if (end > bytes.length) throw new ArchiveError('corrupt');
+  if (end > bytes.length) {
+    throw new ArchiveError('corrupt');
+  }
   return bytes.subarray(start, end);
 }
 
 async function extract(info: ZipEntryInfo, data: Uint8Array, budget: number) {
-  if (info.method === DEFLATED) return inflate(data, 'deflate-raw', budget);
-  if (info.method !== STORED) return null;
-  if (data.byteLength > budget) throw new ArchiveError('tooBig');
+  if (info.method === DEFLATED) {
+    return inflate(data, 'deflate-raw', budget);
+  }
+  if (info.method !== STORED) {
+    return null;
+  }
+  if (data.byteLength > budget) {
+    throw new ArchiveError('tooBig');
+  }
   return data;
 }
 
@@ -107,9 +127,13 @@ async function readEntries(bytes: Uint8Array, limits: ArchiveLimits): Promise<Ar
       compressedData(view, bytes, info),
       limits.maxTotalBytes - used,
     );
-    if (!content) continue;
+    if (!content) {
+      continue;
+    }
     used += content.byteLength;
-    if (!looksBinary(content)) entries.push({ name: info.name, text: decodeText(content) });
+    if (!looksBinary(content)) {
+      entries.push({ name: info.name, text: decodeText(content) });
+    }
   }
   return entries;
 }
@@ -120,6 +144,9 @@ export async function readZip(bytes: Uint8Array, limits: ArchiveLimits): Promise
     return await readEntries(bytes, limits);
   } catch (error) {
     // A DataView read past the end means the archive lies about its own layout.
-    throw error instanceof ArchiveError ? error : new ArchiveError('corrupt');
+    if (error instanceof ArchiveError) {
+      throw error;
+    }
+    throw new ArchiveError('corrupt');
   }
 }

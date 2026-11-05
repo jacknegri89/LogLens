@@ -117,9 +117,13 @@ function truncate(text: string, max: number): string {
 
 function computeSeverity(categories: Set<LineCategory>): Severity {
   const high = ['error', 'exception', 'attack', 'server-error'] as const;
-  if (high.some((category) => categories.has(category))) return 'high';
+  if (high.some((category) => categories.has(category))) {
+    return 'high';
+  }
   const medium: LineCategory[] = ['failure', 'timeout', 'waf'];
-  if (medium.some((category) => categories.has(category))) return 'medium';
+  if (medium.some((category) => categories.has(category))) {
+    return 'medium';
+  }
   return 'low';
 }
 
@@ -134,12 +138,19 @@ export function parseLog(raw: string, options: ParseOptions = {}): ParseResult {
   const nonEmpty = nonEmptyLines(raw);
   const { kept, noise } = separateNoise(nonEmpty);
   // A log made only of routine lines is analysed as it is: there is nothing else to look at.
-  const worthReading = kept.length > 0 ? kept : nonEmpty;
+  let worthReading = nonEmpty;
+  let noiseSummary: NoiseSummary = { removed: 0, byKind: {} };
+  if (kept.length > 0) {
+    worthReading = kept;
+    noiseSummary = noise;
+  }
   const matched = keepMatchingLines(worthReading, maxLineLength);
   // Keep every matching line. If none match, keep the tail instead: the actual failure
   // is often the last thing printed.
-  const candidates =
-    matched.length === 0 ? tailLines(worthReading, fallbackTailLines, maxLineLength) : matched;
+  let candidates = matched;
+  if (matched.length === 0) {
+    candidates = tailLines(worthReading, fallbackTailLines, maxLineLength);
+  }
 
   const { lines: relevant, truncated: lineCapped } = capLines(candidates, maxLines);
   const { excerpt, truncated: charCapped } = capExcerpt(relevant, maxChars);
@@ -149,7 +160,7 @@ export function parseLog(raw: string, options: ParseOptions = {}): ParseResult {
     matchedCount: matched.length,
     relevantLines: relevant,
     excerpt,
-    noise: kept.length > 0 ? noise : { removed: 0, byKind: {} },
+    noise: noiseSummary,
     severityHint: computeSeverity(new Set(relevant.map((line) => line.category))),
     truncated: lineCapped || charCapped,
   };
@@ -158,7 +169,7 @@ export function parseLog(raw: string, options: ParseOptions = {}): ParseResult {
 function nonEmptyLines(raw: string): NumberedLine[] {
   return raw
     .split(/\r?\n/)
-    .map((content, index) => ({ content: content.replace(/\s+$/, ''), lineNumber: index + 1 }))
+    .map((content, index) => ({ content: content.trimEnd(), lineNumber: index + 1 }))
     .filter((line) => line.content.trim() !== '');
 }
 
@@ -193,10 +204,15 @@ function capLines(
   lines: ParsedLine[],
   maxLines: number,
 ): { lines: ParsedLine[]; truncated: boolean } {
-  if (lines.length <= maxLines) return { lines, truncated: false };
+  if (lines.length <= maxLines) {
+    return { lines, truncated: false };
+  }
   const headCount = Math.ceil(maxLines / 2);
   const tailCount = maxLines - headCount;
-  const tail = tailCount > 0 ? lines.slice(-tailCount) : [];
+  let tail: ParsedLine[] = [];
+  if (tailCount > 0) {
+    tail = lines.slice(-tailCount);
+  }
   return { lines: [...lines.slice(0, headCount), ...tail], truncated: true };
 }
 
@@ -207,10 +223,15 @@ function capExcerpt(
   maxChars: number,
 ): { excerpt: string; truncated: boolean } {
   const excerpt = lines.map((line) => line.content).join('\n');
-  if (excerpt.length <= maxChars) return { excerpt, truncated: false };
+  if (excerpt.length <= maxChars) {
+    return { excerpt, truncated: false };
+  }
   const budget = Math.max(0, maxChars - OMITTED_MARKER.length);
   const headLength = Math.ceil(budget / 2);
   const tailLength = budget - headLength;
-  const tail = tailLength > 0 ? excerpt.slice(-tailLength) : '';
+  let tail = '';
+  if (tailLength > 0) {
+    tail = excerpt.slice(-tailLength);
+  }
   return { excerpt: excerpt.slice(0, headLength) + OMITTED_MARKER + tail, truncated: true };
 }

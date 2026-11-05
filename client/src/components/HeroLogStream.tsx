@@ -48,7 +48,9 @@ function WallColumn({ lines, flagTag }: { lines: StreamLine[]; flagTag: string }
 }
 
 function WallRow({ line, flagTag }: { line: StreamLine; flagTag: string }) {
-  if (!line.flagged) return <div className="hero-wall-line">{line.text}</div>;
+  if (!line.flagged) {
+    return <div className="hero-wall-line">{line.text}</div>;
+  }
   return (
     <div className="hero-wall-line hero-wall-flagged">
       <span className="hero-wall-tag">{flagTag}</span>

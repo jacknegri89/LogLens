@@ -4,7 +4,9 @@ import type { ClearHistoryControls } from '../hooks/useClearHistory';
 
 /** The shred button that starts clearing the history, then the question that confirms it. */
 export function ClearHistory({ history }: { history: ClearHistoryControls }) {
-  if (!history.confirming) return <ClearButton onStart={history.start} />;
+  if (!history.confirming) {
+    return <ClearButton onStart={history.start} />;
+  }
 
   return (
     <ClearConfirmation
@@ -34,13 +36,17 @@ interface ClearConfirmationProps {
 
 function ClearConfirmation({ clearing, onConfirm, onCancel }: ClearConfirmationProps) {
   const text = useText(HISTORY_TEXT);
+  let confirmationLabel = text.clearYes;
+  if (clearing) {
+    confirmationLabel = text.clearing;
+  }
   return (
     <div className="shred-row">
       <div role="group" aria-label={text.clearQuestion} className="shred-confirm">
         <p className="shred-question">{text.clearConfirm}</p>
         <div className="shred-actions">
           <button type="button" onClick={onConfirm} disabled={clearing} className="shred-button">
-            {clearing ? text.clearing : text.clearYes}
+            {confirmationLabel}
           </button>
           <button
             type="button"

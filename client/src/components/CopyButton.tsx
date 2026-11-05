@@ -12,6 +12,10 @@ interface CopyButtonProps {
 /** Copies the text to the clipboard and briefly shows that it worked. */
 export function CopyButton({ text, label, copiedLabel, className }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
+  let buttonLabel = label;
+  if (copied) {
+    buttonLabel = copiedLabel;
+  }
 
   async function onCopy() {
     try {
@@ -25,7 +29,7 @@ export function CopyButton({ text, label, copiedLabel, className }: CopyButtonPr
 
   return (
     <button type="button" onClick={onCopy} className={className}>
-      {copied ? copiedLabel : label}
+      {buttonLabel}
     </button>
   );
 }

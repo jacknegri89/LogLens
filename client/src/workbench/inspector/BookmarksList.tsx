@@ -22,11 +22,15 @@ interface BookmarkItemProps {
 
 function BookmarkItem({ index, raw, current, onJump }: BookmarkItemProps) {
   const text = useText(INSPECTOR_TEXT);
+  let ariaCurrent: 'true' | undefined;
+  if (current) {
+    ariaCurrent = 'true';
+  }
   return (
     <li>
       <button
         type="button"
-        aria-current={current ? 'true' : undefined}
+        aria-current={ariaCurrent}
         title={text.bookmarkJump(index + 1)}
         onClick={() => onJump(index)}
       >

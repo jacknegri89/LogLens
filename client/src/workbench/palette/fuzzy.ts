@@ -21,10 +21,16 @@ function subsequenceScore(query: string, text: string): number | null {
   let previousMatch = -2;
   for (const letter of query) {
     const found = text.indexOf(letter, position);
-    if (found === -1) return null;
+    if (found === -1) {
+      return null;
+    }
     score += 1;
-    if (found === previousMatch + 1) score += CONSECUTIVE_BONUS;
-    if (isWordStart(text, found)) score += WORD_START_BONUS;
+    if (found === previousMatch + 1) {
+      score += CONSECUTIVE_BONUS;
+    }
+    if (isWordStart(text, found)) {
+      score += WORD_START_BONUS;
+    }
     previousMatch = found;
     position = found + 1;
   }
@@ -38,14 +44,16 @@ function subsequenceScore(query: string, text: string): number | null {
 export function fuzzyScore(query: string, text: string): number | null {
   const wanted = normalize(query).replace(/\s+/g, '');
   const haystack = normalize(text);
-  if (wanted === '') return 0;
+  if (wanted === '') {
+    return 0;
+  }
   const direct = haystack.indexOf(normalize(query).trim());
   if (direct !== -1) {
-    return (
-      SUBSTRING_BONUS -
-      Math.min(direct, 50) +
-      (isWordStart(haystack, direct) ? WORD_START_BONUS : 0)
-    );
+    let wordStartBonus = 0;
+    if (isWordStart(haystack, direct)) {
+      wordStartBonus = WORD_START_BONUS;
+    }
+    return SUBSTRING_BONUS - Math.min(direct, 50) + wordStartBonus;
   }
   return subsequenceScore(wanted, haystack);
 }
@@ -60,15 +68,21 @@ export function rankByQuery<Item extends Searchable>(
   items: readonly Item[],
   query: string,
 ): Item[] {
-  if (query.trim() === '') return [...items];
+  if (query.trim() === '') {
+    return [...items];
+  }
   const scored = items.flatMap((item, order) => {
     const labelScore = fuzzyScore(query, item.label);
     const keywordScore = fuzzyScore(query, item.keywords);
-    const best = Math.max(
-      labelScore ?? -Infinity,
-      keywordScore === null ? -Infinity : keywordScore - 30,
-    );
-    return best === -Infinity ? [] : [{ item, best, order }];
+    let adjustedKeywordScore = -Infinity;
+    if (keywordScore !== null) {
+      adjustedKeywordScore = keywordScore - 30;
+    }
+    const best = Math.max(labelScore ?? -Infinity, adjustedKeywordScore);
+    if (best === -Infinity) {
+      return [];
+    }
+    return [{ item, best, order }];
   });
   scored.sort((left, right) => right.best - left.best || left.order - right.order);
   return scored.map((entry) => entry.item);

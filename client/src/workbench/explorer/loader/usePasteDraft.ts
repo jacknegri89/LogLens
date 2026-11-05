@@ -11,19 +11,25 @@ export function usePasteDraft(onLoaded: () => void) {
   const [draft, setDraft] = useState('');
 
   const load = (value: string) => {
-    if (value.trim() === '') return;
+    if (value.trim() === '') {
+      return;
+    }
     setLog(value, null);
     setDraft('');
     onLoaded();
   };
   const loadPasted = (event: ClipboardEvent<HTMLTextAreaElement>) => {
     const pasted = event.clipboardData.getData('text');
-    if (draft !== '' || pasted.trim() === '') return;
+    if (draft !== '' || pasted.trim() === '') {
+      return;
+    }
     event.preventDefault();
     load(pasted);
   };
   const loadOnShortcut = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== 'Enter' || !(event.ctrlKey || event.metaKey)) return;
+    if (event.key !== 'Enter' || !(event.ctrlKey || event.metaKey)) {
+      return;
+    }
     event.preventDefault();
     load(draft);
   };

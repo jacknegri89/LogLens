@@ -16,11 +16,17 @@ export function isContrastActive(): boolean {
 
 /** Turns high contrast on or off on the page and remembers the choice. */
 export function setContrastTheme(enabled: boolean): void {
-  if (enabled) document.documentElement.dataset.theme = CONTRAST;
-  else delete document.documentElement.dataset.theme;
+  if (enabled) {
+    document.documentElement.dataset.theme = CONTRAST;
+  } else {
+    delete document.documentElement.dataset.theme;
+  }
   try {
-    if (enabled) localStorage.setItem(STORAGE_KEY, CONTRAST);
-    else localStorage.removeItem(STORAGE_KEY);
+    if (enabled) {
+      localStorage.setItem(STORAGE_KEY, CONTRAST);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
   } catch {
     // Storage can be blocked; the choice then lasts until the page closes.
   }
@@ -28,5 +34,7 @@ export function setContrastTheme(enabled: boolean): void {
 
 /** Applies the saved choice when the page opens. */
 export function applyStoredTheme(): void {
-  if (isContrastStored()) document.documentElement.dataset.theme = CONTRAST;
+  if (isContrastStored()) {
+    document.documentElement.dataset.theme = CONTRAST;
+  }
 }

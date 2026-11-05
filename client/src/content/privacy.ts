@@ -47,8 +47,8 @@ export const PRIVACY_TEXT = defineText({
       {
         heading: 'How long we keep it',
         body: [
-          'Analyses, with their logs and reports, are deleted automatically 90 days after they are saved. You can delete them earlier from your history, and revoking a share link stops it from working at once.',
-          'Analysis attempts, with the hashed address, are deleted after one hour, when they no longer count towards the limits.',
+          'Analyses, with their logs and reports, become eligible for deletion after 90 days. Cleanup runs on the next scheduled daily job or qualifying request; a failed job can delay deletion. You can delete them earlier from your history, and revoking a share link stops it from working at once.',
+          'Analysis attempts stop counting after one hour. Their hashed addresses are deleted when a later analysis triggers cleanup.',
           'The copy of your history saved in your browser stays there until you clear it, from the history page or from the browser settings.',
         ],
       },
@@ -118,8 +118,8 @@ export const PRIVACY_TEXT = defineText({
       {
         heading: 'Per quanto tempo li conserviamo',
         body: [
-          'Le analisi, con log e report, vengono cancellate automaticamente 90 giorni dopo il salvataggio. Puoi cancellarle prima dalla cronologia, e revocare un link di condivisione lo rende subito inaccessibile.',
-          'I tentativi di analisi, con l’hash dell’indirizzo, vengono cancellati dopo un’ora, quando non contano più ai fini dei limiti.',
+          'Le analisi, con log e report, diventano eliminabili dopo 90 giorni. La pulizia avviene alla successiva esecuzione giornaliera o richiesta che la attiva; un errore può ritardarla. Puoi cancellarle prima dalla cronologia, e revocare un link di condivisione lo rende subito inaccessibile.',
+          'I tentativi di analisi non contano più dopo un’ora. Gli hash degli indirizzi vengono cancellati quando una successiva analisi avvia la pulizia.',
           'La copia della cronologia salvata nel browser resta lì finché non la cancelli dalla pagina della cronologia o dalle impostazioni del browser.',
         ],
       },

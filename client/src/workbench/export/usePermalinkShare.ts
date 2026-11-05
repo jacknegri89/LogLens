@@ -14,7 +14,10 @@ export type ShareStatus =
   | { kind: 'failed'; code: PermalinkErrorCode };
 
 function codeOf(failure: unknown): PermalinkErrorCode {
-  return failure instanceof PermalinkError ? failure.code : 'unsupported';
+  if (failure instanceof PermalinkError) {
+    return failure.code;
+  }
+  return 'unsupported';
 }
 
 /** Builds the share link of the loaded log; the log is anonymized before it goes into the link. */
@@ -36,7 +39,9 @@ export function usePermalinkShare() {
   }, [language, rawLog, analysis.record]);
 
   // A link built for another log would mislead, so it is hidden when the log changes.
-  const visible =
-    status.kind === 'ready' && status.forLog !== rawLog ? { kind: 'idle' as const } : status;
+  let visible: ShareStatus = status;
+  if (status.kind === 'ready' && status.forLog !== rawLog) {
+    visible = { kind: 'idle' };
+  }
   return { status: visible, create };
 }

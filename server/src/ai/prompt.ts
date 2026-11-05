@@ -78,7 +78,9 @@ const NOISE_LABELS: Record<NoiseKind, string> = {
 
 /** One sentence that tells the model what was taken out, so it can report it without reading it. */
 export function describeNoise(noise: NoiseSummary | undefined): string {
-  if (!noise || noise.removed === 0) return 'No routine noise was removed.';
+  if (!noise || noise.removed === 0) {
+    return 'No routine noise was removed.';
+  }
   const kinds = (Object.keys(noise.byKind) as NoiseKind[])
     .map((kind) => `${noise.byKind[kind]} ${NOISE_LABELS[kind]}`)
     .join(', ');

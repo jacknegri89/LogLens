@@ -1,9 +1,12 @@
+import { z } from 'zod';
+
 import { env } from '../../config/env';
 import { AppError } from '../../middleware/errorHandler';
 import type { AIProvider, AnalyzeInput } from '../AIProvider';
 import { guardReport } from '../guardReport';
 import { parseReport } from '../parseReport';
 import { buildSystemPrompt, buildUserPrompt } from '../prompt';
+import { readJsonResponse } from '../readJsonResponse';
 import type { AIReport } from '../schema';
 
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
@@ -12,6 +15,9 @@ const OPENAI_TEMPERATURE = 0.2;
 const OPENAI_TIMEOUT_MS = 20_000;
 /* The answer is billed per token; a cap stops a log from asking the model for a long one. */
 const OPENAI_MAX_TOKENS = 2500;
+const OPENAI_ENVELOPE = z.object({
+  choices: z.array(z.object({ message: z.object({ content: z.string() }) })).min(1),
+});
 
 /**
  * Talks to the OpenAI Chat Completions API using the built-in `fetch` (no SDK
@@ -25,11 +31,21 @@ export class OpenAIProvider implements AIProvider {
     const response = await postChatCompletion(input);
 
     if (!response.ok) {
+      void response.body?.cancel().catch(() => undefined);
       throw new AppError(502, `OpenAI request failed (${response.status}).`);
     }
 
-    const data = (await response.json()) as { choices?: { message?: { content?: string } }[] };
-    return guardReport(parseReport(data.choices?.[0]?.message?.content ?? ''), input);
+    let data: unknown;
+    try {
+      data = await readJsonResponse(response);
+    } catch (error) {
+      rethrowTimeout(error);
+    }
+    const parsed = OPENAI_ENVELOPE.safeParse(data);
+    if (!parsed.success) {
+      throw new AppError(502, 'The AI service returned an invalid response.');
+    }
+    return guardReport(parseReport(parsed.data.choices[0].message.content), input);
   }
 }
 

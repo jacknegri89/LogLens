@@ -17,7 +17,9 @@ function createFakeTimers() {
   };
   function fireNext(): number | null {
     const first = [...pending.entries()][0];
-    if (!first) return null;
+    if (!first) {
+      return null;
+    }
     pending.delete(first[0]);
     first[1].callback();
     return first[1].delayMs;

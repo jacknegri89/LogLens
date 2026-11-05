@@ -7,8 +7,12 @@ import { LAB_TEXT, LIVE_TAIL_TEXT } from './workbenchLab';
 
 /** The shape of a value: objects by key, functions and strings by kind. */
 function shapeOf(value: unknown): unknown {
-  if (typeof value === 'function') return 'function';
-  if (typeof value === 'string') return 'string';
+  if (typeof value === 'function') {
+    return 'function';
+  }
+  if (typeof value === 'string') {
+    return 'string';
+  }
   if (value && typeof value === 'object') {
     return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, shapeOf(inner)]));
   }
@@ -16,7 +20,9 @@ function shapeOf(value: unknown): unknown {
 }
 
 function stringsOf(value: unknown, path: string): Array<[string, string]> {
-  if (typeof value === 'string') return [[path, value]];
+  if (typeof value === 'string') {
+    return [[path, value]];
+  }
   if (value && typeof value === 'object') {
     return Object.entries(value).flatMap(([key, inner]) => stringsOf(inner, `${path}.${key}`));
   }

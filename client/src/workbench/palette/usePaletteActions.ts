@@ -39,7 +39,9 @@ export function usePaletteActions(): PaletteActions {
       // The badge that reports the result lives on the Workbench page.
       scrub: () => {
         navigate('/workbench');
-        if (canScrub) scrub();
+        if (canScrub) {
+          scrub();
+        }
       },
       clear: () => setLog(''),
     },

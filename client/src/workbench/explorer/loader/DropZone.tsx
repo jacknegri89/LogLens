@@ -14,10 +14,14 @@ interface DropZoneProps {
 export function DropZone({ onFile, reading, dragging }: DropZoneProps) {
   const text = useText(WORKBENCH_EXPLORER_TEXT).loader;
   const inputRef = useRef<HTMLInputElement>(null);
+  let title = text.dropTitle;
+  if (dragging) {
+    title = text.dropActive;
+  }
 
   return (
     <div className="wbx-drop" data-active={dragging || undefined}>
-      <p className="wbx-drop-title">{dragging ? text.dropActive : text.dropTitle}</p>
+      <p className="wbx-drop-title">{title}</p>
       <p className="wbx-drop-hint">{text.dropHint}</p>
       <div className="wbx-drop-actions">
         <button
@@ -28,7 +32,7 @@ export function DropZone({ onFile, reading, dragging }: DropZoneProps) {
           {text.chooseFile}
         </button>
         <span role="status" className="wbx-drop-status">
-          {reading ? text.reading : ''}
+          {reading && text.reading}
         </span>
       </div>
       <input
@@ -40,7 +44,9 @@ export function DropZone({ onFile, reading, dragging }: DropZoneProps) {
         aria-hidden="true"
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) onFile(file);
+          if (file) {
+            onFile(file);
+          }
           // Lets the same file be picked again.
           event.target.value = '';
         }}

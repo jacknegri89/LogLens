@@ -11,7 +11,9 @@ export function clientAddress(
   socketAddress: string,
   trustProxy: boolean,
 ): string {
-  if (!trustProxy || !forwardedFor) return socketAddress;
+  if (!trustProxy || !forwardedFor) {
+    return socketAddress;
+  }
   const entries = forwardedFor
     .split(',')
     .map((entry) => entry.trim())

@@ -3,6 +3,7 @@ import { useId } from 'react';
 import { SECURITY_TEXT } from '../../content/workbenchSecurity';
 import { useText } from '../../i18n/useText';
 import { useWorkbench } from '../core/useWorkbench';
+import { findLinePosition } from '../inspector/linePosition';
 import type { AttackGroup } from './scan/types';
 
 /** One kind of attack: what it is, how serious, who sent it and a few lines to click. */
@@ -37,7 +38,9 @@ export function AttackGroupCard({ group }: { group: AttackGroup }) {
 
 function TopAddresses({ group }: { group: AttackGroup }) {
   const text = useText(SECURITY_TEXT).panel;
-  if (group.topAddresses.length === 0) return <p className="sec-muted">{text.noAddress}</p>;
+  if (group.topAddresses.length === 0) {
+    return <p className="sec-muted">{text.noAddress}</p>;
+  }
 
   return (
     <div>
@@ -70,7 +73,7 @@ function SampleLines({ group }: { group: AttackGroup }) {
               className="sec-sample"
             >
               <span className="sec-sample-number">{index + 1}</span>
-              <span className="sec-sample-text">{lines[index]?.raw}</span>
+              <span className="sec-sample-text">{lines[findLinePosition(lines, index)]?.raw}</span>
             </button>
           </li>
         ))}

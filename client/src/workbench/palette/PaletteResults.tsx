@@ -23,9 +23,18 @@ export function PaletteResults({
   onRun,
 }: PaletteResultsProps) {
   const text = useText(PALETTE_TEXT);
-  const activeId = active >= 0 ? `${listId}-${flat[active].id}` : null;
+  let activeId: string | null = null;
+  if (active >= 0) {
+    activeId = `${listId}-${flat[active].id}`;
+  }
+  let resultMessage = text.noResults;
+  if (flat.length !== 0) {
+    resultMessage = text.results(flat.length);
+  }
   useEffect(() => {
-    if (activeId) document.getElementById(activeId)?.scrollIntoView({ block: 'nearest' });
+    if (activeId) {
+      document.getElementById(activeId)?.scrollIntoView({ block: 'nearest' });
+    }
   }, [activeId]);
 
   return (
@@ -57,7 +66,7 @@ export function PaletteResults({
         {flat.length === 0 && <p className="pal-empty">{text.noResults}</p>}
       </div>
       <p role="status" className="sr-only">
-        {flat.length === 0 ? text.noResults : text.results(flat.length)}
+        {resultMessage}
       </p>
     </>
   );

@@ -21,7 +21,9 @@ export function findTokens(text: string): DecodedToken[] {
   const kept: DecodedToken[] = [];
   for (const find of FINDERS) {
     for (const token of find(scanned)) {
-      if (!kept.some((other) => overlaps(other, token))) kept.push(token);
+      if (!kept.some((other) => overlaps(other, token))) {
+        kept.push(token);
+      }
     }
   }
   return kept.sort((first, second) => first.start - second.start);
@@ -34,7 +36,9 @@ export function findLineTokens(line: ParsedLine): DecodedToken[] {
   const fromFields: DecodedToken[] = [];
   for (const [key, value] of Object.entries(line.fields)) {
     for (const token of findTokens(value)) {
-      if (seen.has(token.source)) continue;
+      if (seen.has(token.source)) {
+        continue;
+      }
       seen.add(token.source);
       fromFields.push({ ...token, id: `field-${key}-${token.id}`, start: -1, end: -1 });
     }
@@ -52,11 +56,17 @@ export function splitSegments(text: string, tokens: readonly DecodedToken[]): Li
   const segments: LineSegment[] = [];
   let cursor = 0;
   for (const token of tokens) {
-    if (token.start < cursor || token.end > text.length) continue;
-    if (token.start > cursor) segments.push({ text: text.slice(cursor, token.start), token: null });
+    if (token.start < cursor || token.end > text.length) {
+      continue;
+    }
+    if (token.start > cursor) {
+      segments.push({ text: text.slice(cursor, token.start), token: null });
+    }
     segments.push({ text: text.slice(token.start, token.end), token });
     cursor = token.end;
   }
-  if (cursor < text.length) segments.push({ text: text.slice(cursor), token: null });
+  if (cursor < text.length) {
+    segments.push({ text: text.slice(cursor), token: null });
+  }
   return segments;
 }

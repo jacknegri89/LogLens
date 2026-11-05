@@ -9,6 +9,13 @@ export function ScrubButton() {
   const text = useText(SECURITY_TEXT).scrub;
   const { scrub, undo, canScrub, result } = useScrubLog();
   const replaced = result !== null && result.occurrences > 0;
+  let resultText = '';
+  if (result !== null) {
+    resultText = text.nothing;
+    if (replaced) {
+      resultText = text.done(result.occurrences);
+    }
+  }
 
   return (
     <div className="sec-scrub">
@@ -22,7 +29,7 @@ export function ScrubButton() {
         {text.button}
       </button>
       <span role="status" className="sec-scrub-badge" data-empty={result === null}>
-        {result !== null && (replaced ? text.done(result.occurrences) : text.nothing)}
+        {resultText}
       </span>
       {replaced && (
         <button type="button" onClick={undo} title={text.undoHint} className="sec-scrub-undo">

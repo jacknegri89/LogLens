@@ -8,8 +8,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('/react-dom/') || id.includes('/react/')) return 'vendor';
-          if (id.includes('/react-router')) return 'router';
+          if (id.includes('/react-dom/') || id.includes('/react/')) {
+            return 'vendor';
+          }
+          if (id.includes('/react-router')) {
+            return 'router';
+          }
         },
       },
     },

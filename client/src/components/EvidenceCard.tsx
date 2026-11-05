@@ -18,13 +18,13 @@ interface EvidenceCardProps {
 export function EvidenceCard({ entry, index, rootIndex }: EvidenceCardProps) {
   const text = useText(REPORT_TEXT);
   const pinned = entry.role !== 'independent';
+  let decoration = <span className="tape tape-top" aria-hidden="true" />;
+  if (pinned) {
+    decoration = <span className="pin" data-pin={index} aria-hidden="true" />;
+  }
   return (
     <li className="report-evidence evidence-card" data-role={entry.role}>
-      {pinned ? (
-        <span className="pin" data-pin={index} aria-hidden="true" />
-      ) : (
-        <span className="tape tape-top" aria-hidden="true" />
-      )}
+      {decoration}
       <p className="report-evidence-top">
         <span className="evidence-tag">{text.evidenceTag(index)}</span>
         {entry.time && <span className="report-evidence-time">{entry.time}</span>}

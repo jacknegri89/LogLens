@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   fetchModels,
@@ -15,7 +15,11 @@ function streamOf(...chunks: (string | Uint8Array)[]): ReadableStream<Uint8Array
   return new ReadableStream({
     start(controller) {
       for (const chunk of chunks) {
-        controller.enqueue(typeof chunk === 'string' ? encoder.encode(chunk) : chunk);
+        if (typeof chunk === 'string') {
+          controller.enqueue(encoder.encode(chunk));
+        } else {
+          controller.enqueue(chunk);
+        }
       }
       controller.close();
     },
@@ -119,6 +123,19 @@ describe('fetchModels', () => {
 });
 
 describe('readTokens', () => {
+  it('rejects an oversized response and cancels the stream', async () => {
+    let cancelled = false;
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(2 * 1024 * 1024 + 1));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    await expect(collect(readTokens(body))).rejects.toMatchObject({ reason: 'stream' });
+    expect(cancelled).toBe(true);
+  });
   it('yields the text of each line as it arrives', async () => {
     const body = streamOf(line('Hel'), line('lo'), line('', true));
     await expect(collect(readTokens(body))).resolves.toEqual(['Hel', 'lo']);
@@ -150,6 +167,26 @@ describe('readTokens', () => {
 
 describe('streamChat', () => {
   const messages = [{ role: 'user' as const, content: 'hi' }];
+
+  it('aborts a request that exceeds its time limit', async () => {
+    vi.useFakeTimers();
+    try {
+      const stalled = ((_url: string, init: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () =>
+            reject(new DOMException('Aborted', 'AbortError')),
+          );
+        })) as typeof fetch;
+      const result = collect(
+        streamChat({ baseUrl: 'http://x', model: 'm', messages, fetchImpl: stalled }),
+      );
+      const assertion = expect(result).rejects.toMatchObject({ reason: 'stream' });
+      await vi.advanceTimersByTimeAsync(180_000);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
   it('posts the model and messages with stream enabled and yields the answer', async () => {
     let seen: { url: string; init: RequestInit } | null = null;

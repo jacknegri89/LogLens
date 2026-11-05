@@ -66,12 +66,17 @@ const PAYMENT: Voice = {
     ]),
   warning: (random, progress) =>
     `payment provider latency ${Math.round(900 + progress * 3200 + random() * 300)}ms, retrying`,
-  error: (random, progress) =>
-    pick(random, [
+  error: (random, progress) => {
+    let finalMessage = 'retry 3/3 exhausted';
+    if (progress > 0.9) {
+      finalMessage = 'circuit breaker open for payments.example.com';
+    }
+    return pick(random, [
       `upstream timeout after ${between(random, 5000, 6000)}ms calling payments.example.com`,
       `charge failed for order ${between(random, 40000, 49999)}: provider timeout`,
-      progress > 0.9 ? 'circuit breaker open for payments.example.com' : 'retry 3/3 exhausted',
-    ]),
+      finalMessage,
+    ]);
+  },
   fatal: 'all payment providers unreachable, checkout cannot continue, shutting down',
 };
 
@@ -124,15 +129,43 @@ const VOICES: Record<ScenarioKind, Voice> = {
 /** Early on the stream is quiet, later it warns, and near the end it mostly errors. */
 function chooseLevel(random: Random, progress: number): Level {
   const roll = random();
-  if (progress < 0.4) return roll < 0.08 ? 'WARN' : roll < 0.4 ? 'DEBUG' : 'INFO';
-  if (progress < 0.75)
-    return roll < 0.3 ? 'WARN' : roll < 0.4 ? 'ERROR' : roll < 0.65 ? 'INFO' : 'DEBUG';
-  return roll < 0.5 ? 'ERROR' : roll < 0.8 ? 'WARN' : 'INFO';
+  if (progress < 0.4) {
+    if (roll < 0.08) {
+      return 'WARN';
+    }
+    if (roll < 0.4) {
+      return 'DEBUG';
+    }
+    return 'INFO';
+  }
+  if (progress < 0.75) {
+    if (roll < 0.3) {
+      return 'WARN';
+    }
+    if (roll < 0.4) {
+      return 'ERROR';
+    }
+    if (roll < 0.65) {
+      return 'INFO';
+    }
+    return 'DEBUG';
+  }
+  if (roll < 0.5) {
+    return 'ERROR';
+  }
+  if (roll < 0.8) {
+    return 'WARN';
+  }
+  return 'INFO';
 }
 
 function messageFor(voice: Voice, level: Level, random: Random, progress: number): string {
-  if (level === 'WARN') return voice.warning(random, progress);
-  if (level === 'ERROR') return voice.error(random, progress);
+  if (level === 'WARN') {
+    return voice.warning(random, progress);
+  }
+  if (level === 'ERROR') {
+    return voice.error(random, progress);
+  }
   return voice.noise(random, progress);
 }
 

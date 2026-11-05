@@ -25,28 +25,46 @@ export function splitLines(excerpt: string): string[] {
 }
 
 function normaliseZone(zone: string | undefined): string {
-  if (!zone) return 'Z';
-  return zone.length === 5 ? `${zone.slice(0, 3)}:${zone.slice(3)}` : zone;
+  if (!zone) {
+    return 'Z';
+  }
+  if (zone.length === 5) {
+    return `${zone.slice(0, 3)}:${zone.slice(3)}`;
+  }
+  return zone;
 }
 
 function parseIsoTime(value: string): EventTime | null {
   const match = ISO_TIME.exec(value);
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
   const [, date, clock, fraction, zone] = match;
-  const milliseconds = fraction ? `.${fraction.slice(0, 3).padEnd(3, '0')}` : '';
+  let milliseconds = '';
+  if (fraction) {
+    milliseconds = `.${fraction.slice(0, 3).padEnd(3, '0')}`;
+  }
   const epochMs = Date.parse(`${date}T${clock}${milliseconds}${normaliseZone(zone)}`);
-  return { clock, date, epochMs: Number.isNaN(epochMs) ? null : epochMs };
+  if (Number.isNaN(epochMs)) {
+    return { clock, date, epochMs: null };
+  }
+  return { clock, date, epochMs };
 }
 
 /** Syslog and bare clock times have no year, so they are shown but never used to reorder lines. */
 function parseClockTime(value: string): EventTime | null {
   const clock = CLOCK_TIME.exec(value)?.[0];
-  return clock ? { clock, date: null, epochMs: null } : null;
+  if (clock) {
+    return { clock, date: null, epochMs: null };
+  }
+  return null;
 }
 
 function parseEventTime(line: string): EventTime | null {
   const field = extractLineFields(line).find((entry) => entry.startsWith('time '));
-  if (!field) return null;
+  if (!field) {
+    return null;
+  }
   const value = field.slice('time '.length);
   return parseIsoTime(value) ?? parseClockTime(value);
 }
@@ -54,7 +72,10 @@ function parseEventTime(line: string): EventTime | null {
 /** A finding that is not found in the excerpt goes after the real lines, in the order given. */
 function locateLine(lines: string[], finding: Finding, position: number): number {
   const index = lines.findIndex((line) => line.startsWith(finding.evidence));
-  return index >= 0 ? index : lines.length + position;
+  if (index >= 0) {
+    return index;
+  }
+  return lines.length + position;
 }
 
 function epochOf(event: TimelineEvent): number {
@@ -69,7 +90,10 @@ function sortChronologically(events: TimelineEvent[]): TimelineEvent[] {
   const allDated = events.every((event) => event.time?.epochMs != null);
   const byLine = (a: TimelineEvent, b: TimelineEvent) => a.lineIndex - b.lineIndex;
   const byTime = (a: TimelineEvent, b: TimelineEvent) => epochOf(a) - epochOf(b) || byLine(a, b);
-  return [...events].sort(allDated ? byTime : byLine);
+  if (allDated) {
+    return [...events].sort(byTime);
+  }
+  return [...events].sort(byLine);
 }
 
 export function buildTimeline(lines: string[], findings: Finding[]): TimelineEvent[] {
@@ -83,10 +107,15 @@ export function buildTimeline(lines: string[], findings: Finding[]): TimelineEve
 
 /** Cuts at the last whole word that fits, so a sentence never ends in half a word. */
 export function shortenText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
+  if (text.length <= maxLength) {
+    return text;
+  }
   const room = text.slice(0, maxLength - 3);
   const lastSpace = room.lastIndexOf(' ');
-  const kept = lastSpace > maxLength / 2 ? room.slice(0, lastSpace) : room;
+  let kept = room;
+  if (lastSpace > maxLength / 2) {
+    kept = room.slice(0, lastSpace);
+  }
   return `${kept}...`;
 }
 
@@ -98,8 +127,13 @@ function needsDate(events: TimelineEvent[]): boolean {
 
 function timeLabel(event: TimelineEvent, withDate: boolean): string {
   const { time } = event;
-  if (!time) return '';
-  return withDate && time.date ? `${time.date} ${time.clock} ` : `${time.clock} `;
+  if (!time) {
+    return '';
+  }
+  if (withDate && time.date) {
+    return `${time.date} ${time.clock} `;
+  }
+  return `${time.clock} `;
 }
 
 /** "09:14:07 connect ECONNREFUSED 10.0.2.15:5432 (Database)": one event as a short phrase. */
