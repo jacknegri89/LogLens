@@ -57,7 +57,12 @@ function readReport(record: AnalysisRecord, lines: ParsedLine[]): ReportInsights
 export function useInsightsModel(): InsightsModel {
   const { lines, analysis } = useWorkbench();
   const record = analysis.record;
-  const report = useMemo(() => (record ? readReport(record, lines) : null), [record, lines]);
+  const report = useMemo(() => {
+    if (record) {
+      return readReport(record, lines);
+    }
+    return null;
+  }, [record, lines]);
   const topology = useMemo(() => buildTopology(lines, record), [lines, record]);
   const flameTree = useMemo(() => buildFlameTree(lines), [lines]);
   const latency = useMemo(() => summarizeLatency(collectLatencies(lines)), [lines]);

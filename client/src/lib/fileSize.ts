@@ -8,6 +8,9 @@ export function formatFileSize(bytes: number): string {
     value /= 1024;
     unit += 1;
   }
-  const digits = unit === 0 || value >= 100 ? 0 : 1;
+  let digits = 1;
+  if (unit === 0 || value >= 100) {
+    digits = 0;
+  }
   return `${value.toFixed(digits)} ${UNITS[unit]}`;
 }

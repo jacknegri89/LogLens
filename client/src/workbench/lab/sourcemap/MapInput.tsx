@@ -61,7 +61,9 @@ function MapActions({ draft, onLoadDraft, onFile }: MapInputProps) {
         onChange={(event) => {
           const file = event.target.files?.[0];
           event.target.value = '';
-          if (file) onFile(file);
+          if (file) {
+            onFile(file);
+          }
         }}
       />
     </div>
@@ -71,15 +73,19 @@ function MapActions({ draft, onLoadDraft, onFile }: MapInputProps) {
 function MapStatus({ loaded, fileProblem }: Pick<MapInputProps, 'loaded' | 'fileProblem'>) {
   const text = useText(LAB_TEXT).sourceMaps;
   if (fileProblem) {
-    const message =
-      fileProblem === 'tooBig' ? text.mapTooBig(MAX_MAP_FILE_MEGABYTES) : text.mapUnreadable;
+    let message = text.mapUnreadable;
+    if (fileProblem === 'tooBig') {
+      message = text.mapTooBig(MAX_MAP_FILE_MEGABYTES);
+    }
     return (
       <p role="alert" className="lab-problem">
         {message}
       </p>
     );
   }
-  if (!loaded) return null;
+  if (!loaded) {
+    return null;
+  }
   if (!loaded.parsed.ok) {
     return (
       <p role="alert" className="lab-problem">

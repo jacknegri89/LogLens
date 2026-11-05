@@ -21,10 +21,9 @@ export function RegexLab() {
         onFlag={lab.toggleFlag}
         onExtractor={lab.toggleExtractor}
       />
-      {lab.lines.length === 0 ? (
-        <p className="lab-empty">{text.noLog}</p>
-      ) : (
-        <RegexStatus build={lab.build} snapshot={lab.snapshot} />
+      {lab.lines.length === 0 && <p className="lab-empty">{text.noLog}</p>}
+      {lab.lines.length > 0 && (
+        <RegexStatus build={lab.build} snapshot={lab.snapshot} failed={lab.failed} />
       )}
       {lab.snapshot && lab.snapshot.matchedLineCount > 0 && (
         <div className="lab-columns">
@@ -42,11 +41,19 @@ export function RegexLab() {
 interface RegexStatusProps {
   build: ReturnType<typeof useRegexLab>['build'];
   snapshot: ScanSnapshot | null;
+  failed: boolean;
 }
 
 /** One line under the controls: the problem with the pattern, or how the search is going. */
-function RegexStatus({ build, snapshot }: RegexStatusProps) {
+function RegexStatus({ build, snapshot, failed }: RegexStatusProps) {
   const text = useText(LAB_TEXT).regex;
+  if (failed) {
+    return (
+      <p role="alert" className="lab-problem">
+        {text.scanFailed}
+      </p>
+    );
+  }
   if (build.status === 'invalid') {
     return (
       <p role="alert" className="lab-problem">
@@ -61,7 +68,9 @@ function RegexStatus({ build, snapshot }: RegexStatusProps) {
       </p>
     );
   }
-  if (build.status === 'empty' || !snapshot) return null;
+  if (build.status === 'empty' || !snapshot) {
+    return null;
+  }
   return <ScanStatus snapshot={snapshot} />;
 }
 

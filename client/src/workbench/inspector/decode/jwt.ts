@@ -7,19 +7,24 @@ const MAX_SECONDS = 4_102_444_800; // year 2100
 
 function readJsonObject(encoded: string): Record<string, unknown> | null {
   const text = decodeBase64Text(encoded, true);
-  if (text === null) return null;
+  if (text === null) {
+    return null;
+  }
   try {
     const value: unknown = JSON.parse(text);
-    return value !== null && typeof value === 'object' && !Array.isArray(value)
-      ? (value as Record<string, unknown>)
-      : null;
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      return value as Record<string, unknown>;
+    }
+    return null;
   } catch {
     return null;
   }
 }
 
 function readTimeClaims(payload: Record<string, unknown> | null): JwtTimeClaim[] {
-  if (!payload) return [];
+  if (!payload) {
+    return [];
+  }
   const claims: JwtTimeClaim[] = [];
   for (const name of TIME_CLAIMS) {
     const seconds = payload[name];
@@ -34,14 +39,20 @@ function readTimeClaims(payload: Record<string, unknown> | null): JwtTimeClaim[]
 export function decodeJwt(candidate: string): JwtDetails | null {
   const [headerPart, payloadPart] = candidate.split('.');
   const header = readJsonObject(headerPart);
-  if (!header || typeof header.alg !== 'string') return null;
+  if (!header || typeof header.alg !== 'string') {
+    return null;
+  }
   const payload = readJsonObject(payloadPart);
   const claims = readTimeClaims(payload);
+  let payloadJson: string | null = null;
+  if (payload) {
+    payloadJson = JSON.stringify(payload, null, 2);
+  }
   return {
     kind: 'jwt',
     algorithm: header.alg,
     headerJson: JSON.stringify(header, null, 2),
-    payloadJson: payload ? JSON.stringify(payload, null, 2) : null,
+    payloadJson,
     claims,
     expiresAtMilliseconds: claims.find((claim) => claim.name === 'exp')?.epochMilliseconds ?? null,
   };
@@ -56,7 +67,9 @@ export function findJwts(text: string): DecodedToken[] {
   const found: DecodedToken[] = [];
   for (const match of text.matchAll(JWT_SHAPE)) {
     const details = decodeJwt(match[0]);
-    if (!details) continue;
+    if (!details) {
+      continue;
+    }
     const start = match.index;
     found.push({
       id: `jwt-${start}`,

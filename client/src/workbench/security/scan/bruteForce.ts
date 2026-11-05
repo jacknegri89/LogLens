@@ -27,19 +27,28 @@ export function isFailedLogin(line: ParsedLine): boolean {
 
 function utcTime(year: number, month: string, parts: string[]): number | null {
   const monthIndex = MONTHS.indexOf(month.toLowerCase());
-  if (monthIndex === -1) return null;
+  if (monthIndex === -1) {
+    return null;
+  }
   const [day, hour, minute, second] = parts.map(Number);
   return Date.UTC(year, monthIndex, day, hour, minute, second);
 }
 
 /** Time of a line: the parsed one, else Apache / nginx "[03/Nov/2026:10:20:30", else syslog "Nov  3 10:20:30". */
 export function eventTime(line: ParsedLine): number | null {
-  if (line.timestamp !== null) return line.timestamp;
+  if (line.timestamp !== null) {
+    return line.timestamp;
+  }
   const clf = CLF_TIME.exec(line.raw);
-  if (clf) return utcTime(Number(clf[3]), clf[2], [clf[1], clf[4], clf[5], clf[6]]);
+  if (clf) {
+    return utcTime(Number(clf[3]), clf[2], [clf[1], clf[4], clf[5], clf[6]]);
+  }
   const syslog = SYSLOG_TIME.exec(line.raw);
   // Syslog has no year; only the distance between two lines matters here.
-  return syslog ? utcTime(2000, syslog[1], [syslog[2], syslog[3], syslog[4], syslog[5]]) : null;
+  if (syslog) {
+    return utcTime(2000, syslog[1], [syslog[2], syslog[3], syslog[4], syslog[5]]);
+  }
+  return null;
 }
 
 interface FailedAttempt {
@@ -51,10 +60,16 @@ interface FailedAttempt {
 function indexesInBusyWindows(times: number[]): Set<number> {
   const busy = new Set<number>();
   let start = 0;
+  let lastMarked = -1;
   for (let end = 0; end < times.length; end += 1) {
-    while (times[end] - times[start] > BRUTE_FORCE_WINDOW_MS) start += 1;
+    while (times[end] - times[start] > BRUTE_FORCE_WINDOW_MS) {
+      start += 1;
+    }
     if (end - start + 1 >= BRUTE_FORCE_THRESHOLD) {
-      for (let inside = start; inside <= end; inside += 1) busy.add(inside);
+      for (let inside = Math.max(start, lastMarked + 1); inside <= end; inside += 1) {
+        busy.add(inside);
+      }
+      lastMarked = end;
     }
   }
   return busy;
@@ -65,15 +80,23 @@ function flaggedAttempts(attempts: FailedAttempt[]): FailedAttempt[] {
   timed.sort((left, right) => (left.time ?? 0) - (right.time ?? 0));
   const busy = indexesInBusyWindows(timed.map((attempt) => attempt.time ?? 0));
   const untimed = attempts.filter((attempt) => attempt.time === null);
-  const flaggedUntimed = untimed.length >= BRUTE_FORCE_THRESHOLD ? untimed : [];
+  let flaggedUntimed: FailedAttempt[] = [];
+  if (untimed.length >= BRUTE_FORCE_THRESHOLD) {
+    flaggedUntimed = untimed;
+  }
   return [...timed.filter((_attempt, position) => busy.has(position)), ...flaggedUntimed];
 }
 
 function attemptsByAddress(lines: readonly ParsedLine[]): Map<string, FailedAttempt[]> {
   const byAddress = new Map<string, FailedAttempt[]>();
   for (const line of lines) {
-    const address = isFailedLogin(line) ? extractAddress(line.raw, line.fields) : null;
-    if (address === null) continue;
+    if (!isFailedLogin(line)) {
+      continue;
+    }
+    const address = extractAddress(line.raw, line.fields);
+    if (address === null) {
+      continue;
+    }
     const attempts = byAddress.get(address) ?? [];
     attempts.push({ lineIndex: line.index, time: eventTime(line) });
     byAddress.set(address, attempts);

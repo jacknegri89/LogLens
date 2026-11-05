@@ -19,20 +19,25 @@ export function planBuckets(lines: readonly ParsedLine[], bucketCount = BUCKET_C
   let last = -Infinity;
   let timed = 0;
   for (const line of lines) {
-    if (line.timestamp === null) continue;
+    if (line.timestamp === null) {
+      continue;
+    }
     timed += 1;
     first = Math.min(first, line.timestamp);
     last = Math.max(last, line.timestamp);
   }
   const usesTime = lines.length > 0 && timed / lines.length >= MIN_TIMED_SHARE && last > first;
-  return usesTime
-    ? { mode: 'time', start: first, span: last - first, bucketCount }
-    : { mode: 'position', start: 0, span: lines.length, bucketCount };
+  if (usesTime) {
+    return { mode: 'time', start: first, span: last - first, bucketCount };
+  }
+  return { mode: 'position', start: 0, span: lines.length, bucketCount };
 }
 
 /** The bucket a value falls in; the very end of the range belongs to the last bucket. */
 export function bucketOf(offset: number, plan: BucketPlan): number {
-  if (plan.span <= 0) return 0;
+  if (plan.span <= 0) {
+    return 0;
+  }
   const bucket = Math.floor((offset / plan.span) * plan.bucketCount);
   return Math.min(plan.bucketCount - 1, Math.max(0, bucket));
 }
@@ -50,7 +55,9 @@ export function countBuckets(
       continue;
     }
     const timestamp = lines[position]?.timestamp;
-    if (timestamp != null) counts[bucketOf(timestamp - plan.start, plan)] += 1;
+    if (timestamp != null) {
+      counts[bucketOf(timestamp - plan.start, plan)] += 1;
+    }
   }
   return counts;
 }

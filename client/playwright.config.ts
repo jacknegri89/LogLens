@@ -1,5 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
+let browserChannel: string | undefined;
+if (!process.env.CI) {
+  browserChannel = 'chrome';
+}
+
 // Runs against the Vite dev server; the analyze page needs no API for these checks.
 export default defineConfig({
   testDir: 'e2e',
@@ -10,7 +15,7 @@ export default defineConfig({
   projects: [
     {
       name: 'phone',
-      use: { ...devices['Pixel 5'], channel: process.env.CI ? undefined : 'chrome' },
+      use: { ...devices['Pixel 5'], channel: browserChannel },
     },
   ],
   webServer: {

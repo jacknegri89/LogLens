@@ -18,7 +18,9 @@ export function SharedReportPage() {
     text.unavailableFallback,
   );
 
-  if (error) return <SharedUnavailable message={error} />;
+  if (error) {
+    return <SharedUnavailable message={error} />;
+  }
 
   return (
     <div className="max-w-3xl pt-4">
@@ -30,7 +32,7 @@ export function SharedReportPage() {
       )}
       {analysis && (
         <div className="mt-10">
-          <ReportView analysis={analysis} />
+          <ReportView analysis={analysis} pageTitle />
         </div>
       )}
     </div>

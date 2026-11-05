@@ -12,23 +12,39 @@ function pad(value: number, width = 2): string {
 /** HH:MM:SS.mmm of a moment, in UTC or in the browser's zone. */
 export function formatClock(timestamp: number, mode: 'utc' | 'local'): string {
   const date = new Date(timestamp);
-  if (mode === 'utc') return date.toISOString().slice(11, 23);
+  if (mode === 'utc') {
+    return date.toISOString().slice(11, 23);
+  }
   const clock = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
   return `${clock}.${pad(date.getMilliseconds(), 3)}`;
 }
 
 function gapSize(milliseconds: number): string {
-  if (milliseconds < SECOND) return `${Math.round(milliseconds)}ms`;
-  if (milliseconds < 10 * SECOND) return `${Math.floor(milliseconds / 100) / 10}s`;
-  if (milliseconds < MINUTE) return `${Math.floor(milliseconds / SECOND)}s`;
-  if (milliseconds < HOUR) return `${Math.floor(milliseconds / MINUTE)}m`;
-  if (milliseconds < DAY) return `${Math.floor(milliseconds / HOUR)}h`;
+  if (milliseconds < SECOND) {
+    return `${Math.round(milliseconds)}ms`;
+  }
+  if (milliseconds < 10 * SECOND) {
+    return `${Math.floor(milliseconds / 100) / 10}s`;
+  }
+  if (milliseconds < MINUTE) {
+    return `${Math.floor(milliseconds / SECOND)}s`;
+  }
+  if (milliseconds < HOUR) {
+    return `${Math.floor(milliseconds / MINUTE)}m`;
+  }
+  if (milliseconds < DAY) {
+    return `${Math.floor(milliseconds / HOUR)}h`;
+  }
   return `${Math.floor(milliseconds / DAY)}d`;
 }
 
 /** A gap read at a glance: +12ms, +1.2s, +42s, +3m, +2h, +4d; a step back in time gets a minus. */
 export function formatGap(milliseconds: number): string {
-  return `${milliseconds < 0 ? '-' : '+'}${gapSize(Math.abs(milliseconds))}`;
+  let sign = '+';
+  if (milliseconds < 0) {
+    sign = '-';
+  }
+  return `${sign}${gapSize(Math.abs(milliseconds))}`;
 }
 
 /**
@@ -40,9 +56,15 @@ export function formatLineTime(
   previous: ParsedLine | null,
   mode: TimeMode,
 ): string {
-  if (line.timestamp === null) return '';
-  if (mode !== 'relative') return formatClock(line.timestamp, mode);
-  if (previous?.timestamp == null) return formatClock(line.timestamp, 'utc');
+  if (line.timestamp === null) {
+    return '';
+  }
+  if (mode !== 'relative') {
+    return formatClock(line.timestamp, mode);
+  }
+  if (previous?.timestamp == null) {
+    return formatClock(line.timestamp, 'utc');
+  }
   return formatGap(line.timestamp - previous.timestamp);
 }
 
@@ -52,7 +74,9 @@ export function findPreviousTimed(lines: readonly ParsedLine[]): Int32Array {
   let lastTimed = -1;
   lines.forEach((line, position) => {
     previous[position] = lastTimed;
-    if (line.timestamp !== null) lastTimed = position;
+    if (line.timestamp !== null) {
+      lastTimed = position;
+    }
   });
   return previous;
 }

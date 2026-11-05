@@ -14,7 +14,9 @@ export function PaletteDialog({ onClose }: { onClose: () => void }) {
   useLockPageScroll();
 
   function onKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Escape') onClose();
+    if (event.key === 'Escape') {
+      onClose();
+    }
   }
 
   return (

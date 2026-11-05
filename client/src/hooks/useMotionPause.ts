@@ -7,7 +7,9 @@ import { useEffect, type RefObject } from 'react';
 export function useMotionPause(elementRef: RefObject<HTMLElement | null>): void {
   useEffect(() => {
     const element = elementRef.current;
-    if (!element) return;
+    if (!element) {
+      return;
+    }
 
     let inView = true;
     const update = () => {

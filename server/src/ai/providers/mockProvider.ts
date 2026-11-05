@@ -6,10 +6,15 @@ const KEY_LINE_COUNT = 5;
 
 /** A tiny heuristic so the mock picks a plausible category. */
 function guessCategory(text: string): string {
-  if (/econnrefused|database|prisma|\bsql\b|postgres|sqlite|query/i.test(text)) return 'Database';
-  if (/timeout|network|fetch|socket|eaddrinuse|listen|dns/i.test(text)) return 'Network';
-  if (/\bbuild\b|compile|webpack|tsc|module not found|cannot find module/i.test(text))
+  if (/econnrefused|database|prisma|\bsql\b|postgres|sqlite|query/i.test(text)) {
+    return 'Database';
+  }
+  if (/timeout|network|fetch|socket|eaddrinuse|listen|dns/i.test(text)) {
+    return 'Network';
+  }
+  if (/\bbuild\b|compile|webpack|tsc|module not found|cannot find module/i.test(text)) {
     return 'Build';
+  }
   return 'Runtime';
 }
 

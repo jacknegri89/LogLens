@@ -8,7 +8,9 @@ import type { ScanResult } from './scan/types';
 export function MitigationSection({ result }: { result: ScanResult }) {
   const text = useText(SECURITY_TEXT).mitigation;
   const snippets = buildMitigation(result);
-  if (snippets.length === 0) return null;
+  if (snippets.length === 0) {
+    return null;
+  }
 
   return (
     <section aria-labelledby="mitigation-title" className="sec-mitigation">

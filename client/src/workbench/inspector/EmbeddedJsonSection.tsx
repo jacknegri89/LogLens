@@ -13,7 +13,9 @@ const COPY_CLASS = 'btn-paper px-3 py-1 text-xs font-bold tracking-wide uppercas
 export function EmbeddedJsonSection({ raw }: { raw: string }) {
   const text = useText(INSPECTOR_TEXT);
   const segments = useMemo(() => findJsonSegments(raw).slice(0, MAX_SEGMENTS), [raw]);
-  if (segments.length === 0) return null;
+  if (segments.length === 0) {
+    return null;
+  }
   return (
     <section aria-labelledby="inspector-json-title">
       <h3 id="inspector-json-title" className="inspect-heading">

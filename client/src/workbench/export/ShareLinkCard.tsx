@@ -13,6 +13,10 @@ export function ShareLinkCard() {
   const text = useText(EXPORT_TEXT).share;
   const { status, create } = usePermalinkShare();
   const working = status.kind === 'working';
+  let buttonText = text.create;
+  if (working) {
+    buttonText = text.creating;
+  }
 
   return (
     <section aria-labelledby="share-title" className="exp-share">
@@ -26,7 +30,7 @@ export function ShareLinkCard() {
         disabled={rawLog.trim() === '' || working}
         className="btn-paper exp-create"
       >
-        {working ? text.creating : text.create}
+        {buttonText}
       </button>
       {status.kind === 'failed' && (
         <p role="alert" className="exp-error">

@@ -109,8 +109,13 @@ describe('50,000 lines', () => {
     const levels = ['INFO', 'WARN', 'ERROR', 'DEBUG'];
     const text = Array.from(
       { length: 50_000 },
-      (_, index) =>
-        `2026-11-03T09:${String(Math.floor(index / 1000) % 60).padStart(2, '0')}:00.${String(index % 1000).padStart(3, '0')}Z ${levels[index % 4]} [svc-${index % 7}] request done status=${index % 2 ? 200 : 503} latency=${index % 400}ms trace_id=t${index}`,
+      (_, index) => {
+        let status = 503;
+        if (index % 2) {
+          status = 200;
+        }
+        return `2026-11-03T09:${String(Math.floor(index / 1000) % 60).padStart(2, '0')}:00.${String(index % 1000).padStart(3, '0')}Z ${levels[index % 4]} [svc-${index % 7}] request done status=${status} latency=${index % 400}ms trace_id=t${index}`;
+      },
     ).join('\n');
 
     const started = performance.now();

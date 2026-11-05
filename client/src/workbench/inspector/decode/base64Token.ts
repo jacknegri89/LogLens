@@ -9,7 +9,9 @@ const MIN_DECODED_LENGTH = 4;
 /** Plain words, hex ids and UUIDs share base64's alphabet; real base64 text mixes cases or has digits. */
 function looksLikeBase64(candidate: string): boolean {
   const compact = candidate.replace(/[-_=]/g, '');
-  if (HEX_ONLY.test(compact)) return false;
+  if (HEX_ONLY.test(compact)) {
+    return false;
+  }
   const hasUpper = /[A-Z]/.test(candidate);
   const hasLower = /[a-z]/.test(candidate);
   const hasDigitOrSymbol = /[0-9+/=]/.test(candidate);
@@ -20,10 +22,16 @@ function looksLikeBase64(candidate: string): boolean {
 export function decodeBase64Candidate(
   candidate: string,
 ): { text: string; json: string | null } | null {
-  if (!looksLikeBase64(candidate)) return null;
+  if (!looksLikeBase64(candidate)) {
+    return null;
+  }
   const text = decodeBase64Text(candidate);
-  if (text === null || text.length < MIN_DECODED_LENGTH) return null;
-  if (printableRatio(text) < MIN_PRINTABLE_RATIO) return null;
+  if (text === null || text.length < MIN_DECODED_LENGTH) {
+    return null;
+  }
+  if (printableRatio(text) < MIN_PRINTABLE_RATIO) {
+    return null;
+  }
   return { text, json: prettyJsonOrNull(text) };
 }
 
@@ -31,7 +39,9 @@ export function findBase64(text: string): DecodedToken[] {
   const found: DecodedToken[] = [];
   for (const match of text.matchAll(BASE64_SHAPE)) {
     const decoded = decodeBase64Candidate(match[0]);
-    if (!decoded) continue;
+    if (!decoded) {
+      continue;
+    }
     const start = match.index;
     found.push({
       id: `base64-${start}`,

@@ -25,15 +25,27 @@ const LEVEL_NAMES: Record<string, LogLevel> = {
 
 function readTimestamp(text: string): number | null {
   const match = text.match(ISO_TIME)?.[0];
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
   const normalized = match.replace(' ', 'T').replace(',', '.');
-  const parsed = Date.parse(HAS_ZONE.test(normalized) ? normalized : `${normalized}Z`);
-  return Number.isNaN(parsed) ? null : parsed;
+  let timestampText = normalized;
+  if (!HAS_ZONE.test(normalized)) {
+    timestampText = `${normalized}Z`;
+  }
+  const parsed = Date.parse(timestampText);
+  if (Number.isNaN(parsed)) {
+    return null;
+  }
+  return parsed;
 }
 
 function readLevel(text: string): LogLevel | null {
   const name = text.match(LEVEL)?.[1]?.toUpperCase();
-  return name ? (LEVEL_NAMES[name] ?? null) : null;
+  if (!name) {
+    return null;
+  }
+  return LEVEL_NAMES[name] ?? null;
 }
 
 function readKeyValues(text: string): Record<string, string> {
@@ -50,13 +62,19 @@ function flattenJson(value: unknown, prefix: string, into: Record<string, string
     return;
   }
   for (const [key, inner] of Object.entries(value)) {
-    flattenJson(inner, prefix ? `${prefix}.${key}` : key, into);
+    let fieldName = key;
+    if (prefix) {
+      fieldName = `${prefix}.${key}`;
+    }
+    flattenJson(inner, fieldName, into);
   }
 }
 
 /** The fields of a line that is a JSON object, or null when it is not one. */
 function readJsonFields(text: string): Record<string, string> | null {
-  if (!text.trimStart().startsWith('{')) return null;
+  if (!text.trimStart().startsWith('{')) {
+    return null;
+  }
   try {
     const fields: Record<string, string> = {};
     flattenJson(JSON.parse(text), '', fields);
@@ -68,10 +86,15 @@ function readJsonFields(text: string): Record<string, string> | null {
 
 function readLatency(text: string, fields: Record<string, string>): number | null {
   const fromField = Number.parseFloat(fields.latency_ms ?? fields.duration_ms ?? '');
-  if (!Number.isNaN(fromField)) return fromField;
+  if (!Number.isNaN(fromField)) {
+    return fromField;
+  }
   const match = text.match(LATENCY);
   const value = Number.parseFloat(match?.[1] ?? match?.[2] ?? '');
-  return Number.isNaN(value) ? null : value;
+  if (Number.isNaN(value)) {
+    return null;
+  }
+  return value;
 }
 
 function readService(fields: Record<string, string>, text: string): string | null {
@@ -112,7 +135,9 @@ function looksLikeFault(raw: string): boolean {
 export function parseLines(rawLog: string): ParsedLine[] {
   const lines: ParsedLine[] = [];
   rawLog.split(/\r?\n/).forEach((text, index) => {
-    if (text.trim() !== '') lines.push(parseLine(text, index));
+    if (text.trim() !== '') {
+      lines.push(parseLine(text, index));
+    }
   });
   return lines;
 }

@@ -41,6 +41,62 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+it('returns a timeout error when Ollama does not respond', async () => {
+  const fetchMock = vi.fn().mockRejectedValue(new DOMException('Timed out', 'TimeoutError'));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await expect(
+    new OllamaProvider().analyze({ excerpt: EXCERPT, severityHint: 'low' }),
+  ).rejects.toMatchObject({ statusCode: 504 });
+  expect(fetchMock.mock.calls[0]?.[1].signal).toBeInstanceOf(AbortSignal);
+});
+
+it.each([
+  ['Ollama', () => new OllamaProvider()],
+  ['OpenAI', () => new OpenAIProvider()],
+])('returns 504 when the %s response body times out', async (_name, createProvider) => {
+  const response = new Response(
+    new ReadableStream({
+      start(controller) {
+        controller.error(new DOMException('Timed out', 'TimeoutError'));
+      },
+    }),
+  );
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response));
+
+  await expect(
+    createProvider().analyze({ excerpt: EXCERPT, severityHint: 'low' }),
+  ).rejects.toMatchObject({
+    statusCode: 504,
+  });
+});
+
+describe.each([
+  ['Ollama', () => new OllamaProvider(), { message: { content: 123 } }],
+  ['OpenAI', () => new OpenAIProvider(), { choices: [{ message: { content: 123 } }] }],
+])('%s response validation', (_name, createProvider, malformed) => {
+  it.each([null, malformed])('rejects an invalid response envelope', async (body) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json(body)));
+    await expect(
+      createProvider().analyze({ excerpt: EXCERPT, severityHint: 'low' }),
+    ).rejects.toMatchObject({
+      statusCode: 502,
+    });
+  });
+
+  it('cancels an unsuccessful response body', async () => {
+    const cancel = vi.fn();
+    const stream = new ReadableStream({ cancel });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(stream, { status: 500 })));
+    await expect(
+      createProvider().analyze({ excerpt: EXCERPT, severityHint: 'low' }),
+    ).rejects.toMatchObject({
+      statusCode: 502,
+    });
+    expect(cancel).toHaveBeenCalledOnce();
+  });
+});
+
 describe.each([
   ['OpenAI', () => new OpenAIProvider(), { choices: [{ message: { content: MODEL_ANSWER } }] }],
   ['Ollama', () => new OllamaProvider(), { message: { content: MODEL_ANSWER } }],

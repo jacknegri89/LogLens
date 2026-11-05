@@ -40,6 +40,10 @@ function Toolbar() {
   const { rawLog, analysis, analyze } = useWorkbench();
   const text = useText(WORKBENCH_TEXT);
   const loading = analysis.status === 'loading';
+  let analyzeLabel = text.analyze;
+  if (loading) {
+    analyzeLabel = text.analyzing;
+  }
 
   return (
     <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -49,7 +53,7 @@ function Toolbar() {
         disabled={rawLog.trim() === '' || loading}
         className="btn-ink px-6 py-2.5 text-sm font-bold tracking-wide uppercase disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {loading ? text.analyzing : text.analyze}
+        {analyzeLabel}
       </button>
       <ScrubButton />
       <LiveTailControl />
@@ -72,7 +76,9 @@ function TabBar() {
   useEffect(() => {
     const tabList = tabListRef.current;
     const openTab = tabList?.querySelector<HTMLElement>('[aria-selected="true"]');
-    if (!tabList || !openTab) return;
+    if (!tabList || !openTab) {
+      return;
+    }
     const tabCentre = openTab.offsetLeft + openTab.offsetWidth / 2;
     tabList.scrollLeft = tabCentre - tabList.clientWidth / 2;
   }, [activeTab]);

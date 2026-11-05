@@ -20,15 +20,33 @@ function countBy(values: readonly string[]): Map<string, number> {
 }
 
 function timeRange(lines: readonly ParsedLine[]): Pick<LineStatistics, 'firstTime' | 'lastTime'> {
-  const times = lines.map((line) => line.timestamp).filter((time) => time !== null);
-  if (times.length === 0) return { firstTime: null, lastTime: null };
-  const toIso = (time: number) => new Date(time).toISOString();
-  return { firstTime: toIso(Math.min(...times)), lastTime: toIso(Math.max(...times)) };
+  let firstTime: number | null = null;
+  let lastTime: number | null = null;
+  for (const line of lines) {
+    if (line.timestamp === null) {
+      continue;
+    }
+    if (firstTime === null || line.timestamp < firstTime) {
+      firstTime = line.timestamp;
+    }
+    if (lastTime === null || line.timestamp > lastTime) {
+      lastTime = line.timestamp;
+    }
+  }
+  if (firstTime === null || lastTime === null) {
+    return { firstTime: null, lastTime: null };
+  }
+  return {
+    firstTime: new Date(firstTime).toISOString(),
+    lastTime: new Date(lastTime).toISOString(),
+  };
 }
 
 function latencyOf(lines: readonly ParsedLine[]): LineStatistics['latency'] {
   const values = lines.map((line) => line.latencyMs).filter((value) => value !== null);
-  if (values.length === 0) return null;
+  if (values.length === 0) {
+    return null;
+  }
   values.sort((left, right) => left - right);
   const total = values.reduce((sum, value) => sum + value, 0);
   const p95 = values[Math.min(values.length - 1, Math.ceil(values.length * 0.95) - 1)];

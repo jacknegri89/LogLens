@@ -7,8 +7,13 @@ import { formatDelta, type Waterfall, type WaterfallStep } from './waterfall';
 
 function StepTiming({ step }: { step: WaterfallStep }) {
   const text = useText(TRACES_TEXT);
-  if (step.offsetMs === null) return <>{text.lineNumber(step.line.index + 1)}</>;
-  const delta = step.deltaMs === null ? '' : `${formatDelta(step.deltaMs)} · `;
+  if (step.offsetMs === null) {
+    return <>{text.lineNumber(step.line.index + 1)}</>;
+  }
+  let delta = '';
+  if (step.deltaMs !== null) {
+    delta = `${formatDelta(step.deltaMs)} · `;
+  }
   return <>{delta + text.atOffset(formatDelta(step.offsetMs).slice(1))}</>;
 }
 
@@ -16,13 +21,17 @@ function Step({ step }: { step: WaterfallStep }) {
   const text = useText(TRACES_TEXT);
   const { select, selectedIndex } = useWorkbench();
   const { line } = step;
+  let ariaCurrent: 'true' | undefined;
+  if (line.index === selectedIndex) {
+    ariaCurrent = 'true';
+  }
   return (
     <li>
       <button
         type="button"
         className="trace-step"
         data-fault={line.isFault}
-        aria-current={line.index === selectedIndex ? 'true' : undefined}
+        aria-current={ariaCurrent}
         onClick={() => select(line.index)}
       >
         <span className="trace-lane">{line.service ?? text.noService}</span>
@@ -55,8 +64,9 @@ export function WaterfallView({
     text.lines(correlation.positions.length),
     text.services(correlation.services.length),
   ];
-  if (waterfall.totalMs !== null)
+  if (waterfall.totalMs !== null) {
     subtitle.push(`${text.total} ${formatDelta(waterfall.totalMs).slice(1)}`);
+  }
 
   return (
     <section className="trace-waterfall" aria-label={text.waterfallLabel(correlation.id)}>

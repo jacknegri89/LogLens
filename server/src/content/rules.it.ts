@@ -29,7 +29,10 @@ function describeLineFields({ failureLineFields }: LogDetails): string {
   const fields = failureLineFields.map(
     ({ label, value }) => `${LINE_FIELD_LABEL[label] ?? label} ${value}`,
   );
-  return fields.length > 0 ? ` Letti dalla riga: ${fields.join('; ')}.` : '';
+  if (fields.length > 0) {
+    return ` Letti dalla riga: ${fields.join('; ')}.`;
+  }
+  return '';
 }
 
 export const RULE_TEXT_IT: Record<RuleId, RuleText> = {

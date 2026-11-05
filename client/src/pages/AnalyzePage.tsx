@@ -14,6 +14,7 @@ export function AnalyzePage() {
         <LogEditor
           text={log.text}
           fileName={log.fileName}
+          fileError={log.fileError}
           failingLines={failingLines}
           canSubmit={canSubmit}
           loading={analysis.status === 'loading'}

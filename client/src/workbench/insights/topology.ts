@@ -106,9 +106,14 @@ function kindOfEntry(
 type NodeMap = Map<string, TopologyNode>;
 
 function ensureNode(nodes: NodeMap, kind: TopologyKind, name: string | null = null): TopologyNode {
-  const id = kind === 'service' && name ? `service:${name}` : kind;
+  let id: string = kind;
+  if (kind === 'service' && name) {
+    id = `service:${name}`;
+  }
   const existing = nodes.get(id);
-  if (existing) return existing;
+  if (existing) {
+    return existing;
+  }
   const node: TopologyNode = { id, kind, name, tier: TIER_OF_KIND[kind], role: 'unknown' };
   nodes.set(id, node);
   return node;
@@ -117,7 +122,9 @@ function ensureNode(nodes: NodeMap, kind: TopologyKind, name: string | null = nu
 function topServiceNames(lines: ParsedLine[]): string[] {
   const counts = new Map<string, number>();
   for (const line of lines) {
-    if (line.service) counts.set(line.service, (counts.get(line.service) ?? 0) + 1);
+    if (line.service) {
+      counts.set(line.service, (counts.get(line.service) ?? 0) + 1);
+    }
   }
   return [...counts]
     .sort((first, second) => second[1] - first[1] || first[0].localeCompare(second[0]))
@@ -128,11 +135,17 @@ function topServiceNames(lines: ParsedLine[]): string[] {
 function addNodesFromLog(nodes: NodeMap, lines: ParsedLine[]): void {
   for (const name of topServiceNames(lines)) {
     const kind = classifyText(name) ?? 'service';
-    ensureNode(nodes, kind, kind === 'service' ? name : null);
+    let serviceName: string | null = null;
+    if (kind === 'service') {
+      serviceName = name;
+    }
+    ensureNode(nodes, kind, serviceName);
   }
   for (const line of lines.slice(0, MAX_SCANNED_LINES)) {
     const kind = classifyText(line.raw);
-    if (kind && kind !== 'service') ensureNode(nodes, kind);
+    if (kind && kind !== 'service') {
+      ensureNode(nodes, kind);
+    }
   }
 }
 
@@ -140,13 +153,17 @@ function addNodesFromReport(nodes: NodeMap, record: AnalysisRecord): void {
   const entries = [...(record.report.findings ?? []), ...(record.report.timeline ?? [])];
   for (const entry of entries) {
     const kind = kindOfEntry(entry);
-    if (kind) resolveNode(nodes, kind, entry.evidence);
+    if (kind) {
+      resolveNode(nodes, kind, entry.evidence);
+    }
   }
 }
 
 /** A generic service entry points at the named service its evidence mentions, else the first one. */
 function resolveNode(nodes: NodeMap, kind: TopologyKind, evidence: string): TopologyNode {
-  if (kind !== 'service') return ensureNode(nodes, kind);
+  if (kind !== 'service') {
+    return ensureNode(nodes, kind);
+  }
   const named = [...nodes.values()].filter((node) => node.kind === 'service' && node.name);
   const mentioned = named.find((node) => evidence.toLowerCase().includes(node.name!.toLowerCase()));
   return mentioned ?? named[0] ?? ensureNode(nodes, 'service');
@@ -163,13 +180,22 @@ function diagnose(nodes: NodeMap, record: AnalysisRecord | null): Diagnosis {
   const roots = timeline.filter((entry) => entry.role === 'root');
   for (const entry of roots) {
     const kind = kindOfEntry(entry);
-    if (kind) diagnosis.origins.add(resolveNode(nodes, kind, entry.evidence).id);
+    if (kind) {
+      diagnosis.origins.add(resolveNode(nodes, kind, entry.evidence).id);
+    }
   }
-  if (roots.length === 0 && record) addOriginFromCategory(nodes, record, diagnosis);
+  if (roots.length === 0 && record) {
+    addOriginFromCategory(nodes, record, diagnosis);
+  }
   for (const entry of timeline.filter((item) => item.role === 'effect')) {
     const kind = kindOfEntry(entry);
-    const id = kind ? resolveNode(nodes, kind, entry.evidence).id : null;
-    if (id && !diagnosis.origins.has(id)) diagnosis.affected.add(id);
+    let id: string | null = null;
+    if (kind) {
+      id = resolveNode(nodes, kind, entry.evidence).id;
+    }
+    if (id && !diagnosis.origins.has(id)) {
+      diagnosis.affected.add(id);
+    }
   }
   return diagnosis;
 }
@@ -177,7 +203,9 @@ function diagnose(nodes: NodeMap, record: AnalysisRecord | null): Diagnosis {
 function addOriginFromCategory(nodes: NodeMap, record: AnalysisRecord, diagnosis: Diagnosis): void {
   const firstLine = record.report.keyLines[0] ?? '';
   const kind = kindOfEntry({ title: record.title, evidence: firstLine, category: record.category });
-  if (kind) diagnosis.origins.add(resolveNode(nodes, kind, firstLine).id);
+  if (kind) {
+    diagnosis.origins.add(resolveNode(nodes, kind, firstLine).id);
+  }
 }
 
 function structureEdges(nodes: TopologyNode[]): TopologyEdge[] {
@@ -203,7 +231,12 @@ function shortestPath(edges: TopologyEdge[], start: string, goal: string): strin
   while (queue.length > 0 && !previous.has(goal)) {
     const current = queue.shift()!;
     for (const edge of edges) {
-      const next = edge.from === current ? edge.to : edge.to === current ? edge.from : null;
+      let next: string | null = null;
+      if (edge.from === current) {
+        next = edge.to;
+      } else if (edge.to === current) {
+        next = edge.from;
+      }
       if (next && !previous.has(next)) {
         previous.set(next, current);
         queue.push(next);
@@ -214,7 +247,9 @@ function shortestPath(edges: TopologyEdge[], start: string, goal: string): strin
 }
 
 function walkBack(previous: Map<string, string>, start: string, goal: string): string[] {
-  if (!previous.has(goal)) return [];
+  if (!previous.has(goal)) {
+    return [];
+  }
   const path = [goal];
   while (path[0] !== start) path.unshift(previous.get(path[0])!);
   return path;
@@ -234,15 +269,23 @@ function orientEdge(edges: TopologyEdge[], from: string, to: string): void {
   const edge = edges.find(
     (item) => (item.from === from && item.to === to) || (item.from === to && item.to === from),
   );
-  if (edge) Object.assign(edge, { from, to, propagating: true });
+  if (edge) {
+    Object.assign(edge, { from, to, propagating: true });
+  }
 }
 
 function assignRoles(nodes: TopologyNode[], diagnosis: Diagnosis): void {
   const diagnosed = diagnosis.origins.size > 0;
   for (const node of nodes) {
-    if (diagnosis.origins.has(node.id)) node.role = 'origin';
-    else if (diagnosis.affected.has(node.id)) node.role = 'affected';
-    else node.role = diagnosed ? 'healthy' : 'unknown';
+    if (diagnosis.origins.has(node.id)) {
+      node.role = 'origin';
+    } else if (diagnosis.affected.has(node.id)) {
+      node.role = 'affected';
+    } else if (diagnosed) {
+      node.role = 'healthy';
+    } else {
+      node.role = 'unknown';
+    }
   }
 }
 
@@ -253,7 +296,9 @@ function assignRoles(nodes: TopologyNode[], diagnosis: Diagnosis): void {
 export function buildTopology(lines: ParsedLine[], record: AnalysisRecord | null): Topology {
   const nodeMap: NodeMap = new Map();
   addNodesFromLog(nodeMap, lines);
-  if (record) addNodesFromReport(nodeMap, record);
+  if (record) {
+    addNodesFromReport(nodeMap, record);
+  }
   const diagnosis = diagnose(nodeMap, record);
   const nodes = [...nodeMap.values()].sort((first, second) => first.tier - second.tier);
   assignRoles(nodes, diagnosis);

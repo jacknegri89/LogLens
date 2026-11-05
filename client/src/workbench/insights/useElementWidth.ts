@@ -4,7 +4,9 @@ import { useCallback, useSyncExternalStore } from 'react';
 export function useElementWidth(element: HTMLElement | null): number {
   const subscribe = useCallback(
     (notify: () => void) => {
-      if (!element) return () => undefined;
+      if (!element) {
+        return () => undefined;
+      }
       const observer = new ResizeObserver(notify);
       observer.observe(element);
       return () => observer.disconnect();

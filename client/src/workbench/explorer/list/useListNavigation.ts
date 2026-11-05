@@ -12,9 +12,13 @@ interface NavigationInput {
 }
 
 function revealRow(element: HTMLElement | null, row: number): void {
-  if (!element) return;
+  if (!element) {
+    return;
+  }
   const top = scrollTopToReveal(row, element.scrollTop, element.clientHeight);
-  if (top !== null) element.scrollTop = top;
+  if (top !== null) {
+    element.scrollTop = top;
+  }
 }
 
 /**
@@ -30,22 +34,37 @@ export function useListNavigation({
 }: NavigationInput) {
   const [activeLine, setActiveLine] = useState<number | null>(null);
   const current = activeLine ?? selectedIndex;
-  const activeRow = current === null ? -1 : rowOfLine(lines, rows, current);
+  let activeRow = -1;
+  if (current !== null) {
+    activeRow = rowOfLine(lines, rows, current);
+  }
 
   useEffect(() => {
-    const row = selectedIndex === null ? -1 : rowOfLine(lines, rows, selectedIndex);
-    if (row >= 0) revealRow(listRef.current, row);
+    let row = -1;
+    if (selectedIndex !== null) {
+      row = rowOfLine(lines, rows, selectedIndex);
+    }
+    if (row >= 0) {
+      revealRow(listRef.current, row);
+    }
   }, [listRef, lines, rows, selectedIndex]);
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent<HTMLElement>) => {
       const choose = event.key === 'Enter' || event.key === ' ';
       const pageSize = Math.floor((listRef.current?.clientHeight ?? 0) / ROW_HEIGHT) - 1;
-      const next = choose ? activeRow : nextRow(event.key, activeRow, rows.length, pageSize);
-      if (next === null || next < 0) return;
+      let next: number | null = activeRow;
+      if (!choose) {
+        next = nextRow(event.key, activeRow, rows.length, pageSize);
+      }
+      if (next === null || next < 0) {
+        return;
+      }
       event.preventDefault();
       const lineIndex = lines[rows[next]].index;
-      if (choose) select(lineIndex);
+      if (choose) {
+        select(lineIndex);
+      }
       setActiveLine(lineIndex);
       revealRow(listRef.current, next);
     },

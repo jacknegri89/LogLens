@@ -68,3 +68,23 @@ describe('DELETE /api/analyses/:id', () => {
     expect(deleteAnalysisById).not.toHaveBeenCalled();
   });
 });
+
+describe('JSON request validation', () => {
+  it('returns 400 for malformed JSON', async () => {
+    const response = await fetch(`${baseUrl}/api/analyses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Visitor-Id': VISITOR_ID },
+      body: '{invalid',
+    });
+    expect(response.status).toBe(400);
+  });
+
+  it('returns 413 for a body larger than the parser limit', async () => {
+    const response = await fetch(`${baseUrl}/api/analyses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Visitor-Id': VISITOR_ID },
+      body: JSON.stringify({ rawLog: 'x'.repeat(2 * 1024 * 1024 + 1) }),
+    });
+    expect(response.status).toBe(413);
+  });
+});

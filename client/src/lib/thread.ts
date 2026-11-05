@@ -18,8 +18,12 @@ export interface Point {
 export function threadLinks(entries: TimelineEntry[]): ThreadLink[] {
   return entries.flatMap((entry, effectIndex) => {
     const rootIndex = entry.causedBy;
-    if (entry.role !== 'effect' || rootIndex === undefined) return [];
-    if (entries[rootIndex]?.role !== 'root') return [];
+    if (entry.role !== 'effect' || rootIndex === undefined) {
+      return [];
+    }
+    if (entries[rootIndex]?.role !== 'root') {
+      return [];
+    }
     return [{ rootIndex, effectIndex }];
   });
 }
@@ -37,7 +41,10 @@ export function hasSetAsideEntries(entries: TimelineEntry[]): boolean {
 export function threadPath(from: Point, to: Point): string {
   const distance = Math.hypot(to.x - from.x, to.y - from.y);
   const sag = Math.min(14 + distance * 0.1, 60);
-  const steepness = distance === 0 ? 0 : Math.abs(to.y - from.y) / distance;
+  let steepness = 0;
+  if (distance !== 0) {
+    steepness = Math.abs(to.y - from.y) / distance;
+  }
   const controlX = (from.x + to.x) / 2 - sag * steepness;
   const controlY = (from.y + to.y) / 2 + sag * (1 - steepness * 0.7);
   return `M${round(from.x)} ${round(from.y)} Q${round(controlX)} ${round(controlY)} ${round(to.x)} ${round(to.y)}`;

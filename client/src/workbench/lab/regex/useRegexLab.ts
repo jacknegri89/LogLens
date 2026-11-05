@@ -12,7 +12,7 @@ export function useRegexLab() {
   const [flags, setFlags] = useState<RegexFlagState>(DEFAULT_FLAGS);
   const [extractorId, setExtractorId] = useState<ExtractorId | null>(null);
   const build = useMemo(() => buildRegex(pattern, flags), [pattern, flags]);
-  const snapshot = useRegexScan(lines, build);
+  const { snapshot, failed } = useRegexScan(lines, build);
 
   function typePattern(value: string) {
     setPattern(value);
@@ -24,7 +24,9 @@ export function useRegexLab() {
   }
 
   function toggleExtractor(id: ExtractorId) {
-    if (id === extractorId) return typePattern('');
+    if (id === extractorId) {
+      return typePattern('');
+    }
     const extractor: Extractor = findExtractor(id);
     setPattern(extractor.pattern);
     setExtractorId(id);
@@ -38,6 +40,7 @@ export function useRegexLab() {
     extractorId,
     build,
     snapshot,
+    failed,
     typePattern,
     toggleFlag,
     toggleExtractor,

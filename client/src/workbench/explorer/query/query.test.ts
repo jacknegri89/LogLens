@@ -47,6 +47,23 @@ describe('parseQuery and filterLines', () => {
     expect(matching('service:payment')).toEqual([1, 2, 5]);
   });
 
+  it('handles repeated wildcards without excessive backtracking', () => {
+    const line = parseLine(`INFO service=${'a'.repeat(2000)}`, 0);
+    expect(matchesQuery(line, parseQuery('service:*a*a*a*a*a*a*a*a*b'))).toBe(false);
+    expect(matchesQuery(line, parseQuery('service:a*a'))).toBe(true);
+  });
+
+  it('does not let wildcards cross line breaks in a JSON message', () => {
+    const line = parseLine('{"message":"foo\\nbar"}', 0);
+    expect(matchesQuery(line, parseQuery('message:foo*bar'))).toBe(false);
+  });
+
+  it('does not treat inherited object properties as log fields', () => {
+    const line = parseLine('INFO no fields here', 0);
+    expect(matchesQuery(line, parseQuery('constructor:value'))).toBe(false);
+    expect(matchesQuery(line, parseQuery('toString:value'))).toBe(false);
+  });
+
   it('negates words and fields', () => {
     expect(matching('-level:INFO -level:ERROR')).toEqual([3, 4]);
     expect(matching('charge -failed')).toEqual([5]);

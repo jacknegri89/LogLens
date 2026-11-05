@@ -14,7 +14,7 @@ flowchart LR
     P --> S
     S -->|prompt + log excerpt| AI[(AI provider\nOpenAI or Ollama)]
     AI -->|structured JSON| S
-    S -->|save| DB[(SQLite via Prisma)]
+    S -->|save| DB[(PostgreSQL via Prisma)]
     S -->|report| C
     C -->|view / export MD / GitHub Issue| U
 ```
@@ -27,7 +27,7 @@ flowchart LR
 | API         | Node.js + Express + TS        | Validate input, orchestrate parsing + AI, persist, expose REST       |
 | Parser      | Pure TS function              | Extract the most relevant log lines (ERROR/WARN/Exception/…)         |
 | AI provider | OpenAI **or** Ollama          | Turn the log excerpt into a structured report (behind one interface) |
-| Database    | SQLite (Prisma ORM)           | Store analysis history                                               |
+| Database    | PostgreSQL (Prisma ORM)       | Store analysis history                                               |
 
 ## Request lifecycle (analyze a log)
 
@@ -52,8 +52,8 @@ flowchart LR
   parser narrows it down first: cheaper, faster, and more accurate.
 - **Structured output.** The AI must return JSON matching a fixed schema, so the
   app can rely on the shape instead of parsing free-form prose.
-- **SQLite first.** Zero-config local DB. The Prisma schema is written so that
-  switching to PostgreSQL later is a one-line provider change.
+- **PostgreSQL with Prisma.** The application uses a PostgreSQL database in local
+  development and production; review schema changes and back up existing data before applying them.
 
 ## Folder structure
 
@@ -61,7 +61,7 @@ flowchart LR
 loglens/
 ├── client/   # React + TS + Tailwind frontend
 ├── server/   # Express + TS backend (parser, AI provider, routes)
-├── prisma/   # schema.prisma + migrations
+│   └── prisma/ # schema.prisma and seed
 ├── docs/     # architecture, prompt design, screenshots
 ├── examples/ # sample logs you can try the app with
 └── .github/  # CI workflow

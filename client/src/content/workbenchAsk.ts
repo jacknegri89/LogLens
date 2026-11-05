@@ -3,6 +3,7 @@ import { defineText } from '../i18n/defineText';
 /** Text of the Workbench "Ask" view: the engine choice, the quick questions and the built-in answers. */
 export const ASK_TEXT = defineText({
   en: {
+    unavailable: 'Questions are not available yet.',
     gate: {
       title: 'Analyze the log first',
       body: 'Questions are answered from the analysis of your log. Run the analysis to start asking.',
@@ -143,6 +144,7 @@ export const ASK_TEXT = defineText({
     },
   },
   it: {
+    unavailable: 'Le domande non sono ancora disponibili.',
     gate: {
       title: 'Prima analizza il log',
       body: 'Le domande trovano risposta nell’analisi del tuo log. Avvia l’analisi per cominciare.',

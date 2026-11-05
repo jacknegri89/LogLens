@@ -36,14 +36,20 @@ export const LAB_TEXT = defineText({
       invalid: (message: string) => `Invalid pattern: ${message}`,
       risky:
         'This pattern repeats a repeat, like (a+)+. On some lines it can freeze the page, so it was not run. Rewrite it with a fixed separator between the repeats.',
+      scanFailed:
+        'The search stopped because it took too long or could not start. Try a simpler pattern.',
       scanning: (scanned: number, total: number) => `Scanning ${scanned} of ${total} lines`,
       summary: (matches: number, lines: number) =>
         `${withCount(matches, MATCH_FORMS)} in ${withCount(lines, LINE_FORMS)}`,
       stoppedEarly: (limit: number) =>
         `Stopped early: the first ${limit} matches are shown and the rest of the log was not searched. Make the pattern more specific.`,
       noMatches: 'No line matches this pattern.',
-      previewHeading: (shown: number, total: number) =>
-        total > shown ? `First ${shown} of ${total} matching lines` : `Matching lines (${shown})`,
+      previewHeading: (shown: number, total: number) => {
+        if (total > shown) {
+          return `First ${shown} of ${total} matching lines`;
+        }
+        return `Matching lines (${shown})`;
+      },
       previewLabel: 'Matching lines',
       lineNumber: (number: number) => `Line ${number}`,
       valuesHeading: 'Unique values',
@@ -104,8 +110,13 @@ export const LAB_TEXT = defineText({
       mapPlaceholder: 'Paste the .js.map JSON here',
       openMap: 'Open .js.map',
       loadMap: 'Load pasted map',
-      mapLoaded: (name: string, sources: number) =>
-        `${name}: ${sources} ${sources === 1 ? 'source' : 'sources'}`,
+      mapLoaded: (name: string, sources: number) => {
+        let label = 'sources';
+        if (sources === 1) {
+          label = 'source';
+        }
+        return `${name}: ${sources} ${label}`;
+      },
       mapPasted: 'Pasted map',
       mapProblems: {
         invalidJson: 'This is not valid JSON. Paste the whole .js.map file.',
@@ -123,8 +134,13 @@ export const LAB_TEXT = defineText({
       needMap: 'Load a source map to resolve the trace.',
       needTrace: 'Paste a stack trace to resolve it.',
       noFrames: 'No stack frames found. Chrome, Node, Firefox and Safari formats are supported.',
-      resultHeading: (resolved: number, total: number) =>
-        `${resolved} of ${total} ${total === 1 ? 'frame' : 'frames'} resolved`,
+      resultHeading: (resolved: number, total: number) => {
+        let label = 'frames';
+        if (total === 1) {
+          label = 'frame';
+        }
+        return `${resolved} of ${total} ${label} resolved`;
+      },
       minified: 'Minified',
       original: 'Original',
       anonymous: 'anonymous function',
@@ -137,6 +153,7 @@ export const LAB_TEXT = defineText({
         noMappingAtColumn: 'The map has nothing for this column.',
         sourceMissing: 'The map points to a source it does not list.',
         brokenMappings: 'The mappings data of this map is damaged at this line.',
+        mapTooLarge: 'This map exceeds the decoding limit. Try a smaller source map.',
       },
     },
   },
@@ -168,16 +185,20 @@ export const LAB_TEXT = defineText({
       invalid: (message: string) => `Pattern non valido: ${message}`,
       risky:
         'Questo pattern ripete una ripetizione, come (a+)+. Su alcune righe può bloccare la pagina, quindi non è stato eseguito. Riscrivilo con un separatore fisso tra le ripetizioni.',
+      scanFailed:
+        'La ricerca è stata interrotta perché troppo lenta o non disponibile. Prova un pattern più semplice.',
       scanning: (scanned: number, total: number) => `Scansione di ${scanned} righe su ${total}`,
       summary: (matches: number, lines: number) =>
         `${withCount(matches, CORRISPONDENZE_FORMS)} in ${withCount(lines, RIGHE_FORMS)}`,
       stoppedEarly: (limit: number) =>
         `Interrotto in anticipo: vedi le prime ${limit} corrispondenze e il resto del log non è stato cercato. Rendi il pattern più preciso.`,
       noMatches: 'Nessuna riga corrisponde a questo pattern.',
-      previewHeading: (shown: number, total: number) =>
-        total > shown
-          ? `Prime ${shown} righe su ${total} corrispondenti`
-          : `Righe corrispondenti (${shown})`,
+      previewHeading: (shown: number, total: number) => {
+        if (total > shown) {
+          return `Prime ${shown} righe su ${total} corrispondenti`;
+        }
+        return `Righe corrispondenti (${shown})`;
+      },
       previewLabel: 'Righe corrispondenti',
       lineNumber: (number: number) => `Riga ${number}`,
       valuesHeading: 'Valori unici',
@@ -238,8 +259,13 @@ export const LAB_TEXT = defineText({
       mapPlaceholder: 'Incolla qui il JSON del .js.map',
       openMap: 'Apri .js.map',
       loadMap: 'Carica la map incollata',
-      mapLoaded: (name: string, sources: number) =>
-        `${name}: ${sources} ${sources === 1 ? 'sorgente' : 'sorgenti'}`,
+      mapLoaded: (name: string, sources: number) => {
+        let label = 'sorgenti';
+        if (sources === 1) {
+          label = 'sorgente';
+        }
+        return `${name}: ${sources} ${label}`;
+      },
       mapPasted: 'Map incollata',
       mapProblems: {
         invalidJson: 'Non è un JSON valido. Incolla l’intero file .js.map.',
@@ -270,6 +296,7 @@ export const LAB_TEXT = defineText({
         noMappingAtColumn: 'La map non ha nulla per questa colonna.',
         sourceMissing: 'La map rimanda a un sorgente che non elenca.',
         brokenMappings: 'I dati "mappings" di questa map sono danneggiati a questa riga.',
+        mapTooLarge: 'Questa map supera il limite di lettura. Prova una source map più piccola.',
       },
     },
   },

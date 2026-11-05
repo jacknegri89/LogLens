@@ -18,19 +18,20 @@ interface ReportViewProps {
   analysis: ReportSource;
   /** More tool drawers (feedback, share) placed next to the GitHub issue. */
   children?: ReactNode;
+  pageTitle?: boolean;
 }
 
 /**
  * The review of one analysis as a case file on the desk: the stamped cover, the case summary,
  * the evidence board with the red thread, the exhibits, the procedure, and the tool drawers.
  */
-export function ReportView({ analysis, children }: ReportViewProps) {
+export function ReportView({ analysis, children, pageTitle = false }: ReportViewProps) {
   const text = useText(REPORT_TEXT);
   const { report } = analysis;
 
   return (
     <article className="report-case">
-      <CaseHeader analysis={analysis} />
+      <CaseHeader analysis={analysis} pageTitle={pageTitle} />
       <BigPictureSection overview={report.overview} />
       <EvidenceBoardSection timeline={report.timeline} />
       <FindingsSection findings={report.findings} />
@@ -56,10 +57,14 @@ export function ReportView({ analysis, children }: ReportViewProps) {
 function FailingLinesSection({ analysis }: { analysis: ReportSource }) {
   const text = useText(REPORT_TEXT);
   const { keyLines } = analysis.report;
-  if (keyLines.length === 0) return null;
+  if (keyLines.length === 0) {
+    return null;
+  }
 
-  const lineNumbers =
-    analysis.rawLog === undefined ? undefined : findLineNumbers(analysis.rawLog, keyLines);
+  let lineNumbers: ReturnType<typeof findLineNumbers> | undefined;
+  if (analysis.rawLog !== undefined) {
+    lineNumbers = findLineNumbers(analysis.rawLog, keyLines);
+  }
   return (
     <ReportSection title={text.failingLines}>
       <FailingLines lines={keyLines} lineNumbers={lineNumbers} />
@@ -69,7 +74,9 @@ function FailingLinesSection({ analysis }: { analysis: ReportSource }) {
 
 function BigPictureSection({ overview }: { overview?: string[] }) {
   const text = useText(REPORT_TEXT);
-  if (!overview || overview.length === 0) return null;
+  if (!overview || overview.length === 0) {
+    return null;
+  }
   return (
     <ReportSection title={text.bigPicture} className="report-section-summary">
       <BigPicture sentences={overview} />
@@ -79,7 +86,9 @@ function BigPictureSection({ overview }: { overview?: string[] }) {
 
 function EvidenceBoardSection({ timeline }: { timeline?: TimelineEntry[] }) {
   const text = useText(REPORT_TEXT);
-  if (!timeline || timeline.length < 2) return null;
+  if (!timeline || timeline.length < 2) {
+    return null;
+  }
   return (
     <ReportSection title={text.evidenceBoard} hint={text.evidenceBoardHint}>
       <EvidenceBoard entries={timeline} />
@@ -89,7 +98,9 @@ function EvidenceBoardSection({ timeline }: { timeline?: TimelineEntry[] }) {
 
 function FindingsSection({ findings }: { findings?: Finding[] }) {
   const text = useText(REPORT_TEXT);
-  if (!findings || findings.length < 2) return null;
+  if (!findings || findings.length < 2) {
+    return null;
+  }
   return (
     <ReportSection title={text.allFindings}>
       <FindingsList findings={findings} />

@@ -11,6 +11,7 @@ import { EditorToolbar } from './EditorToolbar';
 export interface LogEditorProps {
   text: string;
   fileName: string | null;
+  fileError: 'tooLarge' | 'tooLong' | 'readFailed' | null;
   failingLines: Set<number>;
   canSubmit: boolean;
   loading: boolean;
@@ -58,6 +59,11 @@ export function LogEditor(props: LogEditorProps) {
       />
       {/* The toolbar takes the same props; only the file loader is wrapped for the reveal. */}
       <EditorToolbar {...props} canClear={props.text !== ''} onFileLoad={reveal.loadFile} />
+      {props.fileError && (
+        <p role="alert" className="px-5 py-2">
+          {text.fileErrors[props.fileError]}
+        </p>
+      )}
       {dragging && <DropOverlay />}
     </section>
   );

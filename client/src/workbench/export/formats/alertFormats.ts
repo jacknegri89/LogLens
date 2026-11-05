@@ -30,7 +30,10 @@ function slackSafe(text: string): string {
 }
 
 function truncate(text: string, limit: number): string {
-  return text.length <= limit ? text : `${text.slice(0, limit - 1)}…`;
+  if (text.length <= limit) {
+    return text;
+  }
+  return `${text.slice(0, limit - 1)}…`;
 }
 
 /** A Slack message in mrkdwn: severity word, title, impact, the best evidence line and a link placeholder. */

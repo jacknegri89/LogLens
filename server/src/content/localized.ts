@@ -31,7 +31,10 @@ const REPORT: Record<TranslatedLanguage, ReportText> = { it: REPORT_TEXT_IT };
 
 /** What the reader is told about a rule: causes and next steps. */
 export function ruleText(rule: Rule, language: Language): RuleText {
-  return language === DEFAULT_LANGUAGE ? rule : RULE_TEXT[language][rule.id];
+  if (language === DEFAULT_LANGUAGE) {
+    return rule;
+  }
+  return RULE_TEXT[language][rule.id];
 }
 
 /** The causes of a rule: the ones that quote the log when there are, else the fixed ones. */
@@ -40,19 +43,29 @@ export function ruleCauses(text: RuleText, details: LogDetails): string[] {
 }
 
 export function relationExplanation(relation: CausalRelation, language: Language): string {
-  return language === DEFAULT_LANGUAGE
-    ? relation.explanation
-    : RELATION_EXPLANATION[language][relation.id];
+  if (language === DEFAULT_LANGUAGE) {
+    return relation.explanation;
+  }
+  return RELATION_EXPLANATION[language][relation.id];
 }
 
 export function overviewText(language: Language): OverviewText {
-  return language === DEFAULT_LANGUAGE ? OVERVIEW_TEXT : OVERVIEW[language];
+  if (language === DEFAULT_LANGUAGE) {
+    return OVERVIEW_TEXT;
+  }
+  return OVERVIEW[language];
 }
 
 export function formatLabel(key: FormatKey, language: Language): string {
-  return language === DEFAULT_LANGUAGE ? FORMAT_LABEL[key] : FORMAT_LABELS[language][key];
+  if (language === DEFAULT_LANGUAGE) {
+    return FORMAT_LABEL[key];
+  }
+  return FORMAT_LABELS[language][key];
 }
 
 export function reportText(language: Language): ReportText {
-  return language === DEFAULT_LANGUAGE ? REPORT_TEXT : REPORT[language];
+  if (language === DEFAULT_LANGUAGE) {
+    return REPORT_TEXT;
+  }
+  return REPORT[language];
 }

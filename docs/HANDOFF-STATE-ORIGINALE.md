@@ -1,0 +1,55 @@
+- Stack: React/TypeScript/Vite client; Node/Express/Prisma/PostgreSQL server; Node >=20. Config: server/.env.example; porte 5173/3001.
+- Vercel: loglens su jacknegri-projects; produzione c564e893c5162d7d10fcea3b441e9c52bafe2951; health HTTP 200. Anteprima/produzione condividono variabili database: evitare scritture di prova.
+- client/src/lib/api.ts, hooks/useRemoveAnalysis.ts: cancellazione locale solo a conferma server/404; api.delete.test.ts copre offline, successo e 404.
+- server/src/app.ts: non registra URL di condivisione; server/scripts/build-vercel.mjs: no-referrer; analyticsPrivacy.ts oscura link e fragment.
+- client/src/workbench/lab/regex/{useRegexScan.ts,regexWorker.ts}: worker interrompibile; e2e/regex-worker.spec.ts copre timeout e ripresa.
+- client/src/workbench/explorer/query/{parseQuery,matchQuery}.ts: wildcard tramite ricerca letterale sequenziale, senza regex esponenziale.
+- client/src/workbench/export/permalink/buildShareState.ts: oscura campi liberi dei report; interfaccia avverte che riconoscimento dati è euristico.
+- server/src/parser/logParser.ts: trimEnd contro backtracking; middleware/errorHandler.ts: 400/413 per JSON errato/eccessivo; provider Ollama/OpenAI: timeout anche lettura body.
+- client/src/components/{CaseHeader,ReportView}.tsx e pagine report: h1 contestuale; privacy.ts descrive retention effettiva.
+- [x] npm ci client/server/root completato; test e controlli finali in corso. Prisma generato; npm segnala install scripts non approvati per 3 pacchetti.
+- [/] Scansione Codex Security 3e24054f-9093-46be-9247-dcc01b5b5a18 su work/LogLens, originale: checkpoint parziale, audit completo non terminato.
+- [ ] Valutare rate limit condiviso API serverless, GET di pulizia/cron, Source Map Lab e stream Ollama; verificare log hosting, E2E completa, database isolato, sicurezza e conformità SEO/README.
+- Nessun commit/push/deploy; copia modificata LogLens-edit, GitHub e produzione invariati.
+- [x] npm audit client/server (incluse dev): 0 vulnerabilità segnalate; 1312 test client e 472 server; 6 E2E desktop + 6 mobile PASS; build Vercel PASS.
+- [x] Source map: limiti righe/segmenti e messaggio dedicato; referrer e permalink protetti; correzioni solo locali.
+- [ ] CSP produzione connect-src self impedisce Ollama locale/remoto: definire policy sicura; streaming Ollama senza limite dati/tempo; security scan resta incompleto.
+- [x] Ollama client: risposta massima 2 MiB e timeout 180 s, con annullamento propagato; 32 test mirati PASS.
+- [x] Gruppi: fingerprint limita righe a 2000 caratteri prima di regex; Source Map: budget di righe e segmenti condiviso tra sezioni. Test mirati PASS.
+- [x] Build root ora compila server/client; README e architecture corretti su db push e PostgreSQL; wildcard ripristina semantica newline.
+- [ ] La CSP self blocca Ollama nel browser in produzione; verificare policy consentita, CORS e rischi prima di modificare. Tabelle con molti servizi potrebbero essere lente: non misurato.
+- [x] Sicurezza client: limiti stream Ollama; JSON annidato limitato a 100 livelli; fingerprint bounded con protezione stringa troncata; scan brute force e raggruppamento lineari. Test mirati 120 PASS.
+- [x] Script cron generato: stato nella home privata con verifica permessi e rifiuto symlink; revisione e prova shell ancora da completare.
+- [x] Build root compilata con successo; docs PostgreSQL e avvertenza db push aggiornati. Analytics non invia fragment.
+- [/] Audit originale: checkpoint discovery aggiornato con 5 superfici e candidati; revisione integrale e validazione formale ancora incomplete.
+- [x] Workbench applica preferenza anonimizzazione al payload; API ignora esito annullato; browser con API simulata conferma rimozione IP/email.
+- [x] Editor analisi rifiuta file >600000 byte con errore visibile e previene race caricamenti; test browser mirato.
+- [x] Raggruppamento hit e finestre brute-force resi lineari; inspector rifiuta JSON oltre 100 livelli; rilevatore linguaggio limita righe e rimuove regex Node quadratica.
+- [/] Alert cron generato: HOME privata e controlli symlink, offset distinto per log/pattern, lock e retry webhook; richiede review finale e Linux test. Un HOME/antenato modificabile da terzi resta presupposto non sicuro.
+- [x] Analisi anonimizzata omette fileName nei due percorsi; cambio log nel Workbench annulla e invalida report precedente. E2E: 5 test mirati PASS, API simulata.
+- [x] Rilevatore linguaggio Fix limita righe e rimuove regex Node quadratica; Fix/Ask sono stub non raggiungibili, non dichiarare funzionalità operative.
+- [/] Codex Security checkpoint: ultimo salvataggio fallito con errore transport closed; checkpoint precedente conservato, verifica integrale e report non completati.
+- [ ] Alert cron: pianificazione oltre 59 minuti e symlink con HOME/antenati non fidati richiedono revisione; rate limit API e modifica GET/cron da progettare senza DB di produzione.
+- [x] Ripreso checkpoint Codex Security: ora 6 superfici e candidati, ancora incompleto. If/else aggiunti nella copia client convertiti a blocchi espliciti.
+- [x] Corrette regex ReDoS in server/parser/detectFormat.ts e noiseFilter.ts; test mirati 30 PASS, aggiunto caso richieste multiple.
+- [x] Export: calcolo intervallo date senza spread per log grandi; parse worker anche per singola riga >100000 caratteri. Fix/Ask mostrano messaggio non disponibile.
+- [/] Nuove regole utente: vietati ternari JS/PHP e if senza graffe; inventario AST iniziale 448 ternari + 542 rami senza graffe in 284 file (567 file sorgenti/test scansionati, generated escluso).
+- [x] Conversione a blocchi dei parser server, provider selezionati, query Explorer, fingerprint e hook analisi; test mirati svolti. Conversione altri file ancora necessaria.
+- [x] Audit Security ripreso, checkpoint salvato con 6 superfici/11 candidati; completamento formale ancora da fare. Nessun deploy.
+- [x] Sintassi: convertiti archivi Explorer, topology/flamegraph, traces, timeline AI, cronologia locale, lista virtuale e testi inspector; test mirati 21 + 19 + 55 + 213 PASS, typecheck verificati dai revisori.
+- [x] Test pluralizzazione 3 PASS; conversione i18n/plural.ts e testi inspector. Typecheck client PASS.
+- [x] Conversione sintassi: altri file AI, esportazione, cluster, indirizzi e inspector; test mirati 200 + 63 + 50 PASS, typecheck client/server PASS. Resta inventario da completare.
+- [x] Revisione indipendente backend: quote API non coprono molte route DB; POST respinti comportano query; proxy IP dipende da configurazione. Checkpoint Security aggiornato, impatto non misurato.
+- [x] Sintassi answers/fuzzy, scenari tail, navigazione, diff e testi insights; test mirati 39 + 37 + 32 PASS. Inventario parziale 262 ternari e 295 rami senza blocco prima degli ultimi gruppi.
+- [x] Preferenze motore convertite senza ternari/if senza graffe; 10 test mirati PASS.
+- [x] Decodifica inspector e layout insights convertiti; 73 test PASS. Runbook e regex builder convertiti; 29 test PASS. Ultimo inventario prima degli ultimi due file: 198 ternari e 248 rami senza graffe in 204 file su 567.
+- [x] parseStackTrace e useFocusTrap convertiti; 31 test source map PASS; focus trap senza test dedicato individuato.
+- [x] Driver tail e parser NDJSON convertiti; 22 test mirati PASS. Typecheck client e git diff --check PASS.
+- [x] Localizzazione server convertita; 151 test traduzioni/parser PASS. Inventario 567 file: 183 ternari e 222 rami senza blocco, 197 file interessati; copertura non equivale a revisione totale.
+- [x] compareLogs convertito alle regole sintattiche, 15 test diff PASS.
+- [x] latency e linePosition convertiti; 11 test mirati PASS.
+- [x] Evidenziazione ricerca e navigazione tab convertite; 32 test mirati PASS.
+- [x] server/src non generato convertito: AST 0 ternari/if senza blocco, typecheck PASS. Eseguita per errore suite completa 487 test server dopo richiesta di sospendere sicurezza; utente avvisato, niente altri test sicurezza senza OK.
+- [x] Conversioni Lab: 119 test funzionali e typecheck PASS. Ulteriori rami client convertiti; test di sicurezza sospesi.
+- [x] Explorer convertito integralmente con AST 0 ternari/if senza graffe, typecheck PASS; inspector convertito e 62 test funzionali PASS; componenti principali e hook convertiti, typecheck client PASS.
+- [x] Workbench engine/security/core convertiti, AST 0 ternari/if senza blocco e typecheck PASS; nessun test di sicurezza avviato. Componenti principali, hook, Ask e test source map aggiornati.

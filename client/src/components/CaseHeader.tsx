@@ -11,11 +11,21 @@ import { SeverityStamp } from './SeverityStamp';
  * The cover of the case file: the typed file line, then an index card taped to the desk
  * with the title on a typed label and the severity stamped across it.
  */
-export function CaseHeader({ analysis }: { analysis: ReportSource }) {
+export function CaseHeader({
+  analysis,
+  pageTitle = false,
+}: {
+  analysis: ReportSource;
+  pageTitle?: boolean;
+}) {
   const text = useText(REPORT_TEXT);
   const formatDate = useFormatDate();
   const headerRef = useRef<HTMLElement>(null);
   useRevealOnView(headerRef);
+  let Heading: 'h1' | 'h2' = 'h2';
+  if (pageTitle) {
+    Heading = 'h1';
+  }
 
   return (
     <header ref={headerRef} className="report-header">
@@ -28,9 +38,9 @@ export function CaseHeader({ analysis }: { analysis: ReportSource }) {
       </p>
       <hgroup className="report-cover evidence-card">
         <p className="report-cover-label evidence-label">{text.caseTitleLabel}</p>
-        <h2 className="report-title">
+        <Heading className="report-title">
           <span>{analysis.title}</span>
-        </h2>
+        </Heading>
         <SeverityStamp severity={analysis.severity} />
       </hgroup>
     </header>

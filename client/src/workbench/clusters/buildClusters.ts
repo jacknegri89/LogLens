@@ -33,7 +33,10 @@ export interface Cluster {
 export type ClusterSort = 'count' | 'recency' | 'severity';
 
 export function levelRank(level: LogLevel | null): number {
-  return level === null ? -1 : LEVEL_RANK[level];
+  if (level === null) {
+    return -1;
+  }
+  return LEVEL_RANK[level];
 }
 
 function startCluster(template: string, line: ParsedLine): Cluster {
@@ -57,8 +60,12 @@ function addLine(cluster: Cluster, line: ParsedLine, position: number): void {
   cluster.count += 1;
   cluster.lastIndex = line.index;
   cluster.positions.push(position);
-  if (cluster.sampleIndexes.length < MAX_SAMPLES) cluster.sampleIndexes.push(line.index);
-  if (line.isFault) cluster.faultCount += 1;
+  if (cluster.sampleIndexes.length < MAX_SAMPLES) {
+    cluster.sampleIndexes.push(line.index);
+  }
+  if (line.isFault) {
+    cluster.faultCount += 1;
+  }
   if (line.service !== null && !cluster.services.includes(line.service)) {
     cluster.services.push(line.service);
   }
@@ -68,16 +75,22 @@ function addLine(cluster: Cluster, line: ParsedLine, position: number): void {
   }
   if (line.level !== null) {
     cluster.levelCounts[line.level] = (cluster.levelCounts[line.level] ?? 0) + 1;
-    if (levelRank(line.level) > levelRank(cluster.topLevel)) cluster.topLevel = line.level;
+    if (levelRank(line.level) > levelRank(cluster.topLevel)) {
+      cluster.topLevel = line.level;
+    }
   }
 }
 
 /** The message without its leading `[service]` tag: the services are listed apart on the cluster. */
 function templateSource(line: ParsedLine): string {
-  const tag = line.service === null ? '' : `[${line.service}]`;
-  return tag !== '' && line.message.startsWith(tag)
-    ? line.message.slice(tag.length).trimStart()
-    : line.message;
+  if (line.service === null) {
+    return line.message;
+  }
+  const tag = `[${line.service}]`;
+  if (line.message.startsWith(tag)) {
+    return line.message.slice(tag.length).trimStart();
+  }
+  return line.message;
 }
 
 /** Groups the lines by message template, in order of first appearance. */
@@ -121,5 +134,8 @@ export function sortClusters(clusters: readonly Cluster[], sort: ClusterSort): C
 }
 
 export function filterClusters(clusters: readonly Cluster[], faultsOnly: boolean): Cluster[] {
-  return faultsOnly ? clusters.filter((cluster) => cluster.faultCount > 0) : [...clusters];
+  if (faultsOnly) {
+    return clusters.filter((cluster) => cluster.faultCount > 0);
+  }
+  return [...clusters];
 }

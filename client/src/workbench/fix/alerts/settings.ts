@@ -39,23 +39,34 @@ function isHighSurrogate(character: string | undefined): boolean {
  * spaces collapse, the length is capped. Quotes and symbols stay: the generators escape them.
  */
 export function sanitizePattern(text: string): string {
-  const singleLine = Array.from(text, (character) =>
-    isUnsafeCode(character.charCodeAt(0)) ? ' ' : character,
-  ).join('');
+  const singleLine = Array.from(text, (character) => {
+    if (isUnsafeCode(character.charCodeAt(0))) {
+      return ' ';
+    }
+    return character;
+  }).join('');
   const capped = singleLine.replace(/\s+/g, ' ').trim().slice(0, MAX_PATTERN_LENGTH);
-  const whole = isHighSurrogate(capped.at(-1)) ? capped.slice(0, -1) : capped;
+  let whole = capped;
+  if (isHighSurrogate(capped.at(-1))) {
+    whole = capped.slice(0, -1);
+  }
   return whole.trim();
 }
 
 /** Only letters, digits and `_ . / : -` survive; an empty result becomes the fallback. */
 export function sanitizeName(text: string, fallback: string): string {
   const cleaned = text.replace(SAFE_NAME, '').slice(0, MAX_NAME_LENGTH);
-  return cleaned === '' ? fallback : cleaned;
+  if (cleaned === '') {
+    return fallback;
+  }
+  return cleaned;
 }
 
 /** A whole number inside the limits; anything else (empty, text, NaN) becomes the fallback. */
 export function clampWhole(value: number, minimum: number, maximum: number, fallback: number) {
-  if (!Number.isFinite(value)) return fallback;
+  if (!Number.isFinite(value)) {
+    return fallback;
+  }
   return Math.min(maximum, Math.max(minimum, Math.round(value)));
 }
 

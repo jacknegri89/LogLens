@@ -21,7 +21,9 @@ export function useThreadGeometry(
 
   useEffect(() => {
     const board = boardRef.current;
-    if (!board || links.length === 0 || typeof ResizeObserver === 'undefined') return;
+    if (!board || links.length === 0 || typeof ResizeObserver === 'undefined') {
+      return;
+    }
     const observer = new ResizeObserver(() => setGeometry(measureThreads(board, links)));
     observer.observe(board);
     return () => observer.disconnect();
@@ -36,7 +38,9 @@ function measureThreads(board: HTMLElement, links: ThreadLink[]): ThreadGeometry
   const threads = links.flatMap(({ rootIndex, effectIndex }) => {
     const from = pinAt(rootIndex);
     const to = pinAt(effectIndex);
-    if (!from || !to) return [];
+    if (!from || !to) {
+      return [];
+    }
     return [{ key: `${rootIndex}-${effectIndex}`, path: threadPath(from, to), from, to }];
   });
   return { width: origin.width, height: origin.height, threads };
@@ -44,7 +48,9 @@ function measureThreads(board: HTMLElement, links: ThreadLink[]): ThreadGeometry
 
 function pinCentre(board: HTMLElement, index: number, origin: DOMRect): Point | null {
   const pin = board.querySelector(`[data-pin="${index}"]`);
-  if (!pin) return null;
+  if (!pin) {
+    return null;
+  }
   const rect = pin.getBoundingClientRect();
   return {
     x: rect.left + rect.width / 2 - origin.left,

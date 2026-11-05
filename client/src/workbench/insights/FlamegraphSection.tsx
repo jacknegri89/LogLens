@@ -15,18 +15,20 @@ interface FlamegraphSectionProps {
 /** Where the time went, from the latencies written in the log. It needs no analysis. */
 export function FlamegraphSection({ tree, latency }: FlamegraphSectionProps) {
   const text = useText(INSIGHTS_TEXT);
+  let graph = <p className="insights-note">{text.flame.empty}</p>;
+  if (tree) {
+    graph = (
+      <>
+        <FlameChart tree={tree} />
+        <FlameTable tree={tree} />
+      </>
+    );
+  }
   return (
     <InsightSection title={text.sections.latency}>
       <p className="insights-note">{text.flame.intro}</p>
       {latency && <LatencyStats summary={latency} />}
-      {tree ? (
-        <>
-          <FlameChart tree={tree} />
-          <FlameTable tree={tree} />
-        </>
-      ) : (
-        <p className="insights-note">{text.flame.empty}</p>
-      )}
+      {graph}
     </InsightSection>
   );
 }

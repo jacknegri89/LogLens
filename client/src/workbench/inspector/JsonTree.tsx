@@ -12,7 +12,10 @@ function isContainer(value: unknown): value is object {
 }
 
 function PrimitiveValue({ value }: { value: unknown }) {
-  const kind = typeof value === 'string' ? 'string' : value === null ? 'null' : typeof value;
+  let kind: string = typeof value;
+  if (value === null) {
+    kind = 'null';
+  }
   return <span className={`inspect-json-${kind}`}>{JSON.stringify(value)}</span>;
 }
 
@@ -36,38 +39,40 @@ function JsonBranch({ name, value, depth }: { name: string; value: object; depth
   const text = useText(INSPECTOR_TEXT);
   const [open, setOpen] = useState(depth < OPEN_DEPTH);
   const isArray = Array.isArray(value);
+  let openBracket = '{';
+  let closeBracket = '}';
+  if (isArray) {
+    openBracket = '[';
+    closeBracket = ']';
+  }
+  let children = <JsonChildren value={value} depth={depth} />;
+  if (depth >= MAX_DEPTH) {
+    children = <p className="inspect-json-note">{text.jsonTooDeep}</p>;
+  }
   return (
     <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary>
         <span className="inspect-json-key">{name}</span>
         <span className="inspect-json-hint">
-          {isArray ? '[' : '{'} {text.jsonSummary(Object.keys(value).length, isArray)}{' '}
-          {isArray ? ']' : '}'}
+          {openBracket} {text.jsonSummary(Object.keys(value).length, isArray)} {closeBracket}
         </span>
       </summary>
-      {open &&
-        (depth >= MAX_DEPTH ? (
-          <p className="inspect-json-note">{text.jsonTooDeep}</p>
-        ) : (
-          <JsonChildren value={value} depth={depth} />
-        ))}
+      {open && children}
     </details>
   );
 }
 
 function JsonNode({ name, value, depth }: { name: string; value: unknown; depth: number }) {
-  return (
-    <li>
-      {isContainer(value) ? (
-        <JsonBranch name={name} value={value} depth={depth} />
-      ) : (
-        <span className="inspect-json-leaf">
-          <span className="inspect-json-key">{name}</span>
-          <PrimitiveValue value={value} />
-        </span>
-      )}
-    </li>
+  let content = (
+    <span className="inspect-json-leaf">
+      <span className="inspect-json-key">{name}</span>
+      <PrimitiveValue value={value} />
+    </span>
   );
+  if (isContainer(value)) {
+    content = <JsonBranch name={name} value={value} depth={depth} />;
+  }
+  return <li>{content}</li>;
 }
 
 /** A parsed JSON value as a collapsible tree. Everything is a text node, never markup. */

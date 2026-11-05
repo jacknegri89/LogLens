@@ -107,7 +107,12 @@ describe('computeRisk', () => {
     );
     let previous = -1;
     for (let faults = 0; faults <= rows.length; faults += 1) {
-      const mixed = rows.map((row, index) => (index < faults ? row.replace('INFO', 'ERROR') : row));
+      const mixed = rows.map((row, index) => {
+        if (index < faults) {
+          return row.replace('INFO', 'ERROR');
+        }
+        return row;
+      });
       const score = computeRisk(input({ lines: parseLines(mixed.join('\n')) })).score;
       expect(score).toBeGreaterThanOrEqual(previous);
       previous = score;

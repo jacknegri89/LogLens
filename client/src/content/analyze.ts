@@ -44,6 +44,11 @@ export const ANALYZE_TEXT = defineText({
     editorPlaceholder: 'Paste a log or stack trace here, or drop a .log file.',
     analyzeButton: 'Analyze log',
     openFileButton: 'Open file',
+    fileErrors: {
+      tooLarge: 'This file exceeds the 600 KB limit.',
+      tooLong: 'This file exceeds the 200,000-character analysis limit.',
+      readFailed: 'Could not read this file.',
+    },
     clearButton: 'Clear',
     cancelButton: 'Cancel',
     shortcutHint: 'Ctrl + Enter to analyze',
@@ -51,9 +56,10 @@ export const ANALYZE_TEXT = defineText({
     anonymizeHint: 'IPs, e-mails, secrets and user names are replaced in your browser first.',
     anonymizedNotice: (replaced: Record<string, number>) => {
       const parts = replacedParts(replaced, REPLACED_LABELS_EN);
-      return parts.length
-        ? `Anonymized: ${parts.join(', ')} replaced`
-        : 'Anonymize was on: nothing sensitive found.';
+      if (parts.length) {
+        return `Anonymized: ${parts.join(', ')} replaced`;
+      }
+      return 'Anonymize was on: nothing sensitive found.';
     },
     readingLog: 'Examining the evidence',
     readingHint: 'Suspicious lines get a tag on the sheet while the report is written.',
@@ -89,6 +95,11 @@ export const ANALYZE_TEXT = defineText({
     editorPlaceholder: 'Incolla qui un log o uno stack trace, oppure trascina un file .log.',
     analyzeButton: 'Analizza log',
     openFileButton: 'Apri file',
+    fileErrors: {
+      tooLarge: 'Il file supera il limite di 600 KB.',
+      tooLong: 'Il file supera il limite di analisi di 200.000 caratteri.',
+      readFailed: 'Impossibile leggere il file.',
+    },
     clearButton: 'Svuota',
     cancelButton: 'Annulla',
     shortcutHint: 'Ctrl + Invio per analizzare',
@@ -96,9 +107,10 @@ export const ANALYZE_TEXT = defineText({
     anonymizeHint: 'IP, e-mail, segreti e nomi utente vengono sostituiti prima, nel tuo browser.',
     anonymizedNotice: (replaced: Record<string, number>) => {
       const parts = replacedParts(replaced, REPLACED_LABELS_IT);
-      return parts.length
-        ? `Dati sostituiti: ${parts.join(', ')}`
-        : 'Anonimizzazione attiva: nessun dato sensibile trovato.';
+      if (parts.length) {
+        return `Dati sostituiti: ${parts.join(', ')}`;
+      }
+      return 'Anonimizzazione attiva: nessun dato sensibile trovato.';
     },
     readingLog: 'Esame dei reperti',
     readingHint:

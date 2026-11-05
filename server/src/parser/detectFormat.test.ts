@@ -42,6 +42,14 @@ const SYSLOG = [
 const PLAIN_TEXT = 'The nightly import stopped because the disk was full.';
 
 describe('detectFormat', () => {
+  it('handles repeated incomplete Node internal frames', () => {
+    const log = ` at ${'(node:internal'.repeat(10_000)}`;
+    expect(detectFormat(log)).toBe(FORMAT_LABEL.plainText);
+  });
+
+  it('recognises a Node internal frame', () => {
+    expect(detectFormat('    at fn (node:internal/modules:10:5)')).toBe(FORMAT_LABEL.nodeError);
+  });
   it.each([
     [FORMAT_LABEL.jsonLines, JSON_LINES],
     [FORMAT_LABEL.windowsEvent, WINDOWS_EVENT],

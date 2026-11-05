@@ -20,8 +20,14 @@ export function hasKnownRule(text: string): boolean {
 /** The lines that prove the rule. A lead line, when given, comes first so the title describes it. */
 function pickKeyLines(lines: string[], rule: Rule, leadLine?: string): string[] {
   const matching = lines.filter((line) => rule.pattern.test(line) || FAILURE_LINE.test(line));
-  const chosen = matching.length > 0 ? matching : lines;
-  const ordered = leadLine === undefined ? chosen : [leadLine, ...chosen];
+  let chosen = lines;
+  if (matching.length > 0) {
+    chosen = matching;
+  }
+  let ordered = chosen;
+  if (leadLine !== undefined) {
+    ordered = [leadLine, ...chosen];
+  }
   return [...new Set(ordered)].slice(0, MAX_KEY_LINES);
 }
 
@@ -67,7 +73,9 @@ function codeFence(lines: string[]): string {
 }
 
 function overviewSection(overview: string[], heading: string): string[] {
-  if (overview.length === 0) return [];
+  if (overview.length === 0) {
+    return [];
+  }
   return [`### ${heading}`, '', ...overview.map((sentence) => `- ${sentence}`), ''];
 }
 
@@ -88,7 +96,10 @@ function pickMainRule(excerpt: string, correlation: Correlation): Rule {
 }
 
 function findLine(lines: string[], evidence: string | undefined): string | undefined {
-  return evidence === undefined ? undefined : lines.find((line) => line.startsWith(evidence));
+  if (evidence === undefined) {
+    return undefined;
+  }
+  return lines.find((line) => line.startsWith(evidence));
 }
 
 function describeIssue(
@@ -102,10 +113,14 @@ function describeIssue(
   const text = ruleText(rule, language);
   const keyLines = pickKeyLines(lines, rule, findLine(lines, correlation.rootCause?.evidence));
   const severity = pickSeverity(rule, excerpt, severityHint);
+  let reportSeverity = severity;
+  // A login accepted after a brute force means the account may be lost: that is critical.
+  if (correlation.compromisedLogin) {
+    reportSeverity = raiseSeverity(severity, 'critical');
+  }
   return {
     title: makeTitle(keyLines, language),
-    // A login accepted after a brute force means the account may be lost: that is critical.
-    severity: correlation.compromisedLogin ? raiseSeverity(severity, 'critical') : severity,
+    severity: reportSeverity,
     category: rule.category,
     keyLines,
     overview: correlation.overview,
@@ -121,13 +136,20 @@ function buildReport(input: AnalyzeInput): AIReport {
   const correlation = correlateIncident(input.excerpt, findings, language);
   const { overview, ...issue } = describeIssue(input, lines, correlation, language);
 
-  return aiReportSchema.parse({
+  const report: AIReport = {
     ...issue,
     bugReportMarkdown: buildIssue({ ...issue, overview }, language),
-    ...(findings.length > 0 ? { findings } : {}),
-    ...(overview.length > 0 ? { overview } : {}),
-    ...(correlation.timeline.length > 0 ? { timeline: correlation.timeline } : {}),
-  });
+  };
+  if (findings.length > 0) {
+    report.findings = findings;
+  }
+  if (overview.length > 0) {
+    report.overview = overview;
+  }
+  if (correlation.timeline.length > 0) {
+    report.timeline = correlation.timeline;
+  }
+  return aiReportSchema.parse(report);
 }
 
 /**

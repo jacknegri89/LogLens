@@ -22,10 +22,14 @@ export function useLineNavigation(
     () => ({
       close: () => select(null),
       previous: () => {
-        if (previous) select(previous.index);
+        if (previous) {
+          select(previous.index);
+        }
       },
       next: () => {
-        if (next) select(next.index);
+        if (next) {
+          select(next.index);
+        }
       },
     }),
     [select, previous, next],

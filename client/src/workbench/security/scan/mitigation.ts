@@ -54,10 +54,13 @@ function escapeRegexLiteral(constant: string): string {
 
 function iptablesCommands(addresses: string[]): string {
   return addresses
-    .map(
-      (address) =>
-        `${isValidIpv6(address) ? 'ip6tables' : 'iptables'} -A INPUT -s ${address} -j DROP`,
-    )
+    .map((address) => {
+      let command = 'iptables';
+      if (isValidIpv6(address)) {
+        command = 'ip6tables';
+      }
+      return `${command} -A INPUT -s ${address} -j DROP`;
+    })
     .join('\n');
 }
 
@@ -72,8 +75,12 @@ function fail2banSnippet(hints: WafHint[], withLoginFailures: boolean): string {
   const regexes = paths.map(
     (hint) => `^<HOST> .* "(?:GET|POST|HEAD) [^"]*${escapeRegexLiteral(hint.value)}`,
   );
-  if (withLoginFailures) regexes.push('^<HOST> .* "(?:GET|POST) [^"]*" (?:401|403) ');
-  if (regexes.length === 0) return '';
+  if (withLoginFailures) {
+    regexes.push('^<HOST> .* "(?:GET|POST) [^"]*" (?:401|403) ');
+  }
+  if (regexes.length === 0) {
+    return '';
+  }
   return [
     '# /etc/fail2ban/filter.d/loglens-probes.conf',
     '[Definition]',
@@ -103,7 +110,9 @@ function patternSnippets(result: ScanResult): MitigationSnippet[] {
 }
 
 function addressSnippets(addresses: string[]): MitigationSnippet[] {
-  if (addresses.length === 0) return [];
+  if (addresses.length === 0) {
+    return [];
+  }
   return [
     { id: 'iptables', code: iptablesCommands(addresses) },
     { id: 'ufw', code: addresses.map((address) => `ufw deny from ${address}`).join('\n') },

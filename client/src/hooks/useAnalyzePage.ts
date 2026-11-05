@@ -17,25 +17,50 @@ interface AnonymizedSend {
 
 /** Line numbers of the failing lines, but only for the analysis of this exact text. */
 function failingLinesFor(result: AnalysisRecord | null, text: string): Set<number> {
-  if (!result || result.rawLog !== text) return new Set();
+  if (!result || result.rawLog !== text) {
+    return new Set();
+  }
   return new Set(findLineNumbers(result.rawLog, result.report.keyLines).values());
 }
 
-function toAnalysisInput(rawLog: string, fileName: string | null): CreateAnalysisInput {
-  return { rawLog, source: fileName ? 'upload' : 'paste', fileName: fileName ?? undefined };
+function toAnalysisInput(
+  rawLog: string,
+  fileName: string | null,
+  anonymized: boolean,
+): CreateAnalysisInput {
+  let source: 'upload' | 'paste' = 'paste';
+  if (fileName) {
+    source = 'upload';
+  }
+  let fileNameToSend: string | undefined;
+  if (!anonymized) {
+    fileNameToSend = fileName ?? undefined;
+  }
+  return {
+    rawLog,
+    source,
+    fileName: fileNameToSend,
+  };
 }
 
 /** Remembers the anonymized copy that was sent, for as long as the editor text is unchanged. */
 function useAnonymizedSend(text: string, enabled: boolean) {
   const [send, setSend] = useState<AnonymizedSend | null>(null);
   // Anonymizing keeps every line, so the line numbers of the sent copy fit the editor text.
-  const matching = send?.original === text ? send : null;
+  let matching: AnonymizedSend | null = null;
+  if (send?.original === text) {
+    matching = send;
+  }
 
   /** Returns the text to send: the anonymized copy when enabled, otherwise the text itself. */
   function prepare(): string {
-    const anonymized = enabled ? anonymizeLog(text) : null;
-    setSend(anonymized && { original: text, sent: anonymized.text, replaced: anonymized.replaced });
-    return anonymized ? anonymized.text : text;
+    if (!enabled) {
+      setSend(null);
+      return text;
+    }
+    const anonymized = anonymizeLog(text);
+    setSend({ original: text, sent: anonymized.text, replaced: anonymized.replaced });
+    return anonymized.text;
   }
 
   return { matching, prepare };
@@ -50,8 +75,10 @@ export function useAnalyzePage() {
   const canSubmit = log.text.trim().length > 0 && analysis.status !== 'loading';
 
   function submit() {
-    if (!canSubmit) return;
-    analysis.run(toAnalysisInput(anonymizedSend.prepare(), log.fileName));
+    if (!canSubmit) {
+      return;
+    }
+    analysis.run(toAnalysisInput(anonymizedSend.prepare(), log.fileName, anonymize.enabled));
   }
 
   function clear() {

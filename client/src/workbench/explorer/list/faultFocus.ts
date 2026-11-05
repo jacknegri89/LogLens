@@ -14,7 +14,11 @@ export function faultFocusMarks(lines: readonly ParsedLine[]): Uint8Array {
   let insideFault = false;
   lines.forEach((line, position) => {
     insideFault = line.isFault || (insideFault && continuesFault(line));
-    marks[position] = insideFault ? 1 : 0;
+    if (insideFault) {
+      marks[position] = 1;
+    } else {
+      marks[position] = 0;
+    }
   });
   return marks;
 }

@@ -11,18 +11,21 @@ export function LoadedSummary() {
   const text = useText(WORKBENCH_EXPLORER_TEXT).loader;
   const { rawLog, fileName, lines, parsing } = useWorkbench();
   const size = useMemo(() => utf8ByteLength(rawLog), [rawLog]);
+  let countText = text.lineCount(lines.length);
+  if (parsing) {
+    countText = text.parsing;
+  }
 
   return (
     <p className="wbx-summary" aria-live="polite">
-      {rawLog === '' ? (
-        <span className="wbx-summary-empty">{text.empty}</span>
-      ) : (
+      {rawLog === '' && <span className="wbx-summary-empty">{text.empty}</span>}
+      {rawLog !== '' && (
         <>
           <span className="wbx-summary-name" title={fileName ?? text.pastedName}>
             {fileName ?? text.pastedName}
           </span>
           <span className="wbx-summary-facts">
-            {formatFileSize(size)} · {parsing ? text.parsing : text.lineCount(lines.length)}
+            {formatFileSize(size)} · {countText}
           </span>
         </>
       )}

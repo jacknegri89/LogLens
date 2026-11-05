@@ -7,14 +7,21 @@ import { useEffect, type RefObject } from 'react';
  */
 export function useDrawerFocus(drawerRef: RefObject<HTMLElement | null>, lineIndex: number): void {
   useEffect(() => {
-    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    let opener: HTMLElement | null = null;
+    if (document.activeElement instanceof HTMLElement) {
+      opener = document.activeElement;
+    }
     drawerRef.current?.focus({ preventScroll: true });
     return () => {
-      if (opener?.isConnected) opener.focus({ preventScroll: true });
+      if (opener?.isConnected) {
+        opener.focus({ preventScroll: true });
+      }
     };
   }, [drawerRef]);
 
   useEffect(() => {
-    if (document.activeElement === document.body) drawerRef.current?.focus({ preventScroll: true });
+    if (document.activeElement === document.body) {
+      drawerRef.current?.focus({ preventScroll: true });
+    }
   }, [drawerRef, lineIndex]);
 }

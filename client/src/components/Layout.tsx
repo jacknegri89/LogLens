@@ -38,12 +38,16 @@ export function Layout() {
 function SiteHeader() {
   const text = useText(LAYOUT_TEXT);
   const isHeaderVisible = useHeaderVisibility();
+  let hiddenClass = '';
+  if (!isHeaderVisible) {
+    hiddenClass = '-translate-y-full';
+  }
   // Solid background, so the page scrolling under it does not show through the letters.
   // A hidden header is also made inert, so keyboard focus cannot land on links that are off screen.
   return (
     <header
       inert={!isHeaderVisible}
-      className={`sticky top-0 z-20 w-full bg-felt transition-transform duration-300 motion-reduce:transition-none ${isHeaderVisible ? '' : '-translate-y-full'}`}
+      className={`sticky top-0 z-20 w-full bg-felt transition-transform duration-300 motion-reduce:transition-none ${hiddenClass}`}
     >
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-2 gap-y-3 px-4 py-4 sm:px-6 sm:py-5">
         <NavLink to="/" className="brand flex items-center gap-2.5">

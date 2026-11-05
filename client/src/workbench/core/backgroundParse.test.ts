@@ -12,6 +12,10 @@ describe('isSmallLog', () => {
     expect(isSmallLog('a\nb\nc\nd', 4)).toBe(false);
     expect(isSmallLog('x\n'.repeat(5000))).toBe(false);
   });
+
+  it('uses a worker for a large log even when it contains only one line', () => {
+    expect(isSmallLog('x'.repeat(100_001))).toBe(false);
+  });
 });
 
 describe('parseInBackground without a Worker', () => {

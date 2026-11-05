@@ -19,7 +19,9 @@ const ACCEPTED_LOGIN =
 function failedLoginAddress(line: string): string | null {
   for (const pattern of FAILED_LOGIN_PATTERNS) {
     const address = pattern.exec(line)?.[1];
-    if (address) return address;
+    if (address) {
+      return address;
+    }
   }
   return null;
 }
@@ -38,7 +40,10 @@ export function findLoginEscalation(lines: string[]): LoginEscalation | null {
       continue;
     }
     const accepted = ACCEPTED_LOGIN.exec(line);
-    const failedLogins = accepted ? (failuresByAddress.get(accepted[2]) ?? 0) : 0;
+    let failedLogins = 0;
+    if (accepted) {
+      failedLogins = failuresByAddress.get(accepted[2]) ?? 0;
+    }
     if (accepted && failedLogins >= MIN_FAILED_LOGINS_BEFORE_SUCCESS) {
       return { address: accepted[2], user: accepted[1], failedLogins };
     }

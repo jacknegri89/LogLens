@@ -24,7 +24,9 @@ export function OpenFileButton({ onFileLoad }: { onFileLoad: (file: File) => voi
         className="hidden"
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) onFileLoad(file);
+          if (file) {
+            onFileLoad(file);
+          }
           // Lets the same file be picked again after editing the text.
           event.target.value = '';
         }}

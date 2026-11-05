@@ -19,7 +19,10 @@ export function isLanguage(value: unknown): value is Language {
 export function readStoredLanguage(): Language | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return isLanguage(stored) ? stored : null;
+    if (isLanguage(stored)) {
+      return stored;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -38,7 +41,10 @@ export function languageFromBrowser(browserLanguages: readonly string[]): Langua
   const match = browserLanguages
     .map((tag) => tag.toLowerCase().split('-')[0])
     .find((code) => isLanguage(code));
-  return isLanguage(match) ? match : DEFAULT_LANGUAGE;
+  if (isLanguage(match)) {
+    return match;
+  }
+  return DEFAULT_LANGUAGE;
 }
 
 /** The saved choice first, then the browser language. */

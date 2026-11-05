@@ -24,6 +24,10 @@ export function EditorBody({
 }: EditorBodyProps) {
   const mirrorRef = useRef<HTMLDivElement>(null);
   const rowHeights = useRowHeights(mirrorRef, text);
+  let scanLines: ReturnType<typeof scanRows> = [];
+  if (scanning) {
+    scanLines = scanRows(text, rowHeights);
+  }
 
   return (
     <div className="editor-window relative">
@@ -34,12 +38,7 @@ export function EditorBody({
             rowHeights={rowHeights}
             failingLines={failingLines}
           />
-          <EditorTextBox
-            text={text}
-            mirrorRef={mirrorRef}
-            scanRows={scanning ? scanRows(text, rowHeights) : []}
-            {...handlers}
-          />
+          <EditorTextBox text={text} mirrorRef={mirrorRef} scanRows={scanLines} {...handlers} />
         </div>
       </div>
       {scanning && <span className="scan-bar" aria-hidden="true" />}

@@ -41,13 +41,17 @@ export function useDiffSlots() {
   }
 
   function fillFromWorkbench(id: SlotId) {
-    if (rawLog.trim() === '') return setErrors((current) => ({ ...current, [id]: 'noLoadedLog' }));
+    if (rawLog.trim() === '') {
+      return setErrors((current) => ({ ...current, [id]: 'noLoadedLog' }));
+    }
     fill(id, { text: rawLog, source: 'workbench', name: null });
   }
 
   async function openFile(id: SlotId, file: File) {
     const result = await readTextFile(file, MAX_DIFF_FILE_MEGABYTES * MEGABYTE);
-    if (!result.ok) return setErrors((current) => ({ ...current, [id]: result.reason }));
+    if (!result.ok) {
+      return setErrors((current) => ({ ...current, [id]: result.reason }));
+    }
     fill(id, { text: result.text, source: 'file', name: file.name });
   }
 

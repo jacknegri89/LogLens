@@ -34,12 +34,12 @@ function GutterNumber({
   height: number | undefined;
   failing: boolean;
 }) {
+  let failingClass = '';
+  if (failing) {
+    failingClass = 'bg-marker font-bold text-ink';
+  }
   return (
-    <li
-      style={{ height }}
-      data-failing={failing}
-      className={`px-3 ${failing ? 'bg-marker font-bold text-ink' : ''}`}
-    >
+    <li style={{ height }} data-failing={failing} className={`px-3 ${failingClass}`}>
       {number}
     </li>
   );

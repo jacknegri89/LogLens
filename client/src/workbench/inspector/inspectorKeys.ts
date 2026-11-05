@@ -19,12 +19,32 @@ export interface InspectorKeyContext {
 
 /** What a key press does in the inspector, or null when it is not for the inspector. */
 export function inspectorKeyAction(context: InspectorKeyContext): InspectorKeyAction | null {
-  if (context.alreadyHandled || context.hasModifier) return null;
-  if (context.key === 'Escape') return context.otherModalOpen ? null : 'close';
-  if (!context.focusInsideDrawer || context.focusInTextField) return null;
-  if (context.key === 'k') return 'previous';
-  if (context.key === 'j') return 'next';
-  if (!context.focusOnNavigation) return null;
-  if (context.key === 'ArrowUp') return 'previous';
-  return context.key === 'ArrowDown' ? 'next' : null;
+  if (context.alreadyHandled || context.hasModifier) {
+    return null;
+  }
+  if (context.key === 'Escape') {
+    if (context.otherModalOpen) {
+      return null;
+    }
+    return 'close';
+  }
+  if (!context.focusInsideDrawer || context.focusInTextField) {
+    return null;
+  }
+  if (context.key === 'k') {
+    return 'previous';
+  }
+  if (context.key === 'j') {
+    return 'next';
+  }
+  if (!context.focusOnNavigation) {
+    return null;
+  }
+  if (context.key === 'ArrowUp') {
+    return 'previous';
+  }
+  if (context.key === 'ArrowDown') {
+    return 'next';
+  }
+  return null;
 }

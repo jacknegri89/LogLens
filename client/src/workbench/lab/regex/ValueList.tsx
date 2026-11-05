@@ -11,7 +11,9 @@ interface ValueListProps {
 }
 
 function displayedValues(values: ValueCount[], extractorId: ExtractorId | null): ValueCount[] {
-  if (!extractorId || !findExtractor(extractorId).maskValues) return values;
+  if (!extractorId || !findExtractor(extractorId).maskValues) {
+    return values;
+  }
   const merged = new Map<string, number>();
   for (const { value, count } of values) {
     const shown = maskSecret(value);
@@ -56,7 +58,9 @@ export function ValueList({ snapshot, extractorId }: ValueListProps) {
 function LatencySummary({ snapshot }: { snapshot: ScanSnapshot }) {
   const text = useText(LAB_TEXT).regex.latency;
   const summary = summarizeLatencies(snapshot.valueCounts);
-  if (!summary) return null;
+  if (!summary) {
+    return null;
+  }
   const cells: Array<[string, number]> = [
     [text.min, summary.min],
     [text.average, summary.average],

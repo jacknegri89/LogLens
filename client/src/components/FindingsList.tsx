@@ -34,7 +34,9 @@ function FindingRow({ finding }: { finding: Finding }) {
 
 function FindingTags({ technique, owasp }: { technique?: string; owasp?: string }) {
   const text = useText(REPORT_TEXT);
-  if (!technique && !owasp) return null;
+  if (!technique && !owasp) {
+    return null;
+  }
   return (
     <p className="report-tags">
       {technique && <ReferenceTag label={text.techniqueLabel} value={technique} />}

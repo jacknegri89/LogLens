@@ -12,7 +12,10 @@ export interface SideBySideRow {
 }
 
 function splitLines(text: string): string[] {
-  return text === '' ? [] : text.split('\n');
+  if (text === '') {
+    return [];
+  }
+  return text.split('\n');
 }
 
 /** lengths[i][j] is the longest common run of before[i..] and after[j..]. */
@@ -22,10 +25,11 @@ function buildLengths(before: string[], after: string[]): number[][] {
   );
   for (let i = before.length - 1; i >= 0; i--) {
     for (let j = after.length - 1; j >= 0; j--) {
-      lengths[i][j] =
-        before[i] === after[j]
-          ? lengths[i + 1][j + 1] + 1
-          : Math.max(lengths[i + 1][j], lengths[i][j + 1]);
+      if (before[i] === after[j]) {
+        lengths[i][j] = lengths[i + 1][j + 1] + 1;
+      } else {
+        lengths[i][j] = Math.max(lengths[i + 1][j], lengths[i][j + 1]);
+      }
     }
   }
   return lengths;
@@ -38,8 +42,13 @@ function nextKind(
   i: number,
   j: number,
 ): DiffKind {
-  if (before[i] === after[j]) return 'same';
-  return lengths[i + 1][j] >= lengths[i][j + 1] ? 'removed' : 'added';
+  if (before[i] === after[j]) {
+    return 'same';
+  }
+  if (lengths[i + 1][j] >= lengths[i][j + 1]) {
+    return 'removed';
+  }
+  return 'added';
 }
 
 /** Line diff of two texts (longest common subsequence), removed lines before added ones. */
@@ -52,9 +61,17 @@ export function computeLineDiff(beforeText: string, afterText: string): DiffLine
   let j = 0;
   while (i < before.length && j < after.length) {
     const kind = nextKind(before, after, lengths, i, j);
-    result.push({ kind, text: kind === 'added' ? after[j] : before[i] });
-    if (kind !== 'added') i++;
-    if (kind !== 'removed') j++;
+    let text = before[i];
+    if (kind === 'added') {
+      text = after[j];
+    }
+    result.push({ kind, text });
+    if (kind !== 'added') {
+      i++;
+    }
+    if (kind !== 'removed') {
+      j++;
+    }
   }
   const removedTail = before.slice(i).map((text) => ({ kind: 'removed' as const, text }));
   const addedTail = after.slice(j).map((text) => ({ kind: 'added' as const, text }));
@@ -84,7 +101,11 @@ export function toSideBySideRows(diff: DiffLine[]): SideBySideRow[] {
   let added: DiffLine[] = [];
   for (const line of diff) {
     if (line.kind !== 'same') {
-      (line.kind === 'removed' ? removed : added).push(line);
+      if (line.kind === 'removed') {
+        removed.push(line);
+      } else {
+        added.push(line);
+      }
       continue;
     }
     rows.push(...pairBlocks(removed, added), { left: line, right: line });

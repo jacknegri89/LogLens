@@ -24,10 +24,14 @@ export function decodeForMatching(text: string): string {
 /** The request target of a web access line ("GET /path?query"), decoded; null for other lines. */
 export function requestTarget(raw: string, fields: Record<string, string>): string | null {
   const fromLine = REQUEST_LINE.exec(raw.slice(0, MAX_SCANNED_CHARACTERS))?.[1];
-  if (fromLine) return decodeForMatching(fromLine);
+  if (fromLine) {
+    return decodeForMatching(fromLine);
+  }
   for (const name of TARGET_FIELDS) {
     const value = fields[name];
-    if (value) return decodeForMatching(REQUEST_LINE.exec(value)?.[1] ?? value);
+    if (value) {
+      return decodeForMatching(REQUEST_LINE.exec(value)?.[1] ?? value);
+    }
   }
   return null;
 }

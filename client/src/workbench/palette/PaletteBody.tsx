@@ -18,6 +18,10 @@ export function PaletteBody({ onClose }: { onClose: () => void }) {
   const flat = groups.flatMap((entry) => entry.items);
   const selection = usePaletteSelection(flat.length);
   const activeCommand = flat[selection.active];
+  let activeId: string | undefined;
+  if (activeCommand) {
+    activeId = `${listId}-${activeCommand.id}`;
+  }
 
   function run(index: number) {
     const command = flat[index];
@@ -35,7 +39,7 @@ export function PaletteBody({ onClose }: { onClose: () => void }) {
         query={query}
         onQueryChange={changeQuery}
         listId={listId}
-        activeId={activeCommand ? `${listId}-${activeCommand.id}` : undefined}
+        activeId={activeId}
         selection={selection}
         onRun={() => run(selection.active)}
       />

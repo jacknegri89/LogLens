@@ -14,20 +14,24 @@ interface RemoveAnalysisProps {
 export function RemoveAnalysis({ analysisId, title, offline, onRemoved }: RemoveAnalysisProps) {
   const text = useText(HISTORY_TEXT);
   const removal = useRemoveAnalysis(analysisId, offline, onRemoved);
+  let action;
+  if (removal.confirming) {
+    action = <RemoveConfirmation title={title} removal={removal} />;
+  } else {
+    action = (
+      <button
+        type="button"
+        onClick={removal.start}
+        aria-label={text.removeLabel(title)}
+        className="case-remove-button"
+      >
+        {text.remove}
+      </button>
+    );
+  }
   return (
     <div className="case-remove">
-      {removal.confirming ? (
-        <RemoveConfirmation title={title} removal={removal} />
-      ) : (
-        <button
-          type="button"
-          onClick={removal.start}
-          aria-label={text.removeLabel(title)}
-          className="case-remove-button"
-        >
-          {text.remove}
-        </button>
-      )}
+      {action}
       {removal.error && (
         <ErrorNotice title={text.removeFailed} message={removal.error} className="mt-3" />
       )}
@@ -42,6 +46,10 @@ interface RemoveConfirmationProps {
 
 function RemoveConfirmation({ title, removal }: RemoveConfirmationProps) {
   const text = useText(HISTORY_TEXT);
+  let removeLabel = text.removeYes;
+  if (removal.removing) {
+    removeLabel = text.removing;
+  }
   return (
     <div role="group" aria-label={text.removeConfirmLabel(title)} className="case-remove-confirm">
       <span className="case-remove-question">{text.removeQuestion}</span>
@@ -51,7 +59,7 @@ function RemoveConfirmation({ title, removal }: RemoveConfirmationProps) {
         disabled={removal.removing}
         className="case-remove-yes"
       >
-        {removal.removing ? text.removing : text.removeYes}
+        {removeLabel}
       </button>
       <button
         type="button"

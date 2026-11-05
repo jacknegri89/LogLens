@@ -35,7 +35,10 @@ function startScenario(driver: StreamDriver, appendLog: (text: string) => void, 
     onEnd: (reason) =>
       setTail((current) => ({ ...current, scenario: null, limitReached: reason === 'limit' })),
   });
-  return started ? { ...IDLE, scenario, expectedFatalLine: script[script.length - 1] } : null;
+  if (started) {
+    return { ...IDLE, scenario, expectedFatalLine: script[script.length - 1] };
+  }
+  return null;
 }
 
 /** The live tail: a simulated stream added to the loaded log, one line at a time. */
@@ -49,7 +52,9 @@ export function useLiveTail() {
 
   function start() {
     const started = startScenario(driver, appendLog, setTail);
-    if (started) setTail(() => started);
+    if (started) {
+      setTail(() => started);
+    }
   }
 
   function stop() {

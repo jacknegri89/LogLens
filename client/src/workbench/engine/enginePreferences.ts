@@ -30,14 +30,24 @@ export function preferenceStorage(): PreferenceStorage {
 
 /** Keeps only valid values from whatever was stored; the rest falls back to the defaults. */
 export function sanitizePreferences(value: unknown): EnginePreferences {
-  const saved = (typeof value === 'object' && value !== null ? value : {}) as Record<
-    string,
-    unknown
-  >;
-  const baseUrl = typeof saved.baseUrl === 'string' ? normalizeBaseUrl(saved.baseUrl) : null;
-  const model = typeof saved.model === 'string' ? saved.model.slice(0, MAX_MODEL_LENGTH) : '';
+  let saved: Record<string, unknown> = {};
+  if (typeof value === 'object' && value !== null) {
+    saved = value as Record<string, unknown>;
+  }
+  let baseUrl: string | null = null;
+  if (typeof saved.baseUrl === 'string') {
+    baseUrl = normalizeBaseUrl(saved.baseUrl);
+  }
+  let model = '';
+  if (typeof saved.model === 'string') {
+    model = saved.model.slice(0, MAX_MODEL_LENGTH);
+  }
+  let kind: EngineKind = 'builtin';
+  if (saved.kind === 'ollama') {
+    kind = 'ollama';
+  }
   return {
-    kind: saved.kind === 'ollama' ? 'ollama' : 'builtin',
+    kind,
     baseUrl: baseUrl ?? DEFAULT_PREFERENCES.baseUrl,
     model,
   };
@@ -46,7 +56,10 @@ export function sanitizePreferences(value: unknown): EnginePreferences {
 export function loadPreferences(storage: PreferenceStorage): EnginePreferences {
   try {
     const saved = storage?.getItem(STORAGE_KEY);
-    return saved ? sanitizePreferences(JSON.parse(saved)) : DEFAULT_PREFERENCES;
+    if (saved) {
+      return sanitizePreferences(JSON.parse(saved));
+    }
+    return DEFAULT_PREFERENCES;
   } catch {
     return DEFAULT_PREFERENCES;
   }
@@ -58,7 +71,9 @@ export function savePreferences(
   preferences: EnginePreferences,
 ): boolean {
   try {
-    if (!storage) return false;
+    if (!storage) {
+      return false;
+    }
     storage.setItem(STORAGE_KEY, JSON.stringify(preferences));
     return true;
   } catch {

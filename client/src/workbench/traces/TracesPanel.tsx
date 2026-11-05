@@ -26,10 +26,14 @@ export function TracesPanel() {
   const { lines } = useWorkbench();
   const view = useTraceView(lines);
   const hasIds = view.active !== null;
+  let intro = text.intro;
+  if (lines.length === 0) {
+    intro = text.noLog;
+  }
 
   return (
     <section className="trace-view">
-      <p className="wb-intro">{lines.length === 0 ? text.noLog : text.intro}</p>
+      <p className="wb-intro">{intro}</p>
       {lines.length > 0 && !hasIds && <NoIds />}
       {hasIds && (
         <div className="trace-layout">

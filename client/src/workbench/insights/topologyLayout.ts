@@ -98,10 +98,10 @@ function curve(
   endY: number,
   axis: Orientation,
 ): string {
-  const middle =
-    axis === 'horizontal'
-      ? `${(startX + endX) / 2} ${startY} ${(startX + endX) / 2} ${endY}`
-      : `${startX} ${(startY + endY) / 2} ${endX} ${(startY + endY) / 2}`;
+  let middle = `${startX} ${(startY + endY) / 2} ${endX} ${(startY + endY) / 2}`;
+  if (axis === 'horizontal') {
+    middle = `${(startX + endX) / 2} ${startY} ${(startX + endX) / 2} ${endY}`;
+  }
   return `M ${startX} ${startY} C ${middle} ${endX} ${endY}`;
 }
 
@@ -110,22 +110,28 @@ function connect(from: PlacedNode, to: PlacedNode, metrics: Metrics, axis: Orien
   const { nodeWidth: width, nodeHeight: height } = metrics;
   if (axis === 'horizontal') {
     const forward = to.x >= from.x;
+    let fromOffset = 0;
+    let toOffset = width;
+    if (forward) {
+      fromOffset = width;
+      toOffset = 0;
+    }
     return curve(
-      from.x + (forward ? width : 0),
+      from.x + fromOffset,
       from.y + height / 2,
-      to.x + (forward ? 0 : width),
+      to.x + toOffset,
       to.y + height / 2,
       axis,
     );
   }
   const down = to.y >= from.y;
-  return curve(
-    from.x + width / 2,
-    from.y + (down ? height : 0),
-    to.x + width / 2,
-    to.y + (down ? 0 : height),
-    axis,
-  );
+  let fromOffset = 0;
+  let toOffset = height;
+  if (down) {
+    fromOffset = height;
+    toOffset = 0;
+  }
+  return curve(from.x + width / 2, from.y + fromOffset, to.x + width / 2, to.y + toOffset, axis);
 }
 
 /** Positions every node and edge. Wide screens read left to right, phones top to bottom. */
@@ -137,12 +143,16 @@ export function layoutTopology(topology: Topology, orientation: Orientation): To
     nodeWidth: metrics.nodeWidth,
     nodeHeight: metrics.nodeHeight,
   };
-  if (topology.nodes.length === 0) return { ...empty, nodes: [], edges: [] };
+  if (topology.nodes.length === 0) {
+    return { ...empty, nodes: [], edges: [] };
+  }
   const groups = groupByTier(topology.nodes);
-  const nodes =
-    orientation === 'horizontal'
-      ? placeHorizontal(groups, metrics)
-      : placeVertical(groups, metrics);
+  let nodes: PlacedNode[];
+  if (orientation === 'horizontal') {
+    nodes = placeHorizontal(groups, metrics);
+  } else {
+    nodes = placeVertical(groups, metrics);
+  }
   const byId = new Map(nodes.map((placed) => [placed.node.id, placed]));
   const edges = topology.edges.map((edge) => ({
     ...edge,

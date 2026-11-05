@@ -31,7 +31,9 @@ export function useInspectorKeys(
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const action = readAction(event, drawerRef.current);
-      if (!action) return;
+      if (!action) {
+        return;
+      }
       event.preventDefault();
       actions[action]();
     }

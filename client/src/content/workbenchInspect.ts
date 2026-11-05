@@ -72,14 +72,20 @@ export const INSPECTOR_TEXT = defineText({
     epochUnits: { seconds: 'Seconds since 1970', milliseconds: 'Milliseconds since 1970' },
     utc: 'UTC',
     local: 'Local',
-    age: (amount: number, unit: AgeUnit, inFuture: boolean) =>
-      inFuture
-        ? `in ${withCount(amount, AGE_UNITS_EN[unit])}`
-        : `${withCount(amount, AGE_UNITS_EN[unit])} ago`,
+    age: (amount: number, unit: AgeUnit, inFuture: boolean) => {
+      if (inFuture) {
+        return `in ${withCount(amount, AGE_UNITS_EN[unit])}`;
+      }
+      return `${withCount(amount, AGE_UNITS_EN[unit])} ago`;
+    },
     jsonTitle: 'JSON in this line',
     jsonItem: (position: number) => `JSON ${position}`,
-    jsonSummary: (count: number, isArray: boolean) =>
-      isArray ? withCount(count, ['item', 'items']) : withCount(count, ['key', 'keys']),
+    jsonSummary: (count: number, isArray: boolean) => {
+      if (isArray) {
+        return withCount(count, ['item', 'items']);
+      }
+      return withCount(count, ['key', 'keys']);
+    },
     jsonMore: (count: number) => `${count} more not shown`,
     jsonTooDeep: 'Nested too deep to show',
     bookmarksTitle: (count: number) => `Bookmarks (${count})`,
@@ -137,14 +143,20 @@ export const INSPECTOR_TEXT = defineText({
     epochUnits: { seconds: 'Secondi dal 1970', milliseconds: 'Millisecondi dal 1970' },
     utc: 'UTC',
     local: 'Locale',
-    age: (amount: number, unit: AgeUnit, inFuture: boolean) =>
-      inFuture
-        ? `tra ${withCount(amount, AGE_UNITS_IT[unit])}`
-        : `${withCount(amount, AGE_UNITS_IT[unit])} fa`,
+    age: (amount: number, unit: AgeUnit, inFuture: boolean) => {
+      if (inFuture) {
+        return `tra ${withCount(amount, AGE_UNITS_IT[unit])}`;
+      }
+      return `${withCount(amount, AGE_UNITS_IT[unit])} fa`;
+    },
     jsonTitle: 'JSON in questa riga',
     jsonItem: (position: number) => `JSON ${position}`,
-    jsonSummary: (count: number, isArray: boolean) =>
-      isArray ? withCount(count, ['elemento', 'elementi']) : withCount(count, ['chiave', 'chiavi']),
+    jsonSummary: (count: number, isArray: boolean) => {
+      if (isArray) {
+        return withCount(count, ['elemento', 'elementi']);
+      }
+      return withCount(count, ['chiave', 'chiavi']);
+    },
     jsonMore: (count: number) => `altri ${count} non mostrati`,
     jsonTooDeep: 'Troppo annidato per mostrarlo',
     bookmarksTitle: (count: number) => `Segnalibri (${count})`,
@@ -168,20 +180,29 @@ export const CLUSTERS_TEXT = defineText({
     sort: { count: 'Count', recency: 'Recent', severity: 'Severity' },
     summary: (clusters: number, lines: number) =>
       `${withCount(clusters, ['cluster', 'clusters'])} from ${withCount(lines, ['line', 'lines'])}`,
-    occurrences: (count: number) => `[x${count} ${count === 1 ? 'occurrence' : 'occurrences'}]`,
+    occurrences: (count: number) => `[x${withCount(count, ['occurrence', 'occurrences'])}]`,
     firstSeen: 'First',
     lastSeen: 'Last',
     lineRange: (first: number, last: number) => `lines ${first} to ${last}`,
     noLevel: 'No level',
     faults: (count: number) => withCount(count, ['fault', 'faults']),
     services: 'Services',
-    sparkline: (byTime: boolean, peak: number) =>
-      `Frequency ${byTime ? 'over time' : 'along the log'}, at most ${withCount(peak, ['line', 'lines'])} in a slice`,
+    sparkline: (byTime: boolean, peak: number) => {
+      let direction = 'along the log';
+      if (byTime) {
+        direction = 'over time';
+      }
+      return `Frequency ${direction}, at most ${withCount(peak, ['line', 'lines'])} in a slice`;
+    },
     selectFirst: 'Go to the first line of this group',
     showSamples: 'Show sample lines',
     hideSamples: 'Hide sample lines',
-    samplesTitle: (shown: number, total: number) =>
-      shown < total ? `First ${shown} of ${total} lines` : withCount(total, ['line', 'lines']),
+    samplesTitle: (shown: number, total: number) => {
+      if (shown < total) {
+        return `First ${shown} of ${total} lines`;
+      }
+      return withCount(total, ['line', 'lines']);
+    },
     sampleLine: (lineNumber: number) => `Line ${lineNumber}`,
     showMore: (count: number) => `Show ${count} more`,
     emptyFaultsTitle: 'No faults in this log',
@@ -200,20 +221,29 @@ export const CLUSTERS_TEXT = defineText({
     sort: { count: 'Numero', recency: 'Recenti', severity: 'Gravità' },
     summary: (clusters: number, lines: number) =>
       `${withCount(clusters, ['gruppo', 'gruppi'])} da ${withCount(lines, ['riga', 'righe'])}`,
-    occurrences: (count: number) => `[x${count} ${count === 1 ? 'occorrenza' : 'occorrenze'}]`,
+    occurrences: (count: number) => `[x${withCount(count, ['occorrenza', 'occorrenze'])}]`,
     firstSeen: 'Prima',
     lastSeen: 'Ultima',
     lineRange: (first: number, last: number) => `righe da ${first} a ${last}`,
     noLevel: 'Nessun livello',
     faults: (count: number) => withCount(count, ['errore', 'errori']),
     services: 'Servizi',
-    sparkline: (byTime: boolean, peak: number) =>
-      `Frequenza ${byTime ? 'nel tempo' : 'lungo il log'}, al massimo ${withCount(peak, ['riga', 'righe'])} per fascia`,
+    sparkline: (byTime: boolean, peak: number) => {
+      let direction = 'lungo il log';
+      if (byTime) {
+        direction = 'nel tempo';
+      }
+      return `Frequenza ${direction}, al massimo ${withCount(peak, ['riga', 'righe'])} per fascia`;
+    },
     selectFirst: 'Vai alla prima riga di questo gruppo',
     showSamples: 'Mostra righe di esempio',
     hideSamples: 'Nascondi righe di esempio',
-    samplesTitle: (shown: number, total: number) =>
-      shown < total ? `Prime ${shown} righe su ${total}` : withCount(total, ['riga', 'righe']),
+    samplesTitle: (shown: number, total: number) => {
+      if (shown < total) {
+        return `Prime ${shown} righe su ${total}`;
+      }
+      return withCount(total, ['riga', 'righe']);
+    },
     sampleLine: (lineNumber: number) => `Riga ${lineNumber}`,
     showMore: (count: number) => `Mostra altri ${count}`,
     emptyFaultsTitle: 'Nessun errore in questo log',

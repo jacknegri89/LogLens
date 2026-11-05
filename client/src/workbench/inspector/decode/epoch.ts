@@ -8,19 +8,31 @@ const MAX_SECONDS = 4_102_444_800; // 2100-01-01
 export function epochToMilliseconds(
   digits: string,
 ): { milliseconds: number; unit: 'seconds' | 'milliseconds' } | null {
-  if (digits.length !== 10 && digits.length !== 13) return null;
+  if (digits.length !== 10 && digits.length !== 13) {
+    return null;
+  }
   const value = Number(digits);
-  const unit = digits.length === 13 ? 'milliseconds' : 'seconds';
-  const seconds = unit === 'milliseconds' ? value / 1000 : value;
-  if (seconds < MIN_SECONDS || seconds > MAX_SECONDS) return null;
-  return { milliseconds: unit === 'seconds' ? value * 1000 : value, unit };
+  let unit: 'seconds' | 'milliseconds' = 'seconds';
+  let seconds = value;
+  let milliseconds = value * 1000;
+  if (digits.length === 13) {
+    unit = 'milliseconds';
+    seconds = value / 1000;
+    milliseconds = value;
+  }
+  if (seconds < MIN_SECONDS || seconds > MAX_SECONDS) {
+    return null;
+  }
+  return { milliseconds, unit };
 }
 
 export function findEpochs(text: string): DecodedToken[] {
   const found: DecodedToken[] = [];
   for (const match of text.matchAll(EPOCH_SHAPE)) {
     const epoch = epochToMilliseconds(match[1]);
-    if (!epoch) continue;
+    if (!epoch) {
+      continue;
+    }
     const start = match.index;
     found.push({
       id: `epoch-${start}`,
@@ -52,9 +64,15 @@ export function describeAge(
   const difference = nowMilliseconds - epochMilliseconds;
   const distance = Math.abs(difference);
   const step = UNIT_STEPS.find(([, size]) => distance >= size);
+  let amount = Math.floor(distance / 1000);
+  let unit: AgeUnit = 'second';
+  if (step) {
+    amount = Math.floor(distance / step[1]);
+    unit = step[0];
+  }
   return {
-    amount: step ? Math.floor(distance / step[1]) : Math.floor(distance / 1000),
-    unit: step ? step[0] : 'second',
+    amount,
+    unit,
     inFuture: difference < 0,
   };
 }

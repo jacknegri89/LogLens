@@ -19,7 +19,10 @@ async function failureOf(promise: Promise<unknown>): Promise<ArchiveErrorKind | 
     await promise;
     return 'none';
   } catch (error) {
-    return error instanceof ArchiveError ? error.kind : 'none';
+    if (error instanceof ArchiveError) {
+      return error.kind;
+    }
+    return 'none';
   }
 }
 

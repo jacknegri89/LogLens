@@ -48,7 +48,9 @@ export interface LogActions {
 }
 
 export function logCommands(text: PaletteTexts, actions: LogActions): PaletteCommand[] {
-  if (!actions.hasLog) return [];
+  if (!actions.hasLog) {
+    return [];
+  }
   return [
     {
       id: 'scrub',
@@ -98,10 +100,14 @@ export function settingsCommands(text: PaletteTexts, actions: SettingsActions): 
     keywords: text.keywords.switchLanguage,
     run: () => actions.setLanguage(code),
   }));
+  let contrastLabel = text.commands.enableContrast;
+  if (actions.contrastOn) {
+    contrastLabel = text.commands.disableContrast;
+  }
   const contrast: PaletteCommand = {
     id: 'contrast',
     group: 'settings',
-    label: actions.contrastOn ? text.commands.disableContrast : text.commands.enableContrast,
+    label: contrastLabel,
     keywords: text.keywords.contrast,
     run: () => actions.setContrast(!actions.contrastOn),
   };

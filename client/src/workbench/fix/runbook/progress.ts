@@ -1,13 +1,17 @@
 /** Whole-number percentage of the steps that are done (0 when there are no steps). */
 export function completedPercent(doneCount: number, total: number): number {
-  if (total <= 0) return 0;
+  if (total <= 0) {
+    return 0;
+  }
   return Math.round((Math.min(Math.max(doneCount, 0), total) / total) * 100);
 }
 
 /** A new set with the step added, or removed when it was already there. */
 export function toggledStep(done: ReadonlySet<number>, index: number): ReadonlySet<number> {
   const next = new Set(done);
-  if (!next.delete(index)) next.add(index);
+  if (!next.delete(index)) {
+    next.add(index);
+  }
   return next;
 }
 
@@ -25,7 +29,9 @@ export function browserStorage(): Pick<Storage, 'getItem' | 'setItem' | 'removeI
 type RunbookStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> | null;
 
 function keepValidSteps(value: unknown, total: number): Set<number> {
-  if (!Array.isArray(value)) return new Set();
+  if (!Array.isArray(value)) {
+    return new Set();
+  }
   const valid = value.filter(
     (entry): entry is number => Number.isInteger(entry) && entry >= 0 && entry < total,
   );
@@ -40,7 +46,10 @@ export function loadDoneSteps(
 ): ReadonlySet<number> {
   try {
     const saved = storage?.getItem(STORAGE_PREFIX + analysisId);
-    return saved ? keepValidSteps(JSON.parse(saved), total) : new Set();
+    if (saved) {
+      return keepValidSteps(JSON.parse(saved), total);
+    }
+    return new Set();
   } catch {
     return new Set();
   }
@@ -53,10 +62,15 @@ export function saveDoneSteps(
   done: ReadonlySet<number>,
 ): boolean {
   try {
-    if (!storage) return false;
+    if (!storage) {
+      return false;
+    }
     const key = STORAGE_PREFIX + analysisId;
-    if (done.size === 0) storage.removeItem(key);
-    else storage.setItem(key, JSON.stringify([...done].sort((a, b) => a - b)));
+    if (done.size === 0) {
+      storage.removeItem(key);
+    } else {
+      storage.setItem(key, JSON.stringify([...done].sort((a, b) => a - b)));
+    }
     return true;
   } catch {
     return false;

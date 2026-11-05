@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { parseLines } from '../../core/basicParse';
+import { findLinePosition } from '../../inspector/linePosition';
 import { scanLines } from './scanLines';
 
 function access(address: string, target: string, agent = 'Mozilla/5.0', status = 200): string {
@@ -12,6 +13,15 @@ function scan(rawLines: string[]) {
 }
 
 describe('scanLines', () => {
+  it('keeps sample indexes aligned with original lines after blank lines', () => {
+    const input = '\nINFO normal\n\nGET /.env HTTP/1.1 200';
+    const parsed = parseLines(input);
+    const result = scanLines(parsed);
+    const index = result.groups[0].samples[0];
+    const sample = parsed[findLinePosition(parsed, index)];
+    expect(index).toBe(3);
+    expect(sample.raw).toContain('/.env');
+  });
   it('finds nothing in an ordinary log', () => {
     const result = scan([
       access('198.51.100.1', '/'),

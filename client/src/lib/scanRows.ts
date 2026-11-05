@@ -19,7 +19,9 @@ export function scanRows(text: string, rowHeights: number[]): ScanRow[] {
   const lines = text.split('\n');
   for (let index = 0; index < lines.length && rows.length < MAX_SCAN_ROWS; index++) {
     const height = rowHeights[index] ?? DEFAULT_ROW_HEIGHT;
-    if (isFailure(lines[index])) rows.push({ top, height });
+    if (isFailure(lines[index])) {
+      rows.push({ top, height });
+    }
     top += height;
   }
   return rows;

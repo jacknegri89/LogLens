@@ -34,7 +34,7 @@ function AnalysisDetail({ loaded: { analysis, offline } }: { loaded: LoadedAnaly
   return (
     <div className="report-page-body">
       {offline && <LocalCopyNotice logTruncated={analysis.logTruncated === true} />}
-      <ReportView analysis={analysis}>
+      <ReportView analysis={analysis} pageTitle>
         {/* Feedback and sharing need the server, so a local copy does not offer them. */}
         {!offline && <FeedbackBlock analysisId={analysis.id} initialHelpful={analysis.helpful} />}
         {!offline && <ShareBlock analysisId={analysis.id} initialToken={analysis.shareToken} />}
@@ -47,6 +47,8 @@ function AnalysisDetail({ loaded: { analysis, offline } }: { loaded: LoadedAnaly
 function LocalCopyNotice({ logTruncated }: { logTruncated: boolean }) {
   const text = useText(DETAIL_TEXT);
   const lines = [text.offlineNotice, text.offlineLimits];
-  if (logTruncated) lines.push(text.logTruncated);
+  if (logTruncated) {
+    lines.push(text.logTruncated);
+  }
   return <OfflineNotice lines={lines} className="mt-8" />;
 }

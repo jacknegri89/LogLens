@@ -44,6 +44,9 @@ export async function inflate(bytes: Uint8Array, limit: number): Promise<Uint8Ar
     }
     return joined;
   } catch (failure) {
-    throw failure instanceof PermalinkError ? failure : new PermalinkError('corrupt');
+    if (failure instanceof PermalinkError) {
+      throw failure;
+    }
+    throw new PermalinkError('corrupt');
   }
 }

@@ -20,14 +20,20 @@ export interface LineRowProps {
 
 /** A JSON line shows whole (its message alone would hide the fields); a text line without time and level prefix. */
 function shownText(line: ParsedLine): string {
-  const text = line.raw.trimStart().startsWith('{') ? line.raw : line.message;
+  let text = line.message;
+  if (line.raw.trimStart().startsWith('{')) {
+    text = line.raw;
+  }
   return text.slice(0, MAX_SHOWN_CHARACTERS);
 }
 
 function Highlighted({ text, terms }: { text: string; terms: readonly string[] }) {
-  return splitHighlights(text, terms).map((piece, position) =>
-    piece.marked ? <mark key={position}>{piece.text}</mark> : piece.text,
-  );
+  return splitHighlights(text, terms).map((piece, position) => {
+    if (piece.marked) {
+      return <mark key={position}>{piece.text}</mark>;
+    }
+    return piece.text;
+  });
 }
 
 /** One log line in the list. Every value is rendered as text: log content is never HTML. */

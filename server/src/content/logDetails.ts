@@ -25,10 +25,15 @@ export interface LogDetails {
 function findLastFrame(excerpt: string): string | undefined {
   const pythonFrames = [...excerpt.matchAll(/File "([^"]+)", line (\d+), in (\S+)/g)];
   const last = pythonFrames.at(-1);
-  if (last) return `${last[1]}, line ${last[2]}, in ${last[3]}`;
+  if (last) {
+    return `${last[1]}, line ${last[2]}, in ${last[3]}`;
+  }
   const javaFrames = [...excerpt.matchAll(/^\s*at ([\w$.]+)\(([^)]+)\)/gm)];
   const lastJava = javaFrames.at(-1);
-  return lastJava ? `${lastJava[1]} (${lastJava[2]})` : undefined;
+  if (lastJava) {
+    return `${lastJava[1]} (${lastJava[2]})`;
+  }
+  return undefined;
 }
 
 function findMissingObject(excerpt: string): string | undefined {
@@ -50,6 +55,10 @@ function findFailureLine(excerpt: string): string | undefined {
 
 export function extractLogDetails(excerpt: string): LogDetails {
   const failureLine = findFailureLine(excerpt);
+  let failureLineFields: LineField[] = [];
+  if (failureLine !== undefined) {
+    failureLineFields = extractLineFieldEntries(failureLine);
+  }
   return {
     postgresUser: excerpt.match(/for user "?([^"\s]+)"?/i)?.[1],
     mysqlUser: excerpt.match(/access denied for user '?([^'\s@]+)/i)?.[1],
@@ -60,6 +69,6 @@ export function extractLogDetails(excerpt: string): LogDetails {
     exceptionName: excerpt.match(/([\w$]+(?:\.[\w$]+)*(?:Exception|Error)):/)?.[1],
     clientStatus: findClientStatus(excerpt),
     failureLine,
-    failureLineFields: failureLine === undefined ? [] : extractLineFieldEntries(failureLine),
+    failureLineFields,
   };
 }

@@ -48,6 +48,10 @@ describe('detectCodeLanguage', () => {
     expect(detectCodeLanguage('')).toBeNull();
   });
 
+  it('handles a long incomplete stack frame', () => {
+    expect(detectCodeLanguage(`at ${'a'.repeat(90_000)}`)).toBeNull();
+  });
+
   it('picks the language with the most frames in a mixed log', () => {
     const log = [
       'File "/a.py", line 1, in x',

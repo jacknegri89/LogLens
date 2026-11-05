@@ -22,25 +22,30 @@ export function FrameList({ frames }: { frames: ResolvedFrame[] }) {
 }
 
 function minifiedPlace({ frame }: ResolvedFrame): string {
-  const position = frame.line === null ? '' : `:${frame.line}:${frame.column}`;
+  let position = '';
+  if (frame.line !== null) {
+    position = `:${frame.line}:${frame.column}`;
+  }
   return `${frame.file}${position}`;
 }
 
 function FrameCard({ item }: { item: ResolvedFrame }) {
   const text = useText(LAB_TEXT).sourceMaps;
   const { resolution } = item;
+  let className = 'lab-card lab-frame';
+  if (resolution.status !== 'resolved') {
+    className += ' lab-frame-open';
+  }
 
   return (
-    <li
-      className={`lab-card lab-frame ${resolution.status === 'resolved' ? '' : 'lab-frame-open'}`}
-    >
+    <li className={className}>
       <p className="lab-frame-minified">
         <span className="lab-label">{text.minified}</span>
         <code>
           {item.frame.functionName ?? text.anonymous} {minifiedPlace(item)}
         </code>
       </p>
-      {resolution.status === 'resolved' ? (
+      {resolution.status === 'resolved' && (
         <div>
           <p className="lab-frame-original">
             <span className="lab-label">{text.original}</span>
@@ -53,7 +58,8 @@ function FrameCard({ item }: { item: ResolvedFrame }) {
             <Snippet snippet={resolution.snippet} label={text.snippetLabel(resolution.source)} />
           )}
         </div>
-      ) : (
+      )}
+      {resolution.status !== 'resolved' && (
         <p className="lab-problem">{text.unresolved[resolution.reason]}</p>
       )}
     </li>
@@ -63,20 +69,19 @@ function FrameCard({ item }: { item: ResolvedFrame }) {
 function Snippet({ snippet, label }: { snippet: SourceSnippet; label: string }) {
   return (
     <pre className="lab-snippet" aria-label={label}>
-      {snippet.lines.map((line, index) => (
-        <span
-          key={index}
-          className={
-            index === snippet.highlightIndex
-              ? 'lab-snippet-line lab-snippet-hit'
-              : 'lab-snippet-line'
-          }
-        >
-          <span className="lab-snippet-number">{snippet.startLine + index}</span>
-          {line}
-          {'\n'}
-        </span>
-      ))}
+      {snippet.lines.map((line, index) => {
+        let className = 'lab-snippet-line';
+        if (index === snippet.highlightIndex) {
+          className += ' lab-snippet-hit';
+        }
+        return (
+          <span key={index} className={className}>
+            <span className="lab-snippet-number">{snippet.startLine + index}</span>
+            {line}
+            {'\n'}
+          </span>
+        );
+      })}
     </pre>
   );
 }

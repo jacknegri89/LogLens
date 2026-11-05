@@ -16,9 +16,10 @@ interface Failure {
 export function useFailure() {
   const errorText = useText(ERROR_TEXT);
   const [failure, setFailure] = useState<Failure | null>(null);
-  const error = failure
-    ? errorMessage(failure.cause, failure.fallback ?? errorText.unknown, errorText)
-    : '';
+  let error = '';
+  if (failure) {
+    error = errorMessage(failure.cause, failure.fallback ?? errorText.unknown, errorText);
+  }
 
   return {
     error,

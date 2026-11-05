@@ -18,23 +18,34 @@ function bullets(items: readonly string[]): string {
 }
 
 function timelineLine(entry: TimelineEntry, texts: PostMortemTexts): string {
-  const time = entry.time ? plain(entry.time) : texts.noTime;
+  let time = texts.noTime;
+  if (entry.time) {
+    time = plain(entry.time);
+  }
   return `- **${time}** ${plain(entry.title)} (${texts.roles[entry.role]}) ${inlineCode(entry.evidence)}`;
 }
 
 function timelineSection(record: AnalysisRecord, texts: PostMortemTexts): string {
   const { timeline, overview, keyLines } = record.report;
-  if (timeline && timeline.length > 0)
+  if (timeline && timeline.length > 0) {
     return timeline.map((entry) => timelineLine(entry, texts)).join('\n');
-  if (overview && overview.length > 0) return bullets(overview.map(plain));
+  }
+  if (overview && overview.length > 0) {
+    return bullets(overview.map(plain));
+  }
   return bullets(keyLines.map(inlineCode));
 }
 
 function rootCauseSection(record: AnalysisRecord, texts: PostMortemTexts): string {
   const roots = (record.report.timeline ?? []).filter((entry) => entry.role === 'root');
-  const causes =
-    record.report.causes.length > 0 ? record.report.causes : roots.map((entry) => entry.title);
-  return causes.length > 0 ? bullets(causes.map(plain)) : texts.rootCauseUnknown;
+  let causes = record.report.causes;
+  if (causes.length === 0) {
+    causes = roots.map((entry) => entry.title);
+  }
+  if (causes.length > 0) {
+    return bullets(causes.map(plain));
+  }
+  return texts.rootCauseUnknown;
 }
 
 function actionItems(record: AnalysisRecord, texts: PostMortemTexts): string {
@@ -54,7 +65,10 @@ function header(record: AnalysisRecord, texts: PostMortemTexts): string {
 
 function summary(record: AnalysisRecord): string {
   const first = record.report.overview?.[0] ?? topEvidence(record);
-  return first ? plain(first) : plain(record.title);
+  if (first) {
+    return plain(first);
+  }
+  return plain(record.title);
 }
 
 function section(heading: string, body: string): string {
@@ -69,18 +83,17 @@ export function buildPostMortem(
   const { record, lines } = input;
   const words = texts.postmortem;
   const findings = record.report.findings?.length ?? 1;
+  let resolution = words.resolutionUnknown;
+  if (record.report.debugSteps.length > 0) {
+    resolution = bullets(record.report.debugSteps.map(plain));
+  }
   const sections = [
     header(record, words),
     section(words.summary, summary(record)),
     section(words.impact, words.impactText(countFaultLines(lines), lines.length, findings)),
     section(words.timeline, timelineSection(record, words)),
     section(words.rootCause, rootCauseSection(record, words)),
-    section(
-      words.resolution,
-      record.report.debugSteps.length > 0
-        ? bullets(record.report.debugSteps.map(plain))
-        : words.resolutionUnknown,
-    ),
+    section(words.resolution, resolution),
     section(words.actionItems, actionItems(record, words)),
     section(words.lessons, bullets(words.lessonPrompts)),
   ];

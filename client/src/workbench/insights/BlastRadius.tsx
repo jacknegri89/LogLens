@@ -9,14 +9,14 @@ import { describeIncident, nodeName } from './topologyNames';
 export function BlastRadius({ topology }: { topology: Topology }) {
   const text = useText(INSIGHTS_TEXT);
   const hasNodes = topology.nodes.length > 0;
+  let mapContent = <p className="insights-note">{text.blast.empty}</p>;
+  if (hasNodes) {
+    mapContent = <MapWithText topology={topology} />;
+  }
   return (
     <InsightSection title={text.sections.blast}>
       <p className="insights-note">{text.blast.intro}</p>
-      {hasNodes ? (
-        <MapWithText topology={topology} />
-      ) : (
-        <p className="insights-note">{text.blast.empty}</p>
-      )}
+      {mapContent}
       {!topology.hasDiagnosis && <p className="insights-note">{text.blast.noDiagnosis}</p>}
       {topology.sparse && hasNodes && <p className="insights-note">{text.blast.sparse}</p>}
     </InsightSection>
@@ -26,14 +26,15 @@ export function BlastRadius({ topology }: { topology: Topology }) {
 function MapWithText({ topology }: { topology: Topology }) {
   const text = useText(INSIGHTS_TEXT).blast;
   const names = describeIncident(topology, text.kinds);
+  let affectedText = text.nothingAffected;
+  if (names.affected.length > 0) {
+    affectedText = text.affected(names.affected.join(', '));
+  }
   return (
     <>
       {topology.hasDiagnosis && (
         <p className="insights-summary">
-          <strong>{text.origin(names.origin.join(', '))}</strong>;{' '}
-          {names.affected.length > 0
-            ? text.affected(names.affected.join(', '))
-            : text.nothingAffected}
+          <strong>{text.origin(names.origin.join(', '))}</strong>; {affectedText}
         </p>
       )}
       <TopologyDiagram topology={topology} />

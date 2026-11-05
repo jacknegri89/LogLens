@@ -19,7 +19,9 @@ export function CommandPalette() {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (!isPaletteShortcut(event)) return;
+      if (!isPaletteShortcut(event)) {
+        return;
+      }
       event.preventDefault();
       setOpen((current) => !current);
     }
@@ -27,7 +29,9 @@ export function CommandPalette() {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
   return (
     <Suspense fallback={null}>
       <PaletteDialog onClose={() => setOpen(false)} />

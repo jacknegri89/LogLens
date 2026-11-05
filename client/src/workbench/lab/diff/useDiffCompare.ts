@@ -15,10 +15,16 @@ export function useDiffCompare(slots: Slots) {
   const ready = slots.baseline.text.trim() !== '' && slots.canary.text.trim() !== '';
 
   function compare() {
-    if (!ready) return;
+    if (!ready) {
+      return;
+    }
     const result = compareLogs(parseLines(slots.baseline.text), parseLines(slots.canary.text));
     setComparison({ slots, result });
   }
 
-  return { ready, compare, result: comparison?.slots === slots ? comparison.result : null };
+  let result: DiffResult | null = null;
+  if (comparison?.slots === slots) {
+    result = comparison.result;
+  }
+  return { ready, compare, result };
 }

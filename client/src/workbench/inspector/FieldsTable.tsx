@@ -29,16 +29,16 @@ function FieldRows({ entries }: { entries: ReadonlyArray<[string, string]> }) {
 export function FieldsTable({ fields }: { fields: Record<string, string> }) {
   const text = useText(INSPECTOR_TEXT);
   const entries = Object.entries(fields);
+  let content = <FieldRows entries={entries.slice(0, MAX_FIELDS)} />;
+  if (entries.length === 0) {
+    content = <p className="inspect-muted">{text.noFields}</p>;
+  }
   return (
     <section aria-labelledby="inspector-fields-title">
       <h3 id="inspector-fields-title" className="inspect-heading">
         {text.fieldsTitle(entries.length)}
       </h3>
-      {entries.length === 0 ? (
-        <p className="inspect-muted">{text.noFields}</p>
-      ) : (
-        <FieldRows entries={entries.slice(0, MAX_FIELDS)} />
-      )}
+      {content}
       {entries.length > MAX_FIELDS && (
         <p className="inspect-muted">{text.moreFields(entries.length - MAX_FIELDS)}</p>
       )}

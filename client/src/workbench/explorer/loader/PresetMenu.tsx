@@ -17,7 +17,9 @@ export function PresetMenu({ onLoaded }: { onLoaded: () => void }) {
   const choose = (preset: WorkbenchPreset) => {
     setLog(preset.log, `${preset.id}.log`);
     onLoaded();
-    if (detailsRef.current) detailsRef.current.open = false;
+    if (detailsRef.current) {
+      detailsRef.current.open = false;
+    }
   };
 
   return (

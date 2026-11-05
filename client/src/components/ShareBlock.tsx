@@ -15,22 +15,26 @@ interface ShareBlockProps {
 export function ShareBlock({ analysisId, initialToken }: ShareBlockProps) {
   const text = useText(SHARE_TEXT);
   const { shareToken, busy, error, create, stop } = useShareLink(analysisId, initialToken);
+  let shareContent;
+  if (shareToken) {
+    shareContent = <ActiveLink url={shareUrl(shareToken)} busy={busy} onStop={stop} />;
+  } else {
+    shareContent = (
+      <>
+        <p className="report-drawer-hint">{text.description}</p>
+        <button type="button" disabled={busy} onClick={create} className={ACTION_BUTTON_CLASS}>
+          {text.create}
+        </button>
+      </>
+    );
+  }
 
   return (
     <ToolDrawer title={text.title} className="report-drawer-share">
       <p role="note" className="report-drawer-warning">
         {text.warning}
       </p>
-      {shareToken ? (
-        <ActiveLink url={shareUrl(shareToken)} busy={busy} onStop={stop} />
-      ) : (
-        <>
-          <p className="report-drawer-hint">{text.description}</p>
-          <button type="button" disabled={busy} onClick={create} className={ACTION_BUTTON_CLASS}>
-            {text.create}
-          </button>
-        </>
-      )}
+      {shareContent}
       {error && (
         <p role="alert" className="report-drawer-error">
           {error}

@@ -28,40 +28,57 @@ export function parseQueryPairs(query: string): Array<[string, string]> {
   const pairs: Array<[string, string]> = [];
   for (const part of query.split('&')) {
     const equals = part.indexOf('=');
-    if (equals <= 0) continue;
+    if (equals <= 0) {
+      continue;
+    }
     pairs.push([decodeQueryPart(part.slice(0, equals)), decodeQueryPart(part.slice(equals + 1))]);
   }
   return pairs;
 }
 
 function queryOf(word: string): string {
-  const afterQuestion = word.includes('?') ? word.slice(word.indexOf('?') + 1) : word;
+  let afterQuestion = word;
+  if (word.includes('?')) {
+    afterQuestion = word.slice(word.indexOf('?') + 1);
+  }
   return afterQuestion.split('#')[0];
 }
 
 /** What a word with %XX escapes says, or null when decoding changes nothing. */
 export function decodeUrlWord(word: string): UrlEncodedDetails | null {
   const text = safeDecodePercent(word);
-  if (text === word) return null;
-  const pairs = word.includes('&') || word.includes('?') ? parseQueryPairs(queryOf(word)) : [];
+  if (text === word) {
+    return null;
+  }
+  let pairs: Array<[string, string]> = [];
+  if (word.includes('&') || word.includes('?')) {
+    pairs = parseQueryPairs(queryOf(word));
+  }
   return { kind: 'urlencoded', text, pairs };
 }
 
 /** Splits `key=value` so only the value is marked, unless the word is a whole query string. */
 function valueOffset(word: string): number {
   const isSingleAssignment = !word.includes('&') && !word.includes('?') && KEY_PREFIX.test(word);
-  return isSingleAssignment ? word.indexOf('=') + 1 : 0;
+  if (isSingleAssignment) {
+    return word.indexOf('=') + 1;
+  }
+  return 0;
 }
 
 export function findUrlEncoded(text: string): DecodedToken[] {
   const found: DecodedToken[] = [];
   for (const match of text.matchAll(WORD)) {
-    if (!HAS_ESCAPE.test(match[0])) continue;
+    if (!HAS_ESCAPE.test(match[0])) {
+      continue;
+    }
     const trimmed = match[0].replace(TRAILING_PUNCTUATION, '');
     const offset = valueOffset(trimmed);
     const source = trimmed.slice(offset);
     const details = decodeUrlWord(source);
-    if (!details) continue;
+    if (!details) {
+      continue;
+    }
     const start = match.index + offset;
     found.push({
       id: `urlencoded-${start}`,

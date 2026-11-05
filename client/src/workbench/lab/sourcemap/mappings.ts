@@ -18,6 +18,15 @@ export interface MappingsReader {
 }
 
 export class MappingsError extends Error {}
+export class MappingsLimitError extends MappingsError {}
+
+const MAX_DECODED_LINES = 100_000;
+const MAX_DECODED_SEGMENTS = 250_000;
+
+export interface MappingsBudget {
+  decodedLines: number;
+  decodedSegments: number;
+}
 
 const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 const BASE64_VALUES = new Int8Array(128).fill(-1);
@@ -41,13 +50,22 @@ export function readVlq(cursor: Cursor): number {
   let magnitude = 0;
   for (let digits = 0; digits < MAX_DIGITS; digits += 1) {
     const code = cursor.text.charCodeAt(cursor.position);
-    const digit = code < 128 ? BASE64_VALUES[code] : -1;
-    if (digit < 0) throw new MappingsError(`Bad mappings character at ${cursor.position}`);
+    let digit = -1;
+    if (code < 128) {
+      digit = BASE64_VALUES[code];
+    }
+    if (digit < 0) {
+      throw new MappingsError(`Bad mappings character at ${cursor.position}`);
+    }
     cursor.position += 1;
     magnitude += (digit & VALUE_MASK) * 2 ** (digits * BITS_PER_DIGIT);
     if ((digit & CONTINUATION_BIT) === 0) {
       // The lowest bit is the sign; adding 0 turns -0 into 0.
-      return (magnitude % 2 === 1 ? -((magnitude - 1) / 2) : magnitude / 2) + 0;
+      let signedValue = magnitude / 2;
+      if (magnitude % 2 === 1) {
+        signedValue = -((magnitude - 1) / 2);
+      }
+      return signedValue + 0;
     }
   }
   throw new MappingsError('Mappings number is too long');
@@ -60,6 +78,7 @@ interface DecoderState {
   originalLine: number;
   originalColumn: number;
   nameIndex: number;
+  budget: MappingsBudget;
 }
 
 function hasMoreFields(cursor: Cursor, lineEnd: number): boolean {
@@ -67,7 +86,9 @@ function hasMoreFields(cursor: Cursor, lineEnd: number): boolean {
 }
 
 function readRequiredField(state: DecoderState, lineEnd: number): number {
-  if (!hasMoreFields(state.cursor, lineEnd)) throw new MappingsError('Segment has too few fields');
+  if (!hasMoreFields(state.cursor, lineEnd)) {
+    throw new MappingsError('Segment has too few fields');
+  }
   return readVlq(state.cursor);
 }
 
@@ -95,9 +116,15 @@ function readLineSegments(state: DecoderState, lineEnd: number): MappingSegment[
   const segments: MappingSegment[] = [];
   let generatedColumn = 0;
   while (state.cursor.position < lineEnd) {
+    if (state.budget.decodedSegments >= MAX_DECODED_SEGMENTS) {
+      throw new MappingsLimitError('Source map segment limit exceeded');
+    }
     generatedColumn += readVlq(state.cursor);
     segments.push(readSegment(state, generatedColumn, lineEnd));
-    if (state.cursor.position >= lineEnd) break;
+    state.budget.decodedSegments += 1;
+    if (state.cursor.position >= lineEnd) {
+      break;
+    }
     if (state.cursor.text[state.cursor.position] !== ',') {
       throw new MappingsError('Segment has too many fields');
     }
@@ -114,28 +141,54 @@ interface ReaderState extends DecoderState {
 }
 
 function decodeNextLine(reader: ReaderState): void {
+  if (reader.budget.decodedLines >= MAX_DECODED_LINES) {
+    throw new MappingsLimitError('Source map line limit exceeded');
+  }
   const { cursor } = reader;
   const separator = cursor.text.indexOf(';', cursor.position);
-  const lineEnd = separator === -1 ? cursor.text.length : separator;
+  let lineEnd = separator;
+  if (separator === -1) {
+    lineEnd = cursor.text.length;
+  }
   reader.lines.push(readLineSegments(reader, lineEnd));
-  if (separator === -1) reader.finished = true;
-  else cursor.position = separator + 1;
+  reader.budget.decodedLines += 1;
+  if (separator === -1) {
+    reader.finished = true;
+  } else {
+    cursor.position = separator + 1;
+  }
 }
 
 /** A corrupt line stays corrupt: the failure is kept, and lines decoded before it stay usable. */
 function decodeUntil(reader: ReaderState, generatedLine: number): void {
-  if (reader.failure) throw reader.failure;
+  if (reader.failure) {
+    throw reader.failure;
+  }
   try {
     while (reader.lines.length <= generatedLine && !reader.finished) decodeNextLine(reader);
   } catch (error) {
-    reader.failure = error instanceof MappingsError ? error : new MappingsError(String(error));
+    if (error instanceof MappingsError) {
+      reader.failure = error;
+    } else {
+      reader.failure = new MappingsError(String(error));
+    }
     throw reader.failure;
   }
 }
 
 function readDecodedLine(reader: ReaderState, generatedLine: number): MappingSegment[] | null {
-  if (generatedLine < 0) return null;
-  if (reader.lines.length <= generatedLine) decodeUntil(reader, generatedLine);
+  if (generatedLine < 0) {
+    return null;
+  }
+  if (reader.finished && generatedLine >= reader.lines.length) {
+    return null;
+  }
+  if (generatedLine >= MAX_DECODED_LINES) {
+    throw new MappingsLimitError('Source map line limit exceeded');
+  }
+  if (reader.lines.length <= generatedLine) {
+    decodeUntil(reader, generatedLine);
+  }
   return reader.lines[generatedLine] ?? null;
 }
 
@@ -144,13 +197,17 @@ function readDecodedLine(reader: ReaderState, generatedLine: number): MappingSeg
  * Source, line, column and name are relative to the previous segment of the whole file,
  * so a line can only be decoded after the lines before it.
  */
-export function createMappingsReader(mappings: string): MappingsReader {
+export function createMappingsReader(
+  mappings: string,
+  budget: MappingsBudget = { decodedLines: 0, decodedSegments: 0 },
+): MappingsReader {
   const reader: ReaderState = {
     cursor: { text: mappings, position: 0 },
     sourceIndex: 0,
     originalLine: 0,
     originalColumn: 0,
     nameIndex: 0,
+    budget,
     lines: [],
     finished: false,
     failure: null,

@@ -9,9 +9,13 @@ export function useHistory(loadFallback: string) {
   const [reloadKey, setReloadKey] = useState(0);
   const [removedIds, setRemovedIds] = useState<string[]>([]);
   const { data, error } = useLoad(() => api.listAnalyses(), [reloadKey], loadFallback);
+  let items = null;
+  if (data) {
+    items = data.items.filter((item) => !removedIds.includes(item.id));
+  }
 
   return {
-    items: data ? data.items.filter((item) => !removedIds.includes(item.id)) : null,
+    items,
     offline: data?.offline ?? false,
     error,
     reload: () => setReloadKey((key) => key + 1),

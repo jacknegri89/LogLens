@@ -1,6 +1,8 @@
 import { useCallback, useState, type ReactNode } from 'react';
 
 import { useAnalysis } from '../../hooks/useAnalysis';
+import { readAnonymizePreference } from '../../hooks/useAnonymize';
+import { anonymizeLog } from '../../lib/anonymize';
 import type { AnalysisRecord } from '../../lib/types';
 import type { TimeMode, WorkbenchTabId } from '../types';
 import { useParsedLines } from './useParsedLines';
@@ -8,7 +10,9 @@ import { WorkbenchContext, type WorkbenchState } from './WorkbenchContext';
 
 function toggled(current: ReadonlySet<number>, index: number): ReadonlySet<number> {
   const next = new Set(current);
-  if (!next.delete(index)) next.add(index);
+  if (!next.delete(index)) {
+    next.add(index);
+  }
   return next;
 }
 
@@ -24,15 +28,30 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [restored, setRestored] = useState<AnalysisRecord | null>(null);
 
   const { lines, parsing } = useParsedLines(rawLog);
-  const setLog = useCallback((text: string, name: string | null = null) => {
-    setRawLog(text);
-    setFileName(name);
-    select(null);
-    setBookmarks(new Set());
-  }, []);
-  const appendLog = useCallback((text: string) => {
-    setRawLog((current) => (current === '' ? text : `${current}\n${text}`));
-  }, []);
+  const setLog = useCallback(
+    (text: string, name: string | null = null) => {
+      analysis.reset();
+      setRestored(null);
+      setRawLog(text);
+      setFileName(name);
+      select(null);
+      setBookmarks(new Set());
+    },
+    [analysis],
+  );
+  const appendLog = useCallback(
+    (text: string) => {
+      analysis.reset();
+      setRestored(null);
+      setRawLog((current) => {
+        if (current === '') {
+          return text;
+        }
+        return `${current}\n${text}`;
+      });
+    },
+    [analysis],
+  );
   const loadAnalysis = useCallback(
     (record: AnalysisRecord | null) => {
       analysis.reset();
@@ -43,10 +62,23 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const analyze = useCallback(() => {
     if (rawLog.trim() !== '') {
       setRestored(null);
+      const anonymize = readAnonymizePreference();
+      let logToSend = rawLog;
+      if (anonymize) {
+        logToSend = anonymizeLog(rawLog).text;
+      }
+      let source: 'upload' | 'paste' = 'paste';
+      if (fileName) {
+        source = 'upload';
+      }
+      let fileNameToSend: string | undefined;
+      if (!anonymize) {
+        fileNameToSend = fileName ?? undefined;
+      }
       analysis.run({
-        rawLog,
-        source: fileName ? 'upload' : 'paste',
-        fileName: fileName ?? undefined,
+        rawLog: logToSend,
+        source,
+        fileName: fileNameToSend,
       });
     }
   }, [analysis, rawLog, fileName]);

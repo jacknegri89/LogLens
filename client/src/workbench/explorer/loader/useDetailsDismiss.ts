@@ -5,11 +5,15 @@ export function useDetailsDismiss(detailsRef: RefObject<HTMLDetailsElement | nul
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
       const details = detailsRef.current;
-      if (details?.open && !details.contains(event.target as Node)) details.open = false;
+      if (details?.open && !details.contains(event.target as Node)) {
+        details.open = false;
+      }
     };
     const closeOnEscape = (event: KeyboardEvent) => {
       const details = detailsRef.current;
-      if (event.key !== 'Escape' || !details?.open) return;
+      if (event.key !== 'Escape' || !details?.open) {
+        return;
+      }
       details.open = false;
       details.querySelector('summary')?.focus();
     };

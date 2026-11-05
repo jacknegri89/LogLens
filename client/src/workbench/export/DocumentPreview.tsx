@@ -10,6 +10,10 @@ const PREVIEW_CHARACTERS = 20_000;
 export function DocumentPreview({ document }: { document: ExportDocument }) {
   const text = useText(EXPORT_TEXT);
   const truncated = document.content.length > PREVIEW_CHARACTERS;
+  let preview = document.content;
+  if (truncated) {
+    preview = `${document.content.slice(0, PREVIEW_CHARACTERS)}\n…`;
+  }
 
   return (
     <figure className="exp-document">
@@ -34,7 +38,7 @@ export function DocumentPreview({ document }: { document: ExportDocument }) {
         </span>
       </figcaption>
       <pre className="exp-code" tabIndex={0} aria-label={text.preview}>
-        {truncated ? `${document.content.slice(0, PREVIEW_CHARACTERS)}\n…` : document.content}
+        {preview}
       </pre>
       {truncated && <p className="exp-note">{text.previewTruncated}</p>}
     </figure>

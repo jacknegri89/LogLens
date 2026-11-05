@@ -61,12 +61,16 @@ beforeEach(() => {
 });
 
 async function postLog(languageHeader?: string): Promise<Response> {
+  const languageHeaders: Record<string, string> = {};
+  if (languageHeader !== undefined) {
+    languageHeaders['X-Language'] = languageHeader;
+  }
   return fetch(`${baseUrl}/api/analyses`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-Visitor-Id': VISITOR_ID,
-      ...(languageHeader === undefined ? {} : { 'X-Language': languageHeader }),
+      ...languageHeaders,
     },
     body: JSON.stringify({ rawLog: 'ERROR disk full' }),
   });

@@ -8,9 +8,15 @@ export type FlameText = TextOf<typeof INSIGHTS_TEXT>['flame'];
 
 /** The words to show for a block: names come from the log, the root and merged blocks from the text. */
 export function flameLabel(node: FlameNode, text: FlameText): string {
-  if (node.kind === 'root') return text.allRequests;
-  if (node.kind === 'other') return text.otherOperations(node.mergedOperations);
-  if (node.kind === 'service' && node.label === UNKNOWN_SERVICE) return text.unknownService;
+  if (node.kind === 'root') {
+    return text.allRequests;
+  }
+  if (node.kind === 'other') {
+    return text.otherOperations(node.mergedOperations);
+  }
+  if (node.kind === 'service' && node.label === UNKNOWN_SERVICE) {
+    return text.unknownService;
+  }
   return node.label;
 }
 

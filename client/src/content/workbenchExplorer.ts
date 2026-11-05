@@ -4,7 +4,11 @@ import type { PresetId } from '../workbench/explorer/presetLogs';
 
 /** "12,400 lines" / "12.400 righe": the count in the page's number format, with its unit. */
 function countOf(count: number, locale: string, [singular, plural]: UnitForms): string {
-  return `${count.toLocaleString(locale)} ${count === 1 ? singular : plural}`;
+  let unit = plural;
+  if (count === 1) {
+    unit = singular;
+  }
+  return `${count.toLocaleString(locale)} ${unit}`;
 }
 
 type PresetTexts = Record<PresetId, { title: string; description: string }>;
@@ -70,10 +74,12 @@ export const WORKBENCH_EXPLORER_TEXT = defineText({
       searchLabel: 'Search the log',
       searchPlaceholder: 'level:ERROR service:pay* latency:>200 -healthcheck',
       clearSearch: 'Clear search',
-      matchCount: (shown: number, total: number) =>
-        shown === total
-          ? countOf(total, 'en-US', ['line', 'lines'])
-          : `${shown.toLocaleString('en-US')} of ${countOf(total, 'en-US', ['line', 'lines'])}`,
+      matchCount: (shown: number, total: number) => {
+        if (shown === total) {
+          return countOf(total, 'en-US', ['line', 'lines']);
+        }
+        return `${shown.toLocaleString('en-US')} of ${countOf(total, 'en-US', ['line', 'lines'])}`;
+      },
       focusFaults: 'Focus faults',
       unreadHint: (parts: string) => `Searched as plain text: ${parts}`,
       syntaxHint:
@@ -150,10 +156,12 @@ export const WORKBENCH_EXPLORER_TEXT = defineText({
       searchLabel: 'Cerca nel log',
       searchPlaceholder: 'level:ERROR service:pay* latency:>200 -healthcheck',
       clearSearch: 'Cancella la ricerca',
-      matchCount: (shown: number, total: number) =>
-        shown === total
-          ? countOf(total, 'it-IT', ['riga', 'righe'])
-          : `${shown.toLocaleString('it-IT')} di ${countOf(total, 'it-IT', ['riga', 'righe'])}`,
+      matchCount: (shown: number, total: number) => {
+        if (shown === total) {
+          return countOf(total, 'it-IT', ['riga', 'righe']);
+        }
+        return `${shown.toLocaleString('it-IT')} di ${countOf(total, 'it-IT', ['riga', 'righe'])}`;
+      },
       focusFaults: 'Solo guasti',
       unreadHint: (parts: string) => `Cercato come testo semplice: ${parts}`,
       syntaxHint:

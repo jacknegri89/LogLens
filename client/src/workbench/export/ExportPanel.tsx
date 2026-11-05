@@ -18,6 +18,10 @@ export function ExportPanel() {
   const { language } = useLanguage();
   const text = useText(EXPORT_TEXT);
   const [format, setFormat] = useState<ExportFormatId>('github');
+  let intro = text.intro;
+  if (rawLog.trim() === '') {
+    intro = text.needsLog;
+  }
   const documents = useMemo(
     () =>
       buildExportDocuments(format, { language, fileName, lines, record: analysis.record }, text),
@@ -29,7 +33,7 @@ export function ExportPanel() {
       <h2 id="export-title" className="exp-title">
         {text.title}
       </h2>
-      <p className="exp-intro">{rawLog.trim() === '' ? text.needsLog : text.intro}</p>
+      <p className="exp-intro">{intro}</p>
       <FormatPicker format={format} onChange={setFormat} />
       {rawLog.trim() !== '' && (
         <ExportBody format={format} hasRecord={analysis.record !== null} documents={documents} />
@@ -47,7 +51,9 @@ interface ExportBodyProps {
 
 function ExportBody({ format, hasRecord, documents }: ExportBodyProps) {
   const text = useText(EXPORT_TEXT);
-  if (formatNeedsAnalysis(format) && !hasRecord) return <NeedsAnalysis />;
+  if (formatNeedsAnalysis(format) && !hasRecord) {
+    return <NeedsAnalysis />;
+  }
 
   return (
     <div className="exp-documents">

@@ -18,7 +18,9 @@ function mapEffectsToRoots(chains: CausalChain[]): Map<TimelineEvent, TimelineEv
   const rootOfEffect = new Map<TimelineEvent, TimelineEvent>();
   for (const chain of chains) {
     for (const effect of chain.consequences) {
-      if (!rootOfEffect.has(effect)) rootOfEffect.set(effect, chain.root);
+      if (!rootOfEffect.has(effect)) {
+        rootOfEffect.set(effect, chain.root);
+      }
     }
   }
   return rootOfEffect;
@@ -29,8 +31,13 @@ function roleOf(
   chains: CausalChain[],
   rootOfEffect: Map<TimelineEvent, TimelineEvent>,
 ): TimelineRole {
-  if (chains.some((chain) => chain.root === event)) return 'root';
-  return rootOfEffect.has(event) ? 'effect' : 'independent';
+  if (chains.some((chain) => chain.root === event)) {
+    return 'root';
+  }
+  if (rootOfEffect.has(event)) {
+    return 'effect';
+  }
+  return 'independent';
 }
 
 /** Cuts to the limit keeping roots and effects first, then restores the time order. */
@@ -47,15 +54,22 @@ function keepMostRelevant(
 
 function toEntry(event: TimelineEvent, role: TimelineRole, causedBy?: number): TimelineEntry {
   const { finding, time } = event;
-  return {
-    ...(time ? { time: time.clock } : {}),
+  const timeFields: { time?: string } = {};
+  if (time) {
+    timeFields.time = time.clock;
+  }
+  const entry: TimelineEntry = {
+    ...timeFields,
     title: shortenText(finding.title, MAX_TITLE_IN_SENTENCE),
     category: finding.category,
     severity: finding.severity as Severity,
     role,
     evidence: finding.evidence.slice(0, MAX_TIMELINE_EVIDENCE_LENGTH),
-    ...(causedBy === undefined ? {} : { causedBy }),
   };
+  if (causedBy !== undefined) {
+    entry.causedBy = causedBy;
+  }
+  return entry;
 }
 
 /**
@@ -67,7 +81,9 @@ export function buildTimelineEntries(
   timeline: TimelineEvent[],
   chains: CausalChain[],
 ): TimelineEntry[] {
-  if (timeline.length < MIN_FINDINGS_FOR_TIMELINE) return [];
+  if (timeline.length < MIN_FINDINGS_FOR_TIMELINE) {
+    return [];
+  }
   const rootOfEffect = mapEffectsToRoots(chains);
   const roles = new Map(
     timeline.map((event) => [event, roleOf(event, chains, rootOfEffect)] as const),
@@ -75,11 +91,14 @@ export function buildTimelineEntries(
   const events = keepMostRelevant(timeline, roles);
   return events.map((event) => {
     const root = rootOfEffect.get(event);
-    const rootIndex = root === undefined ? -1 : events.indexOf(root);
-    return toEntry(
-      event,
-      roles.get(event) ?? 'independent',
-      rootIndex >= 0 ? rootIndex : undefined,
-    );
+    let rootIndex = -1;
+    if (root !== undefined) {
+      rootIndex = events.indexOf(root);
+    }
+    let causeIndex: number | undefined;
+    if (rootIndex >= 0) {
+      causeIndex = rootIndex;
+    }
+    return toEntry(event, roles.get(event) ?? 'independent', causeIndex);
   });
 }

@@ -7,7 +7,9 @@ export function useListViewport(listRef: RefObject<HTMLElement | null>) {
 
   useEffect(() => {
     const element = listRef.current;
-    if (!element) return undefined;
+    if (!element) {
+      return undefined;
+    }
     const observer = new ResizeObserver(([entry]) => setHeight(entry.contentRect.height));
     observer.observe(element);
     return () => observer.disconnect();

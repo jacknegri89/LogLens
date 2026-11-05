@@ -19,10 +19,17 @@ const NUMBER_WITH_UNIT = /^\d+([A-Za-z%]{1,3})$/;
 const MIN_ID_LENGTH = 6;
 
 function placeholderForWord(word: string): string {
-  if (/^\d+$/.test(word)) return '<n>';
+  if (/^\d+$/.test(word)) {
+    return '<n>';
+  }
   const unit = word.match(NUMBER_WITH_UNIT)?.[1];
-  if (unit) return `<n>${unit}`;
-  return /[A-Za-z]/.test(word) && word.length >= MIN_ID_LENGTH ? '<id>' : word;
+  if (unit) {
+    return `<n>${unit}`;
+  }
+  if (/[A-Za-z]/.test(word) && word.length >= MIN_ID_LENGTH) {
+    return '<id>';
+  }
+  return word;
 }
 
 /**
@@ -41,5 +48,8 @@ export function normalizeMessage(message: string): string {
 
 export function signatureOf(line: ParsedLine): string {
   const signature = normalizeMessage(line.message);
-  return signature === '' ? normalizeMessage(line.raw) : signature;
+  if (signature === '') {
+    return normalizeMessage(line.raw);
+  }
+  return signature;
 }

@@ -9,7 +9,9 @@ export interface NoiseSummary {
 }
 
 const STATIC_EXTENSIONS = 'css|js|map|png|jpe?g|gif|svg|ico|webp|avif|woff2?|ttf|eot';
-const OK_STATUS = String.raw`HTTP\/[\d.]+"?\s+(?:200|204|206|304)\b`;
+const STATIC_EXTENSION = new RegExp(String.raw`\.(?:${STATIC_EXTENSIONS})$`, 'i');
+const STATIC_DIRECTORY = /^\/(?:static|assets|_next\/static|public)\/.+/i;
+const SUCCESSFUL_GET = /\b(?:GET|HEAD)\s+(\S+)\s+HTTP\/[\d.]+"?\s+(?:200|204|206|304)\b/gi;
 
 const NOISE_PATTERNS: { kind: NoiseKind; pattern: RegExp }[] = [
   {
@@ -21,20 +23,6 @@ const NOISE_PATTERNS: { kind: NoiseKind; pattern: RegExp }[] = [
     kind: 'probe',
     pattern: /ELB-HealthChecker|kube-probe|GoogleHC|HealthChecker|Pingdom|UptimeRobot|StatusCake/i,
   },
-  {
-    kind: 'static-asset',
-    pattern: new RegExp(
-      String.raw`\b(?:GET|HEAD)\s+\S+\.(?:${STATIC_EXTENSIONS})(?:\?\S*)?\s+${OK_STATUS}`,
-      'i',
-    ),
-  },
-  {
-    kind: 'static-asset',
-    pattern: new RegExp(
-      String.raw`\b(?:GET|HEAD)\s+\/(?:static|assets|_next\/static|public)\/\S+\s+${OK_STATUS}`,
-      'i',
-    ),
-  },
 ];
 
 /** A routine line is still kept when it reports a failure: a failing health check is news. */
@@ -44,7 +32,18 @@ const FAILURE_SIGNAL =
 const TRACE_ID = /\b(?:trace|request|req|correlation)[_-]?id[=:\s"']+([\w-]{6,})/gi;
 
 function noiseKindOf(content: string): NoiseKind | null {
-  return NOISE_PATTERNS.find(({ pattern }) => pattern.test(content))?.kind ?? null;
+  const routine = NOISE_PATTERNS.find(({ pattern }) => pattern.test(content));
+  if (routine) {
+    return routine.kind;
+  }
+  for (const request of content.matchAll(SUCCESSFUL_GET)) {
+    const url = request[1];
+    const path = url.split('?', 1)[0];
+    if (STATIC_DIRECTORY.test(url) || STATIC_EXTENSION.test(path)) {
+      return 'static-asset';
+    }
+  }
+  return null;
 }
 
 function traceIdsOf(content: string): string[] {
@@ -55,15 +54,22 @@ function traceIdsOf(content: string): string[] {
 function failingTraceIds(lines: NumberedLine[]): Set<string> {
   const ids = new Set<string>();
   for (const { content } of lines) {
-    if (FAILURE_SIGNAL.test(content)) traceIdsOf(content).forEach((id) => ids.add(id));
+    if (FAILURE_SIGNAL.test(content)) {
+      traceIdsOf(content).forEach((id) => ids.add(id));
+    }
   }
   return ids;
 }
 
 function isRoutine(content: string, failingIds: Set<string>): NoiseKind | null {
   const kind = noiseKindOf(content);
-  if (!kind || FAILURE_SIGNAL.test(content)) return null;
-  return traceIdsOf(content).some((id) => failingIds.has(id)) ? null : kind;
+  if (!kind || FAILURE_SIGNAL.test(content)) {
+    return null;
+  }
+  if (traceIdsOf(content).some((id) => failingIds.has(id))) {
+    return null;
+  }
+  return kind;
 }
 
 /**

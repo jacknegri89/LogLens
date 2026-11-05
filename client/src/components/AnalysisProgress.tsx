@@ -5,8 +5,13 @@ import { useStageProgress } from '../hooks/useStageProgress';
 const STAGE_INTERVAL_MS = 1100;
 
 function stageState(index: number, current: number): 'done' | 'active' | 'todo' {
-  if (index < current) return 'done';
-  return index === current ? 'active' : 'todo';
+  if (index < current) {
+    return 'done';
+  }
+  if (index === current) {
+    return 'active';
+  }
+  return 'todo';
 }
 
 /**
@@ -26,12 +31,18 @@ export function AnalysisProgress() {
       </p>
       <p className="mt-6 font-mono text-[15px] leading-7 text-ink-soft">{text.readingHint}</p>
       <div className="mt-3 space-y-2 font-mono text-[15px] leading-6" aria-hidden="true">
-        {stages.map((stage, index) => (
-          <div key={stage} className="stage-row" data-state={stageState(index, current)}>
-            <span className="stage-box" />
-            <span className={index === current ? 'caret' : ''}>{stage}</span>
-          </div>
-        ))}
+        {stages.map((stage, index) => {
+          let className = '';
+          if (index === current) {
+            className = 'caret';
+          }
+          return (
+            <div key={stage} className="stage-row" data-state={stageState(index, current)}>
+              <span className="stage-box" />
+              <span className={className}>{stage}</span>
+            </div>
+          );
+        })}
       </div>
       <div className="progress-rail mt-6" aria-hidden="true">
         <span className="progress-sweep" />

@@ -10,9 +10,14 @@ export function findLinePosition(lines: readonly ParsedLine[], index: number): n
   while (low <= high) {
     const middle = (low + high) >> 1;
     const found = lines[middle].index;
-    if (found === index) return middle;
-    if (found < index) low = middle + 1;
-    else high = middle - 1;
+    if (found === index) {
+      return middle;
+    }
+    if (found < index) {
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
   }
   return -1;
 }
@@ -24,5 +29,8 @@ export function neighbourLine(
   step: -1 | 1,
 ): ParsedLine | null {
   const position = findLinePosition(lines, index);
-  return position === -1 ? null : (lines[position + step] ?? null);
+  if (position === -1) {
+    return null;
+  }
+  return lines[position + step] ?? null;
 }

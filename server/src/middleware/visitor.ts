@@ -33,11 +33,11 @@ export function hashAddress(address: string): string {
 
 function readAddress(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
-  return clientAddress(
-    typeof forwarded === 'string' ? forwarded : undefined,
-    req.socket.remoteAddress ?? '',
-    env.TRUST_PROXY,
-  );
+  let forwardedAddress: string | undefined;
+  if (typeof forwarded === 'string') {
+    forwardedAddress = forwarded;
+  }
+  return clientAddress(forwardedAddress, req.socket.remoteAddress ?? '', env.TRUST_PROXY);
 }
 
 /**

@@ -3,21 +3,29 @@ import { parseLines } from './basicParse';
 
 /** Logs with fewer lines than this parse at once on the main thread: a worker would cost more. */
 export const SYNC_LINE_LIMIT = 2000;
+export const SYNC_CHARACTER_LIMIT = 100_000;
 
 /** True when the log has fewer lines than `limit`; it stops counting at the limit. */
 export function isSmallLog(text: string, limit = SYNC_LINE_LIMIT): boolean {
+  if (text.length > SYNC_CHARACTER_LIMIT) {
+    return false;
+  }
   let count = 1;
   let position = text.indexOf('\n');
   while (position !== -1) {
     count += 1;
-    if (count >= limit) return false;
+    if (count >= limit) {
+      return false;
+    }
     position = text.indexOf('\n', position + 1);
   }
   return true;
 }
 
 function startWorker(): Worker | null {
-  if (typeof Worker === 'undefined') return null;
+  if (typeof Worker === 'undefined') {
+    return null;
+  }
   try {
     return new Worker(new URL('./parse.worker.ts', import.meta.url), { type: 'module' });
   } catch {
@@ -54,10 +62,17 @@ function parseInWorker(worker: Worker, text: string, finish: (lines: ParsedLine[
 export function parseInBackground(text: string, onDone: (lines: ParsedLine[]) => void): () => void {
   let cancelled = false;
   const finish = (lines: ParsedLine[]) => {
-    if (!cancelled) onDone(lines);
+    if (!cancelled) {
+      onDone(lines);
+    }
   };
   const worker = startWorker();
-  const stop = worker ? parseInWorker(worker, text, finish) : parseOnMainThread(text, finish);
+  let stop: () => void;
+  if (worker) {
+    stop = parseInWorker(worker, text, finish);
+  } else {
+    stop = parseOnMainThread(text, finish);
+  }
   return () => {
     cancelled = true;
     stop();

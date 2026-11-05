@@ -4,9 +4,15 @@ import { LANGUAGES } from '../i18n/languages';
 import { INSIGHTS_TEXT } from './workbenchInsights';
 
 function shapeOf(value: unknown): unknown {
-  if (typeof value === 'function') return 'function';
-  if (typeof value === 'string') return 'string';
-  if (Array.isArray(value)) return value.map(shapeOf);
+  if (typeof value === 'function') {
+    return 'function';
+  }
+  if (typeof value === 'string') {
+    return 'string';
+  }
+  if (Array.isArray(value)) {
+    return value.map(shapeOf);
+  }
   if (value && typeof value === 'object') {
     return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, shapeOf(inner)]));
   }
@@ -14,8 +20,12 @@ function shapeOf(value: unknown): unknown {
 }
 
 function stringsOf(value: unknown): string[] {
-  if (typeof value === 'string') return [value];
-  if (!value || typeof value !== 'object') return [];
+  if (typeof value === 'string') {
+    return [value];
+  }
+  if (!value || typeof value !== 'object') {
+    return [];
+  }
   return Object.values(value).flatMap(stringsOf);
 }
 

@@ -47,11 +47,15 @@ function SampleLines({
         {text.samplesTitle(cluster.sampleIndexes.length, cluster.count)}
       </p>
       <ul id={id} className="cluster-samples">
-        {cluster.sampleIndexes.map((index) => (
-          <li key={index}>
+        {cluster.sampleIndexes.map((index) => {
+          let current: 'true' | undefined;
+          if (index === selectedIndex) {
+            current = 'true';
+          }
+          return <li key={index}>
             <button
               type="button"
-              aria-current={index === selectedIndex ? 'true' : undefined}
+              aria-current={current}
               onClick={() => select(index)}
             >
               <span className="cluster-sample-number">{text.sampleLine(index + 1)}</span>
@@ -59,8 +63,8 @@ function SampleLines({
                 {lines[findLinePosition(lines, index)]?.raw}
               </span>
             </button>
-          </li>
-        ))}
+          </li>;
+        })}
       </ul>
     </>
   );
@@ -103,6 +107,10 @@ export function ClusterRow({ cluster, lines, plan }: ClusterRowProps) {
   const { select } = useWorkbench();
   const [expanded, setExpanded] = useState(false);
   const samplesId = useId();
+  let expandText = text.showSamples;
+  if (expanded) {
+    expandText = text.hideSamples;
+  }
 
   return (
     <li className="cluster-row" data-fault={cluster.faultCount > 0}>
@@ -125,7 +133,7 @@ export function ClusterRow({ cluster, lines, plan }: ClusterRowProps) {
         aria-controls={samplesId}
         onClick={() => setExpanded(!expanded)}
       >
-        {expanded ? text.hideSamples : text.showSamples}
+        {expandText}
       </button>
       {expanded && <SampleLines cluster={cluster} lines={lines} id={samplesId} />}
     </li>

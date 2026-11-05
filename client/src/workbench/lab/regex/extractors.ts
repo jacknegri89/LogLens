@@ -37,7 +37,9 @@ export const EXTRACTORS: readonly Extractor[] = [
 
 export function findExtractor(id: ExtractorId): Extractor {
   const extractor = EXTRACTORS.find((candidate) => candidate.id === id);
-  if (!extractor) throw new Error(`Unknown extractor ${id}`);
+  if (!extractor) {
+    throw new Error(`Unknown extractor ${id}`);
+  }
   return extractor;
 }
 
@@ -49,6 +51,8 @@ const BEARER_PREFIX = /^Bearer\s+/;
 export function maskSecret(value: string): string {
   const prefix = value.match(BEARER_PREFIX)?.[0] ?? '';
   const secret = value.slice(prefix.length);
-  if (secret.length <= VISIBLE_SECRET_CHARS) return prefix + HIDDEN;
+  if (secret.length <= VISIBLE_SECRET_CHARS) {
+    return prefix + HIDDEN;
+  }
   return prefix + secret.slice(0, VISIBLE_SECRET_CHARS) + HIDDEN;
 }

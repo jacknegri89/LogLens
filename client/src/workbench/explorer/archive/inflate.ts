@@ -15,7 +15,9 @@ async function readAtMost(reader: ReadableStreamDefaultReader<Uint8Array>, maxBy
   let total = 0;
   for (;;) {
     const { done, value } = await reader.read();
-    if (done) return concatenate(chunks, total);
+    if (done) {
+      return concatenate(chunks, total);
+    }
     total += value.byteLength;
     if (total > maxBytes) {
       await reader.cancel().catch(() => undefined);
@@ -48,7 +50,10 @@ export async function inflate(
     const output = streamOf(bytes).pipeThrough(new DecompressionStream(format));
     return await readAtMost(output.getReader(), maxBytes);
   } catch (error) {
-    throw error instanceof ArchiveError ? error : new ArchiveError('corrupt');
+    if (error instanceof ArchiveError) {
+      throw error;
+    }
+    throw new ArchiveError('corrupt');
   }
 }
 
@@ -57,6 +62,8 @@ export function isGzip(bytes: Uint8Array): boolean {
 }
 
 export function gunzip(bytes: Uint8Array, maxBytes: number): Promise<Uint8Array> {
-  if (!isGzip(bytes)) return Promise.reject(new ArchiveError('corrupt'));
+  if (!isGzip(bytes)) {
+    return Promise.reject(new ArchiveError('corrupt'));
+  }
   return inflate(bytes, 'gzip', maxBytes);
 }

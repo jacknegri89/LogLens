@@ -24,7 +24,9 @@ export function FlameBlock({ rect, isTop, onZoom, onHover }: FlameBlockProps) {
   const description = describeFlameNode(node, text);
   const zoom = () => !isTop && onZoom(node.id);
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
     event.preventDefault();
     zoom();
   };
@@ -52,5 +54,8 @@ export function FlameBlock({ rect, isTop, onZoom, onHover }: FlameBlockProps) {
 }
 
 function hueOf(serviceIndex: number): string {
-  return serviceIndex < 0 ? 'root' : String(serviceIndex % HUE_COUNT);
+  if (serviceIndex < 0) {
+    return 'root';
+  }
+  return String(serviceIndex % HUE_COUNT);
 }

@@ -9,7 +9,9 @@ export const MAX_LOCAL_LOG_CHARACTERS = 20_000;
 export const MAX_LOCAL_TOTAL_CHARACTERS = 3_000_000;
 
 function isStoredRecord(value: unknown): value is AnalysisRecord {
-  if (!value || typeof value !== 'object') return false;
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
   const candidate = value as Partial<AnalysisRecord>;
   return (
     typeof candidate.id === 'string' &&
@@ -25,8 +27,14 @@ function isStoredRecord(value: unknown): value is AnalysisRecord {
 function readAll(): AnalysisRecord[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    const parsed: unknown = stored ? JSON.parse(stored) : [];
-    return Array.isArray(parsed) ? parsed.filter(isStoredRecord) : [];
+    if (!stored) {
+      return [];
+    }
+    const parsed: unknown = JSON.parse(stored);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter(isStoredRecord);
   } catch {
     return [];
   }
@@ -38,7 +46,9 @@ function withinLimits(records: AnalysisRecord[]): AnalysisRecord[] {
   let totalCharacters = 0;
   for (const record of records.slice(0, MAX_LOCAL_ANALYSES)) {
     totalCharacters += JSON.stringify(record).length;
-    if (totalCharacters > MAX_LOCAL_TOTAL_CHARACTERS) break;
+    if (totalCharacters > MAX_LOCAL_TOTAL_CHARACTERS) {
+      break;
+    }
     kept.push(record);
   }
   return kept;
@@ -46,8 +56,11 @@ function withinLimits(records: AnalysisRecord[]): AnalysisRecord[] {
 
 function tryWrite(records: AnalysisRecord[]): boolean {
   try {
-    if (records.length === 0) localStorage.removeItem(STORAGE_KEY);
-    else localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    if (records.length === 0) {
+      localStorage.removeItem(STORAGE_KEY);
+    } else {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
     return true;
   } catch {
     return false;
@@ -62,12 +75,16 @@ function persist(records: AnalysisRecord[]): void {
     return;
   }
   for (let count = candidates.length; count > 0; count -= 1) {
-    if (tryWrite(candidates.slice(0, count))) return;
+    if (tryWrite(candidates.slice(0, count))) {
+      return;
+    }
   }
 }
 
 function truncateLog(record: AnalysisRecord): AnalysisRecord {
-  if (record.rawLog.length <= MAX_LOCAL_LOG_CHARACTERS) return record;
+  if (record.rawLog.length <= MAX_LOCAL_LOG_CHARACTERS) {
+    return record;
+  }
   return {
     ...record,
     rawLog: record.rawLog.slice(0, MAX_LOCAL_LOG_CHARACTERS),

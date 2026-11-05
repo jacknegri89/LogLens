@@ -70,7 +70,7 @@ cd server
 npm install
 cp .env.example .env
 # Edit .env: paste your PostgreSQL DATABASE_URL and DIRECT_URL
-npm run prisma:migrate      # create the tables (safe to run again)
+npm run prisma:migrate      # push schema; review changes and back up existing data first
 npm run db:seed             # optional: add example analyses to an empty database
 npm run dev                 # starts http://localhost:3001 with auto-reload
 ```

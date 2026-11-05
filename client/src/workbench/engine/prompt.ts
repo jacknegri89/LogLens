@@ -15,18 +15,26 @@ export interface OllamaMessage {
 
 function oneLine(text: string): string {
   const flat = text.replace(/\s+/g, ' ').trim();
-  return flat.length > MAX_LINE_CHARACTERS ? flat.slice(0, MAX_LINE_CHARACTERS) + '...' : flat;
+  if (flat.length > MAX_LINE_CHARACTERS) {
+    return flat.slice(0, MAX_LINE_CHARACTERS) + '...';
+  }
+  return flat;
 }
 
 function listSection(title: string, items: string[]): string {
-  if (items.length === 0) return '';
+  if (items.length === 0) {
+    return '';
+  }
   const lines = items.slice(0, MAX_LINES_PER_SECTION).map((item) => '- ' + oneLine(item));
   return [title + ':', ...lines].join('\n');
 }
 
 function timelineLines(record: AnalysisRecord): string[] {
   return (record.report.timeline ?? []).map((entry) => {
-    const time = entry.time ? entry.time + ' ' : '';
+    let time = '';
+    if (entry.time) {
+      time = entry.time + ' ';
+    }
     return `${time}${entry.title} [${entry.role}, ${entry.severity}]`;
   });
 }
@@ -43,7 +51,9 @@ export function buildContext(record: AnalysisRecord, limit = MAX_CONTEXT_CHARACT
     listSection('Order of events', timelineLines(record)),
   ];
   const joined = sections.filter((section) => section !== '').join('\n\n');
-  if (joined.length <= limit) return joined;
+  if (joined.length <= limit) {
+    return joined;
+  }
   return joined.slice(0, Math.max(0, limit - TRUNCATED_MARK.length)) + TRUNCATED_MARK;
 }
 

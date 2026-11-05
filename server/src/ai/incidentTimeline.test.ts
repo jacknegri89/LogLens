@@ -111,7 +111,9 @@ describe('buildTimelineEntries', () => {
     const events = buildTimeline([], findings);
     const root = events[10];
     const effect = events[11];
-    if (!root || !effect) throw new Error('missing events');
+    if (!root || !effect) {
+      throw new Error('missing events');
+    }
 
     const entries = buildTimelineEntries(events, [{ root, consequences: [effect] }]);
 

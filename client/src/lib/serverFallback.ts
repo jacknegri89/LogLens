@@ -8,7 +8,9 @@ const UNAVAILABLE_STATUSES = [502, 503, 504];
  * browser may stand in for it. A refusal such as 400, 404 or 429 is a real answer and is not.
  */
 export function isServerUnreachable(failure: unknown): boolean {
-  if (failure instanceof RequestError) return UNAVAILABLE_STATUSES.includes(failure.status);
+  if (failure instanceof RequestError) {
+    return UNAVAILABLE_STATUSES.includes(failure.status);
+  }
   // `fetch` rejects with a TypeError when there is no network or the connection fails.
   return failure instanceof TypeError;
 }

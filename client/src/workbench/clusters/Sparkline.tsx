@@ -18,17 +18,18 @@ export function Sparkline({ counts, byTime }: { counts: readonly number[]; byTim
       aria-label={text.sparkline(byTime, peak)}
     >
       <line x1="0" x2={WIDTH} y1={HEIGHT - 0.5} y2={HEIGHT - 0.5} strokeWidth="1" />
-      {counts.map((count, position) =>
-        count === 0 ? null : (
-          <rect
+      {counts.map((count, position) => {
+        if (count === 0) {
+          return null;
+        }
+        return <rect
             key={position}
             x={position * slot + 0.5}
             width={Math.max(1, slot - 1)}
             y={HEIGHT - Math.max(2, (count / peak) * (HEIGHT - 2))}
             height={Math.max(2, (count / peak) * (HEIGHT - 2))}
-          />
-        ),
-      )}
+          />;
+      })}
     </svg>
   );
 }

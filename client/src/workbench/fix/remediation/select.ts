@@ -42,7 +42,10 @@ function hits(keywords: string[], texts: string[]): number {
 
 function scoreScenario(id: ScenarioId, signals: AnalysisSignals): number {
   const { keywords, categories } = SCENARIO_SIGNALS[id];
-  const categoryMatch = categories.includes(signals.category.toLowerCase()) ? CATEGORY_WEIGHT : 0;
+  let categoryMatch = 0;
+  if (categories.includes(signals.category.toLowerCase())) {
+    categoryMatch = CATEGORY_WEIGHT;
+  }
   return (
     categoryMatch +
     hits(keywords, [signals.title]) * TITLE_WEIGHT +

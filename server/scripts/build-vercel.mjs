@@ -33,7 +33,8 @@ const SECURITY_HEADERS = {
   ].join('; '),
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  // Shared-report URLs contain bearer tokens, including on same-origin requests.
+  'Referrer-Policy': 'no-referrer',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
 };

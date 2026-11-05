@@ -4,7 +4,12 @@ import { INSIGHTS_TEXT } from '../../content/workbenchInsights';
 import { useText } from '../../i18n/useText';
 import { fitLabel } from './flameLayout';
 import type { Topology } from './topology';
-import { layoutTopology, type PlacedNode, type TopologyLayout } from './topologyLayout';
+import {
+  layoutTopology,
+  type Orientation,
+  type PlacedNode,
+  type TopologyLayout,
+} from './topologyLayout';
 import { nodeName } from './topologyNames';
 import { useElementWidth } from './useElementWidth';
 
@@ -18,7 +23,10 @@ export function TopologyDiagram({ topology }: { topology: Topology }) {
   const markerId = useId().replace(/:/g, '');
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const width = useElementWidth(container);
-  const orientation = width >= SIDE_BY_SIDE_MIN_WIDTH ? 'horizontal' : 'vertical';
+  let orientation: Orientation = 'vertical';
+  if (width >= SIDE_BY_SIDE_MIN_WIDTH) {
+    orientation = 'horizontal';
+  }
   const layout = useMemo(() => layoutTopology(topology, orientation), [topology, orientation]);
 
   return (
@@ -67,15 +75,21 @@ function ArrowMarkers({ markerId }: { markerId: string }) {
 function MapEdges({ layout, markerId }: { layout: TopologyLayout; markerId: string }) {
   return (
     <g fill="none">
-      {layout.edges.map((edge) => (
-        <path
-          key={`${edge.from}>${edge.to}`}
-          d={edge.path}
-          className="insights-edge"
-          data-flow={edge.propagating}
-          markerEnd={`url(#${markerId}-${edge.propagating ? 'flow' : 'still'})`}
-        />
-      ))}
+      {layout.edges.map((edge) => {
+        let marker = 'still';
+        if (edge.propagating) {
+          marker = 'flow';
+        }
+        return (
+          <path
+            key={`${edge.from}>${edge.to}`}
+            d={edge.path}
+            className="insights-edge"
+            data-flow={edge.propagating}
+            markerEnd={`url(#${markerId}-${marker})`}
+          />
+        );
+      })}
     </g>
   );
 }

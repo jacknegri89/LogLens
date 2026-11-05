@@ -71,7 +71,8 @@ export function buildExportDocuments(
   if (format === 'json') {
     return [documentFor('json', stem, 'json', 'application/json', buildStructuredJson(input))];
   }
-  return input.record
-    ? recordDocuments(format, { ...input, record: input.record }, stem, texts)
-    : [];
+  if (input.record) {
+    return recordDocuments(format, { ...input, record: input.record }, stem, texts);
+  }
+  return [];
 }

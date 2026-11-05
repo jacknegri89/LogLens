@@ -118,7 +118,12 @@ export function normalizeQuestion(question: string): string {
 
 function scoreIntent(intent: IntentId, text: string): number {
   return SIGNALS[intent].reduce(
-    (sum, { pattern, weight }) => sum + (pattern.test(text) ? weight : 0),
+    (sum, { pattern, weight }) => {
+      if (pattern.test(text)) {
+        return sum + weight;
+      }
+      return sum;
+    },
     0,
   );
 }

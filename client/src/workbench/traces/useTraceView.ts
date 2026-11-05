@@ -44,10 +44,12 @@ function useIdFilter() {
 function useActiveTrace(correlations: readonly Correlation[], lines: readonly ParsedLine[]) {
   const [chosenId, choose] = useState<string | null>(null);
   const active = correlations.find((item) => item.id === chosenId) ?? correlations[0] ?? null;
-  const waterfall = useMemo(
-    () => (active ? buildWaterfall(active.positions.map((position) => lines[position])) : null),
-    [active, lines],
-  );
+  const waterfall = useMemo(() => {
+    if (active) {
+      return buildWaterfall(active.positions.map((position) => lines[position]));
+    }
+    return null;
+  }, [active, lines]);
   return { active, waterfall, choose };
 }
 

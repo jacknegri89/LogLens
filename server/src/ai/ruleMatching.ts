@@ -16,13 +16,18 @@ export function pickRule(text: string): Rule {
 
 /** An attack that the server answered with a 5xx reached the application: it is critical. */
 export function pickSeverity(rule: Rule, text: string, severityHint: Severity): Severity {
-  if (rule.criticalOnServerError && SERVER_ERROR.test(text)) return 'critical';
+  if (rule.criticalOnServerError && SERVER_ERROR.test(text)) {
+    return 'critical';
+  }
   return rule.severity ?? severityHint;
 }
 
 /** The higher of two severities: a finding can raise the severity of a report, never lower it. */
 export function raiseSeverity(current: Severity, floor: Severity): Severity {
-  return SEVERITY_ORDER.indexOf(floor) > SEVERITY_ORDER.indexOf(current) ? floor : current;
+  if (SEVERITY_ORDER.indexOf(floor) > SEVERITY_ORDER.indexOf(current)) {
+    return floor;
+  }
+  return current;
 }
 
 /** Drops a leading "timestamp LEVEL" prefix so the title reads as a plain message. */

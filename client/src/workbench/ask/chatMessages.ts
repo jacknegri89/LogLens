@@ -24,13 +24,20 @@ export function patchMessage(
   id: number,
   change: Partial<ChatMessage>,
 ): ChatMessage[] {
-  return messages.map((message) => (message.id === id ? { ...message, ...change } : message));
+  return messages.map((message) => {
+    if (message.id === id) {
+      return { ...message, ...change };
+    }
+    return message;
+  });
 }
 
 /** Adds streamed text to a message, never growing it past MAX_ANSWER_CHARACTERS. */
 export function appendToken(messages: ChatMessage[], id: number, token: string): ChatMessage[] {
   return messages.map((message) => {
-    if (message.id !== id) return message;
+    if (message.id !== id) {
+      return message;
+    }
     return { ...message, text: (message.text + token).slice(0, MAX_ANSWER_CHARACTERS) };
   });
 }

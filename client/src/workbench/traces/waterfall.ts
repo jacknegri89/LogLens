@@ -27,7 +27,9 @@ export function orderSteps(lines: readonly ParsedLine[]): ParsedLine[] {
     carried = line.timestamp ?? carried;
     ranked.push({ line, time: carried });
   }
-  if (ranked.every((entry) => entry.time === null)) return ranked.map((entry) => entry.line);
+  if (ranked.every((entry) => entry.time === null)) {
+    return ranked.map((entry) => entry.line);
+  }
   return ranked
     .sort((a, b) => (a.time ?? -Infinity) - (b.time ?? -Infinity) || a.line.index - b.line.index)
     .map((entry) => entry.line);
@@ -36,9 +38,16 @@ export function orderSteps(lines: readonly ParsedLine[]): ParsedLine[] {
 /** "+12ms", "+1.4s", "+2m 5s": the gap between two steps. */
 export function formatDelta(milliseconds: number): string {
   const rounded = Math.round(Math.abs(milliseconds));
-  const sign = milliseconds < 0 ? '-' : '+';
-  if (rounded < 1000) return `${sign}${rounded}ms`;
-  if (rounded < 60_000) return `${sign}${(rounded / 1000).toFixed(1).replace(/\.0$/, '')}s`;
+  let sign = '+';
+  if (milliseconds < 0) {
+    sign = '-';
+  }
+  if (rounded < 1000) {
+    return `${sign}${rounded}ms`;
+  }
+  if (rounded < 60_000) {
+    return `${sign}${(rounded / 1000).toFixed(1).replace(/\.0$/, '')}s`;
+  }
   return `${sign}${Math.floor(rounded / 60_000)}m ${Math.floor((rounded % 60_000) / 1000)}s`;
 }
 
@@ -51,7 +60,14 @@ function clampBar(left: number, width: number): { leftPercent: number; widthPerc
 }
 
 function stepEnd(line: ParsedLine, offset: number, nextOffset: number | null): number {
-  return offset + (line.latencyMs ?? (nextOffset === null ? 0 : nextOffset - offset));
+  let duration = line.latencyMs;
+  if (duration === null) {
+    duration = 0;
+    if (nextOffset !== null) {
+      duration = nextOffset - offset;
+    }
+  }
+  return offset + duration;
 }
 
 function timedOffsets(ordered: readonly ParsedLine[]): number[] {
@@ -66,12 +82,18 @@ function timedOffsets(ordered: readonly ParsedLine[]): number[] {
 function buildTimed(ordered: readonly ParsedLine[], offsets: number[]): Waterfall {
   const ends = ordered.map((line, i) => stepEnd(line, offsets[i], offsets[i + 1] ?? null));
   const totalMs = [...ends, ...offsets].reduce((largest, value) => Math.max(largest, value), 0);
-  const steps = ordered.map((line, i) => ({
-    line,
-    offsetMs: offsets[i],
-    deltaMs: i === 0 || line.timestamp === null ? null : offsets[i] - offsets[i - 1],
-    ...clampBar((offsets[i] / totalMs) * 100, ((ends[i] - offsets[i]) / totalMs) * 100),
-  }));
+  const steps = ordered.map((line, i) => {
+    let deltaMs: number | null = null;
+    if (i !== 0 && line.timestamp !== null) {
+      deltaMs = offsets[i] - offsets[i - 1];
+    }
+    return {
+      line,
+      offsetMs: offsets[i],
+      deltaMs,
+      ...clampBar((offsets[i] / totalMs) * 100, ((ends[i] - offsets[i]) / totalMs) * 100),
+    };
+  });
   return { steps, totalMs };
 }
 
@@ -90,9 +112,12 @@ function buildOrdered(ordered: readonly ParsedLine[]): Waterfall {
 /** The lines of one request as a waterfall. With no times, or all at one instant, steps are only ordered. */
 export function buildWaterfall(lines: readonly ParsedLine[]): Waterfall {
   const ordered = orderSteps(lines);
-  if (ordered.every((line) => line.timestamp === null)) return buildOrdered(ordered);
+  if (ordered.every((line) => line.timestamp === null)) {
+    return buildOrdered(ordered);
+  }
   const offsets = timedOffsets(ordered);
-  return offsets.every((offset) => offset === 0) && ordered.every((line) => line.latencyMs === null)
-    ? { ...buildOrdered(ordered), totalMs: 0 }
-    : buildTimed(ordered, offsets);
+  if (offsets.every((offset) => offset === 0) && ordered.every((line) => line.latencyMs === null)) {
+    return { ...buildOrdered(ordered), totalMs: 0 };
+  }
+  return buildTimed(ordered, offsets);
 }

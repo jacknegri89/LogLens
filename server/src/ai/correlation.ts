@@ -67,7 +67,10 @@ function findLinks(timeline: TimelineEvent[]): Link[] {
   return timeline.flatMap((cause, causeIndex) =>
     timeline.slice(causeIndex + 1).flatMap((effect) => {
       const relation = findRelation(cause.finding, effect.finding);
-      return relation ? [{ cause, effect, relation }] : [];
+      if (relation) {
+        return [{ cause, effect, relation }];
+      }
+      return [];
     }),
   );
 }
@@ -82,7 +85,9 @@ function followEffects(
   const queue = [root];
   for (let current = queue.shift(); current; current = queue.shift()) {
     for (const link of links.filter((candidate) => candidate.cause === current)) {
-      if (reached.has(link.effect)) continue;
+      if (reached.has(link.effect)) {
+        continue;
+      }
       reached.add(link.effect);
       queue.push(link.effect);
     }
@@ -95,7 +100,9 @@ function findChains(timeline: TimelineEvent[], links: Link[]): Chain[] {
   const effects = new Set(links.map((link) => link.effect));
   return timeline.flatMap((root) => {
     const first = links.find((link) => link.cause === root);
-    if (!first || effects.has(root)) return [];
+    if (!first || effects.has(root)) {
+      return [];
+    }
     return [{ root, relation: first.relation, consequences: followEffects(root, links, timeline) }];
   });
 }
@@ -107,9 +114,10 @@ function nameEvent(event: TimelineEvent): string {
 function nameConsequences(consequences: TimelineEvent[], language: Language): string {
   const named = consequences.slice(0, MAX_CONSEQUENCES_NAMED).map(nameEvent);
   const rest = consequences.length - named.length;
-  return rest > 0
-    ? `${named.join('; ')} ${overviewText(language).moreConsequences(rest)}`
-    : named.join('; ');
+  if (rest > 0) {
+    return `${named.join('; ')} ${overviewText(language).moreConsequences(rest)}`;
+  }
+  return named.join('; ');
 }
 
 function describeChain(chain: Chain, language: Language): string {
@@ -128,7 +136,10 @@ function chainEvents(chains: Chain[], timeline: TimelineEvent[]): TimelineEvent[
 function describeOrder(events: TimelineEvent[], language: Language): string {
   const phrases = describeEvents(events);
   const text = overviewText(language);
-  return hasTimes(events) ? text.orderWithTime(phrases) : text.orderWithoutTime(phrases);
+  if (hasTimes(events)) {
+    return text.orderWithTime(phrases);
+  }
+  return text.orderWithoutTime(phrases);
 }
 
 function describeEscalation(escalation: LoginEscalation, language: Language): string {
@@ -147,12 +158,16 @@ function assembleOverview(
   lines: string[],
   language: Language,
 ): string[] {
-  return [
-    ...(escalation ? [describeEscalation(escalation, language)] : []),
-    ...chains.map((chain) => describeChain(chain, language)),
-    ...(chains.length > 0 ? [describeOrder(chainEvents(chains, timeline), language)] : []),
-    ...describeSharedEntities(lines, timeline, language),
-  ]
+  const sentences: string[] = [];
+  if (escalation) {
+    sentences.push(describeEscalation(escalation, language));
+  }
+  sentences.push(...chains.map((chain) => describeChain(chain, language)));
+  if (chains.length > 0) {
+    sentences.push(describeOrder(chainEvents(chains, timeline), language));
+  }
+  sentences.push(...describeSharedEntities(lines, timeline, language));
+  return sentences
     .map((sentence) => shortenText(sentence, MAX_OVERVIEW_LENGTH))
     .slice(0, MAX_OVERVIEW_ITEMS);
 }

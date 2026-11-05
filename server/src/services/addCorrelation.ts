@@ -15,13 +15,20 @@ export function addCorrelation(
   severityHint: Severity,
   language: Language,
 ): AIReport {
-  if (report.overview !== undefined && report.overview.length > 0) return report;
+  if (report.overview !== undefined && report.overview.length > 0) {
+    return report;
+  }
   const findings = buildFindings(excerpt, severityHint, language);
   const correlation = correlateIncident(excerpt, findings, language);
-  return {
-    ...report,
-    ...(findings.length > 0 ? { findings } : {}),
-    ...(correlation.overview.length > 0 ? { overview: correlation.overview } : {}),
-    ...(correlation.timeline.length > 0 ? { timeline: correlation.timeline } : {}),
-  };
+  const result = { ...report };
+  if (findings.length > 0) {
+    result.findings = findings;
+  }
+  if (correlation.overview.length > 0) {
+    result.overview = correlation.overview;
+  }
+  if (correlation.timeline.length > 0) {
+    result.timeline = correlation.timeline;
+  }
+  return result;
 }

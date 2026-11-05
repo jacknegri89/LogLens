@@ -28,7 +28,9 @@ interface LensState {
 export function usePointerLens(stageRef: RefObject<HTMLDivElement | null>): void {
   useEffect(() => {
     const stage = stageRef.current;
-    if (!stage) return;
+    if (!stage) {
+      return;
+    }
     return startLens(stage);
   }, [stageRef]);
 }
@@ -64,7 +66,9 @@ function listen(stage: HTMLDivElement, state: LensState): () => void {
   const lens = stage.querySelector<HTMLElement>('.lens');
   const onMove = (event: PointerEvent) => followPointer(stage, event, state);
   const onDown = (event: PointerEvent) => {
-    if (event.pointerType === 'mouse') return;
+    if (event.pointerType === 'mouse') {
+      return;
+    }
     stage.setPointerCapture(event.pointerId);
     onMove(event);
   };
@@ -97,14 +101,18 @@ function animate(stage: HTMLDivElement, state: LensState): () => void {
   }
 
   const step = (time: number) => {
-    if (!state.pointerInside) state.target = driftTarget(stage, time);
+    if (!state.pointerInside) {
+      state.target = driftTarget(stage, time);
+    }
     glideToward(stage, state);
     state.frame = requestAnimationFrame(step);
   };
   // The browser already stops frames in a hidden tab; this also stops them off screen.
   const observer = new IntersectionObserver(([entry]) => {
     cancelAnimationFrame(state.frame);
-    if (entry.isIntersecting) state.frame = requestAnimationFrame(step);
+    if (entry.isIntersecting) {
+      state.frame = requestAnimationFrame(step);
+    }
   });
   observer.observe(stage);
   return () => {

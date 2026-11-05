@@ -39,10 +39,14 @@ export function ClustersPanel() {
   const text = useText(CLUSTERS_TEXT);
   const { lines } = useWorkbench();
   const view = useClusterView(lines);
+  let intro = text.intro;
+  if (lines.length === 0) {
+    intro = text.noLog;
+  }
 
   return (
     <section className="cluster-view">
-      <p className="wb-intro">{lines.length === 0 ? text.noLog : text.intro}</p>
+      <p className="wb-intro">{intro}</p>
       {lines.length > 0 && (
         <>
           <ClusterControls

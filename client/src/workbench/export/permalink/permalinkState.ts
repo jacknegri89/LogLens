@@ -36,25 +36,39 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function readRecord(value: unknown): Record<string, unknown> {
-  return isRecord(value) ? value : invalid();
+  if (isRecord(value)) {
+    return value;
+  }
+  return invalid();
 }
 
 function readText(value: unknown, limit = PERMALINK_LIMITS.textCharacters): string {
-  return typeof value === 'string' && value.length <= limit ? value : invalid();
+  if (typeof value === 'string' && value.length <= limit) {
+    return value;
+  }
+  return invalid();
 }
 
 function readOptionalText(value: unknown): string | undefined {
-  return value === undefined ? undefined : readText(value);
+  if (value === undefined) {
+    return undefined;
+  }
+  return readText(value);
 }
 
 function readList<T>(value: unknown, readItem: (item: unknown) => T): T[] {
-  if (!Array.isArray(value) || value.length > PERMALINK_LIMITS.listItems) return invalid();
+  if (!Array.isArray(value) || value.length > PERMALINK_LIMITS.listItems) {
+    return invalid();
+  }
   // Not `map(readItem)`: map would pass the position as a second argument.
   return value.map((item) => readItem(item));
 }
 
 function readOptionalList<T>(value: unknown, readItem: (item: unknown) => T): T[] | undefined {
-  return value === undefined ? undefined : readList(value, readItem);
+  if (value === undefined) {
+    return undefined;
+  }
+  return readList(value, readItem);
 }
 
 function readOneOf<T extends string>(value: unknown, allowed: readonly T[]): T {
@@ -75,12 +89,17 @@ function readFinding(value: unknown): Finding {
 }
 
 function readCausedBy(value: unknown): number | undefined {
-  if (value === undefined) return undefined;
+  if (value === undefined) {
+    return undefined;
+  }
   const inRange =
     Number.isInteger(value) &&
     (value as number) >= 0 &&
     (value as number) < PERMALINK_LIMITS.listItems;
-  return inRange ? (value as number) : invalid();
+  if (inRange) {
+    return value as number;
+  }
+  return invalid();
 }
 
 function readTimelineEntry(value: unknown): TimelineEntry {
@@ -129,10 +148,13 @@ function readSharedReport(value: unknown): SharedReport {
 /** Checks parsed JSON by hand and copies out only the known fields; anything else throws `invalid`. */
 export function validatePermalinkState(value: unknown): PermalinkState {
   const item = readRecord(value);
-  if (item.v !== 1) return invalid();
-  const language = isLanguage(item.language) ? item.language : invalid();
+  if (item.v !== 1 || !isLanguage(item.language)) {
+    return invalid();
+  }
+  const language = item.language;
   const log = readText(item.log, PERMALINK_LIMITS.logCharacters);
-  return item.report === undefined
-    ? { v: 1, language, log }
-    : { v: 1, language, log, report: readSharedReport(item.report) };
+  if (item.report === undefined) {
+    return { v: 1, language, log };
+  }
+  return { v: 1, language, log, report: readSharedReport(item.report) };
 }

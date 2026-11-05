@@ -176,7 +176,9 @@ describe('report texts', () => {
       const text = reportText(language);
 
       for (const value of Object.values(text)) {
-        if (typeof value === 'string') expect(value.trim()).not.toBe('');
+        if (typeof value === 'string') {
+          expect(value.trim()).not.toBe('');
+        }
       }
       expect(text.requestTitle('GET', '/orders', '500')).toMatch(/GET \/orders .*500/);
     }
