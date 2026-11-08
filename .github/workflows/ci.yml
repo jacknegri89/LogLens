@@ -6,10 +6,20 @@ on:
   pull_request:
     branches: [main]
 
+# The workflow only reads the repository: it never needs to write to it.
+permissions:
+  contents: read
+
+# A new push to the same branch makes the run of the older one pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci:
     name: Typecheck, lint, test & build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -45,6 +55,19 @@ jobs:
       - name: Lint (client)
         run: npm run lint --prefix client
 
+      - name: Lint (server)
+        run: npm run lint --prefix server
+
+      - name: Audit dependencies (root, server, client)
+        run: |
+          npm audit --audit-level=moderate
+          npm audit --audit-level=moderate --prefix server
+          npm audit --audit-level=moderate --prefix client
+
+      # Unit tests, API integration tests (the app is started on a free port and called over
+      # HTTP, with the database replaced by a stand-in), regression tests of the security fixes
+      # and the deterministic benchmarks (benchmarks/benchmarks.test.ts fails if the engine
+      # gets worse). No test needs a real database, a key or the network.
       - name: Test (server)
         run: npm test --prefix server
 
@@ -56,6 +79,10 @@ jobs:
 
       - name: Build (client)
         run: npm run build --prefix client
+
+      # The bundle that Vercel serves: the API in one file plus the static client.
+      - name: Build (Vercel output)
+        run: npm run build:vercel
 
       - name: Install Chromium for end-to-end tests
         working-directory: client
