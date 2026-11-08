@@ -18,7 +18,12 @@ test('loading a different log removes the previous report from export', async ({
         category: 'runtime',
         helpful: null,
         shareToken: null,
-        report: { keyLines: [], causes: [], debugSteps: [], bugReportMarkdown: 'FIRST REPORT ONLY' },
+        report: {
+          keyLines: [],
+          causes: [],
+          debugSteps: [],
+          bugReportMarkdown: 'FIRST REPORT ONLY',
+        },
       },
     });
   });

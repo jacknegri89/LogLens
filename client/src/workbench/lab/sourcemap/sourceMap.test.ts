@@ -73,7 +73,9 @@ describe('readVlq', () => {
       ['hB', -16],
       ['2H', 123],
     ];
-    for (const [text, value] of expected) expect(readVlq(cursorOf(text)), text).toBe(value);
+    for (const [text, value] of expected) {
+      expect(readVlq(cursorOf(text)), text).toBe(value);
+    }
   });
 
   it('moves the cursor past the number', () => {

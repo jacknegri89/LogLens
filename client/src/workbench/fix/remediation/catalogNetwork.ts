@@ -20,7 +20,9 @@ export async function fetchWithTimeout(
     try {
       return await fetcher(url, { signal: AbortSignal.timeout(timeoutMs) });
     } catch (error) {
-      if (attempt >= attempts) throw error;
+      if (attempt >= attempts) {
+        throw error;
+      }
     }
   }
 }`,
@@ -81,10 +83,16 @@ export async function fetchWithBackoff(
 ): Promise<Response> {
   for (let attempt = 0; attempt < attempts; attempt++) {
     const response = await fetcher(url);
-    if (response.status !== 429) return response;
+    if (response.status !== 429) {
+      return response;
+    }
     const retryAfterMs = Number(response.headers.get('retry-after')) * 1000;
     const backoffMs = Math.min(1_000 * 2 ** attempt, 30_000) + Math.random() * 250; // jitter
-    await wait(retryAfterMs > 0 ? retryAfterMs : backoffMs);
+    let delayMs = backoffMs;
+    if (retryAfterMs > 0) {
+      delayMs = retryAfterMs;
+    }
+    await wait(delayMs);
   }
   throw new Error('Still rate limited after ' + attempts + ' attempts');
 }`,
@@ -233,7 +241,10 @@ context.init(keyManagers, trustManagers, null); // the keystore is read once at 
         after: `const ALLOWED_ORIGINS = new Set(['https://app.example.com', 'https://admin.example.com']);
 
 export function resolveAllowedOrigin(origin: string | undefined): string | null {
-  return origin && ALLOWED_ORIGINS.has(origin) ? origin : null;
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    return origin;
+  }
+  return null;
 }
 
 app.use((request, response, next) => {

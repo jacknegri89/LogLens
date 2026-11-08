@@ -117,15 +117,12 @@ export function normalizeQuestion(question: string): string {
 }
 
 function scoreIntent(intent: IntentId, text: string): number {
-  return SIGNALS[intent].reduce(
-    (sum, { pattern, weight }) => {
-      if (pattern.test(text)) {
-        return sum + weight;
-      }
-      return sum;
-    },
-    0,
-  );
+  return SIGNALS[intent].reduce((sum, { pattern, weight }) => {
+    if (pattern.test(text)) {
+      return sum + weight;
+    }
+    return sum;
+  }, 0);
 }
 
 /** The intent a question most likely has, or null when nothing in it is recognisable. */

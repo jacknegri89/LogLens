@@ -31,7 +31,9 @@ export async function connectWithRetry<T>(
     try {
       return await connect();
     } catch (error) {
-      if (attempt >= maxAttempts) throw error;
+      if (attempt >= maxAttempts) {
+        throw error;
+      }
       await wait(Math.min(500 * 2 ** attempt, 15_000)); // exponential backoff
     }
   }
@@ -172,7 +174,9 @@ defer rows.Close() // releases the connection`,
         before: `const rows = await db.query("SELECT * FROM products WHERE id = '" + request.query.id + "'");`,
         after: `export async function findProductById(db: Database, rawId: unknown) {
   const id = String(rawId);
-  if (!/^\\d+$/.test(id)) throw new Error('Invalid product id');
+  if (!/^\\d+$/.test(id)) {
+    throw new Error('Invalid product id');
+  }
   return db.query('SELECT * FROM products WHERE id = $1', [Number(id)]); // the value never becomes SQL
 }`,
       },

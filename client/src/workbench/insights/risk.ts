@@ -98,7 +98,9 @@ export function countErrorBursts(lines: ParsedLine[]): number {
 /** A burst goes on while the next fault follows the previous one within the window. */
 function endOfBurst(times: number[], from: number): number {
   let end = from;
-  while (end + 1 < times.length && times[end + 1] - times[end] <= BURST_WINDOW_MS) end += 1;
+  while (end + 1 < times.length && times[end + 1] - times[end] <= BURST_WINDOW_MS) {
+    end += 1;
+  }
   return end;
 }
 

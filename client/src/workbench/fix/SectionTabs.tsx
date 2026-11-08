@@ -40,20 +40,22 @@ export function SectionTabs<Id extends string>(props: SectionTabsProps<Id>) {
         if (tab.id === active) {
           tabIndex = 0;
         }
-        return <button
-          key={tab.id}
-          id={tabElementId(idPrefix, tab.id)}
-          type="button"
-          role="tab"
-          aria-selected={tab.id === active}
-          aria-controls={panelElementId(idPrefix, tab.id)}
-          tabIndex={tabIndex}
-          onClick={() => onChange(tab.id)}
-          onKeyDown={(event) => onKeyDown(event, index)}
-          className="fix-tab"
-        >
-          {tab.label}
-        </button>;
+        return (
+          <button
+            key={tab.id}
+            id={tabElementId(idPrefix, tab.id)}
+            type="button"
+            role="tab"
+            aria-selected={tab.id === active}
+            aria-controls={panelElementId(idPrefix, tab.id)}
+            tabIndex={tabIndex}
+            onClick={() => onChange(tab.id)}
+            onKeyDown={(event) => onKeyDown(event, index)}
+            className="fix-tab"
+          >
+            {tab.label}
+          </button>
+        );
       })}
     </div>
   );

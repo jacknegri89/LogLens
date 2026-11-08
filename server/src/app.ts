@@ -3,6 +3,7 @@ import express from 'express';
 import morgan from 'morgan';
 
 import { env } from './config/env';
+import { apiRateLimit } from './middleware/apiRateLimit';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 import { identifyVisitor } from './middleware/visitor';
@@ -40,6 +41,9 @@ export function createApp() {
   // Allow the frontend to call the API. CORS_ORIGIN defaults to * in dev and
   // is set to the Render frontend URL in production.
   app.use(cors({ origin: corsOrigin() }));
+
+  // Refuse an address that sends too many requests, before reading any request body.
+  app.use('/api', apiRateLimit);
 
   // Parse JSON request bodies. Logs can be sizeable, so raise the limit.
   app.use(express.json({ limit: '2mb' }));

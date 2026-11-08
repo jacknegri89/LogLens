@@ -118,7 +118,9 @@ describe('localHistory', () => {
     };
     vi.stubGlobal('localStorage', storage);
 
-    for (let index = 1; index <= 5; index += 1) saveLocalAnalysis(makeRecord(index));
+    for (let index = 1; index <= 5; index += 1) {
+      saveLocalAnalysis(makeRecord(index));
+    }
 
     const items = listLocalAnalyses();
     expect(items.length).toBeGreaterThan(0);

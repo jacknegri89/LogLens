@@ -107,7 +107,9 @@ describe('time budget', () => {
     expect(scan.nextLine).toBeLessThan(100);
     expect(isScanDone(scan)).toBe(false);
 
-    while (!isScanDone(scan)) advanceScan(scan, 50, tickingClock);
+    while (!isScanDone(scan)) {
+      advanceScan(scan, 50, tickingClock);
+    }
     expect(readScan(scan).matchCount).toBe(100);
   });
 

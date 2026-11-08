@@ -107,16 +107,13 @@ describe('findSorted', () => {
 describe('50,000 lines', () => {
   it('parses, filters and windows within the time budget', () => {
     const levels = ['INFO', 'WARN', 'ERROR', 'DEBUG'];
-    const text = Array.from(
-      { length: 50_000 },
-      (_, index) => {
-        let status = 503;
-        if (index % 2) {
-          status = 200;
-        }
-        return `2026-11-03T09:${String(Math.floor(index / 1000) % 60).padStart(2, '0')}:00.${String(index % 1000).padStart(3, '0')}Z ${levels[index % 4]} [svc-${index % 7}] request done status=${status} latency=${index % 400}ms trace_id=t${index}`;
-      },
-    ).join('\n');
+    const text = Array.from({ length: 50_000 }, (_, index) => {
+      let status = 503;
+      if (index % 2) {
+        status = 200;
+      }
+      return `2026-11-03T09:${String(Math.floor(index / 1000) % 60).padStart(2, '0')}:00.${String(index % 1000).padStart(3, '0')}Z ${levels[index % 4]} [svc-${index % 7}] request done status=${status} latency=${index % 400}ms trace_id=t${index}`;
+    }).join('\n');
 
     const started = performance.now();
     const lines = parseLines(text);

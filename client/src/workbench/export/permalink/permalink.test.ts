@@ -59,7 +59,10 @@ async function failureCodeOf(action: Promise<unknown>): Promise<string> {
   try {
     await action;
   } catch (failure) {
-    return failure instanceof PermalinkError ? failure.code : 'other';
+    if (failure instanceof PermalinkError) {
+      return failure.code;
+    }
+    return 'other';
   }
   return 'none';
 }

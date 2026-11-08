@@ -11,10 +11,9 @@ export function errorMessage(error: unknown, fallback: string, text: ErrorText):
   if (!(error instanceof Error)) {
     return fallback;
   }
-  if (error instanceof RequestError && error.message === '')
-    {
-      return text.requestFailed(error.status);
-    }
+  if (error instanceof RequestError && error.message === '') {
+    return text.requestFailed(error.status);
+  }
   if (UNREACHABLE_PATTERN.test(error.message)) {
     return text.unreachable;
   }

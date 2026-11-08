@@ -136,9 +136,12 @@ describe('correlation texts', () => {
         text.bruteForceSucceeded(4, 'ADDRESS', 'USER'),
       ];
 
-      for (const fact of ['CAUSE', 'CONSEQUENCES', 'EXPLANATION'])
+      for (const fact of ['CAUSE', 'CONSEQUENCES', 'EXPLANATION']) {
         expect(sentences[0]).toContain(fact);
-      for (const sentence of sentences.slice(1, 3)) expect(sentence).toMatch(/FIRST.*SECOND/);
+      }
+      for (const sentence of sentences.slice(1, 3)) {
+        expect(sentence).toMatch(/FIRST.*SECOND/);
+      }
       expect(sentences[3]).toMatch(/ADDRESS.*3.*CATEGORIES/);
       expect(sentences[5]).toMatch(/USER.*3.*CATEGORIES/);
       expect(sentences[6]).toMatch(/4.*ADDRESS.*USER/);
@@ -200,7 +203,9 @@ describe('prompt languages', () => {
 
       expect(name.trim()).not.toBe('');
       expect(Object.values(sections)).toHaveLength(4);
-      for (const heading of Object.values(sections)) expect(heading.trim()).not.toBe('');
+      for (const heading of Object.values(sections)) {
+        expect(heading.trim()).not.toBe('');
+      }
     }
     expect(Object.keys(PROMPT_LANGUAGE.it.sections)).toEqual(
       Object.keys(PROMPT_LANGUAGE.en.sections),

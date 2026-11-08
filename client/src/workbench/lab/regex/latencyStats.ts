@@ -31,7 +31,9 @@ export function summarizeLatencies(
     if (milliseconds === null) {
       continue;
     }
-    for (let repeat = 0; repeat < count; repeat += 1) samples.push(milliseconds);
+    for (let repeat = 0; repeat < count; repeat += 1) {
+      samples.push(milliseconds);
+    }
   }
   if (samples.length === 0) {
     return null;

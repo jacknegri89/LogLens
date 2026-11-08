@@ -88,7 +88,9 @@ describe('RulesProvider in Italian', () => {
       ...english.debugSteps,
       ...(english.overview ?? []),
     ];
-    for (const sentence of englishSentences) expect(italianProse).not.toContain(sentence);
+    for (const sentence of englishSentences) {
+      expect(italianProse).not.toContain(sentence);
+    }
   });
 
   it('keeps categories, severities, techniques, titles and evidence exactly as in English', async () => {
