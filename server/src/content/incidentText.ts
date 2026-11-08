@@ -42,6 +42,12 @@ export interface IncidentText {
   contradictionEarlier: (line: number) => string;
   /** Put in front of a command that destroys or overwrites something. */
   dangerousCaution: string;
+  /** Put in front of a cause the model wrote when no incident has a cause the log supports. */
+  unverifiedCausePrefix: string;
+  /** Replaces a line of the issue text that named a value the log does not contain. */
+  removedUnsupportedLine: string;
+  /** The title of a report whose model title named values that are not in the log. */
+  neutralTitle: string;
   actions: Record<CauseKind, CauseActions>;
   /** Headings and labels of the Markdown section. */
   markdown: {
@@ -130,6 +136,9 @@ export const INCIDENT_TEXT: IncidentText = {
     `The same kind of failure already appears at line ${line}, before this event.`,
   dangerousCaution:
     'Warning: this command is destructive or hard to undo. Check the target and take a backup first.',
+  unverifiedCausePrefix: 'Unverified hypothesis (the log does not prove it):',
+  removedUnsupportedLine: '(line removed: it named a value that is not in the log)',
+  neutralTitle: 'Log analysis',
   actions: {
     change: {
       immediate: [
