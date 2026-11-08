@@ -1,5 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
+import { sanitizeDeep, sanitizeText } from '../analysis/sanitizeReport';
+import { parseStoredReport } from '../analysis/storedReport';
 import { prisma } from '../db/prisma';
 import type { Analysis } from '../generated/prisma/client';
 import type { AnalysisReport, Severity } from '../types/report';
@@ -35,7 +37,7 @@ export interface AnalysisRecord extends Omit<Analysis, 'report' | 'owner' | 'cli
 /** Turn a raw DB row into our richer record (parse the JSON `report`). */
 function toRecord(row: Analysis): AnalysisRecord {
   const { owner: _owner, clientHash: _clientHash, ...visible } = row;
-  return { ...visible, report: JSON.parse(row.report) as AnalysisReport };
+  return { ...visible, report: parseStoredReport(row.report) };
 }
 
 export async function createAnalysis(input: CreateAnalysisInput): Promise<AnalysisRecord> {
@@ -183,20 +185,24 @@ export async function getSharedAnalysis(shareToken: string): Promise<SharedAnaly
   if (!row) {
     return null;
   }
-  const report = JSON.parse(row.report) as AnalysisReport;
   return {
     id: row.id,
     createdAt: row.createdAt,
-    title: row.title,
+    title: sanitizeText(row.title),
     severity: row.severity as Severity,
-    category: row.category,
-    report: toSharedReport(report),
+    category: sanitizeText(row.category),
+    report: toSharedReport(parseStoredReport(row.report)),
   };
 }
 
-/** Keeps the parts of the report that a reader needs, without the raw log. */
+/**
+ * What a reader of the shared link may see: the whole report (incidents with their causes and
+ * certainty, coverage, validation, findings, timeline) with every secret and e-mail address hidden,
+ * and never the raw log. The cleaning happens when the link is opened, so reports saved before this
+ * existed are cleaned too.
+ */
 export function toSharedReport(report: AnalysisReport): AnalysisReport {
-  return {
+  const visible: AnalysisReport = {
     keyLines: report.keyLines,
     causes: report.causes,
     debugSteps: report.debugSteps,
@@ -205,7 +211,13 @@ export function toSharedReport(report: AnalysisReport): AnalysisReport {
     findings: report.findings,
     overview: report.overview,
     timeline: report.timeline,
+    incidents: report.incidents,
+    engine: report.engine,
+    coverage: report.coverage,
+    validation: report.validation,
+    promptInjection: report.promptInjection,
   };
+  return sanitizeDeep(visible);
 }
 
 const ONE_HOUR_MS = 60 * 60 * 1000;

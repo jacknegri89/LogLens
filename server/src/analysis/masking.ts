@@ -49,6 +49,19 @@ const MASK_RULES: MaskRule[] = [
     replace: () => `${REDACTED}:key`,
   },
   {
+    // "the token tok_a1b2c3d4e5f6g7h8 expired", "secret is 9f8e7d6c5b4a3210": a value in a sentence.
+    // Only a value that looks like a credential (long, with letters and digits) is hidden, so
+    // "token expired" and "password required" stay readable.
+    pattern:
+      /\b((?:password|passwd|secret|token|api[_ -]?key|access[_ -]?key)\s+(?:is\s+|was\s+)?)([A-Za-z0-9_-]{16,128})\b/gi,
+    replace: (match, lead, value) => {
+      if (!/[0-9]/.test(value) || !/[A-Za-z]/.test(value)) {
+        return match;
+      }
+      return `${lead}${REDACTED}`;
+    },
+  },
+  {
     // "password": "hunter2"  /  token=abc123  /  Cookie: sid=abc; theme=dark
     pattern: new RegExp(
       `(["']?${SECRET_KEY}["']?\\s*[:=]\\s*)("[^"\\n]{1,${MAX_SECRET_LENGTH}}"|'[^'\\n]{1,${MAX_SECRET_LENGTH}}'|[^\\s,;&"'}]{1,${MAX_SECRET_LENGTH}})`,
@@ -82,8 +95,13 @@ export function maskSecrets(text: string): MaskedText {
       if (match.includes(REDACTED) && !match.endsWith(REDACTED)) {
         return match;
       }
+      const replacement = rule.replace(match, ...(args.slice(1) as string[]));
+      // A rule may decide that the match is not a secret after all and give it back unchanged.
+      if (replacement === match) {
+        return match;
+      }
       masked += 1;
-      return rule.replace(match, ...(args.slice(1) as string[]));
+      return replacement;
     });
   }
   return { text: current, masked };
