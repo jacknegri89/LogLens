@@ -4,6 +4,7 @@ Modifiche approvate, dalla più recente.
 
 ## 2026-11-08
 
+- Rimossi i documenti di passaggio di consegne (`docs/HANDOFF-*.md`), ormai superati, e i vecchi rami locali già uniti a `main`.
 - Ramo `handoff/revisione-2026-11-05` rivisto e unito: regole di sintassi del codice (nessun ternario, nessun `if` o ciclo senza graffe in tutto il repository, esempi di codice JavaScript nelle stringhe compresi), privacy dei report e dei link di condivisione, limiti e timeout sugli input, correzioni di prestazioni nel parser e nell'interfaccia.
 - Limite di richieste per minuto su tutte le API (`middleware/apiRateLimit.ts`, `API_RATE_LIMIT_PER_MINUTE`, 120 per indirizzo), prima della lettura del corpo della richiesta.
 - Le schede Correzione e Chiedi del Workbench mostrano un messaggio "non ancora disponibile" invece di un riquadro vuoto.
