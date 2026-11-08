@@ -12,14 +12,15 @@ flowchart LR
     C -->|POST /api/analyses| A[Express API]
     A -->|limits and validation| L{Allowed?}
     L -->|no| E[429 / 400]
-    L -->|yes| P[Parser and noise filter]
-    P -->|relevant lines| R[Rules engine]
-    R -->|no rule matches| M[OpenAI or Ollama]
-    R -->|report| G[Guard]
-    M -->|report| G
-    G -->|checked against the log| K[Correlation]
-    K -->|save| D[(PostgreSQL via Prisma)]
-    K -->|report| C
+    L -->|yes| N[Parser: normalized events]
+    N --> S[Context selection]
+    S --> K[Correlation and incidents]
+    K -->|simple| R[Rules engine]
+    K -->|complex| M[OpenAI or Ollama]
+    R --> V[Evidence Validator]
+    M --> V
+    V -->|save| D[(PostgreSQL via Prisma)]
+    V -->|report| C
     C -->|view, share, export| U
 ```
 
@@ -29,11 +30,13 @@ flowchart LR
 | ----------- | ----------------------------- | ------------------------------------------------------------------------ |
 | Client      | React + TypeScript + Tailwind | Input, report, history, sharing, the Workbench, English and Italian      |
 | API         | Node.js + Express + TS        | Validate input, apply limits, orchestrate analysis, persist, expose REST |
-| Parser      | Pure TS functions             | Detect the format, keep the relevant lines, drop routine noise           |
+| Parser      | Pure TS functions             | Split the log into records, read every format into normalized events     |
+| Analysis    | Pure TS functions             | Select context, correlate events, build incidents and root causes        |
 | Rules       | TS tables and matchers        | Recognise known failures and write the report without a network call     |
 | AI provider | OpenAI **or** Ollama          | Write the report for logs no rule covers, behind one interface           |
 | Guard       | Pure TS functions             | Check any model output against the log it came from                      |
-| Correlation | Pure TS functions             | Link events: root cause, effects, shared addresses, a timeline           |
+| Validator   | Pure TS functions             | Evidence Validator: ids, lines, quotes, values and certainty vs the log  |
+| Legacy      | Pure TS functions             | The earlier keyword excerpt, findings and overview, still in the report  |
 | Database    | PostgreSQL (Prisma 7)         | Analyses and analysis attempts                                           |
 | Hosting     | Vercel + Neon                 | One project for the client and the API, a daily cron for retention       |
 
@@ -43,17 +46,74 @@ flowchart LR
    secrets are replaced in the browser first.
 2. The client sends the text to `POST /api/analyses` with the visitor id. The API checks the
    per-minute limit, validates the body and reserves an attempt against the hourly limits.
-3. The **parser** detects the format and keeps the relevant lines (errors, warnings, exceptions,
-   failures, timeouts, attacks, stack traces). The **noise filter** drops health checks, probes
-   and static assets with a normal outcome, unless they carry an error.
-4. The **rules engine** matches known failures. In `hybrid` mode a model is asked only when no
-   rule applies; in `openai` and `ollama` mode it is asked for everything. The prompt is
-   described in [`prompts.md`](./prompts.md).
-5. The **guard** checks model output: severity cannot fall below the evidence, evidence lines
-   must be real lines of the log, links and HTML are removed, risky commands are dropped.
-6. **Correlation** adds the overview, the findings and the timeline to every report.
-7. The API validates the report with Zod, saves it with Prisma and returns it. The client shows
-   it, keeps a local copy and offers sharing, feedback and export.
+3. The analysis runs ([the engine](#the-analysis-engine) below), and the report is validated with
+   Zod, saved with Prisma and returned. The client shows it, keeps a local copy and offers
+   sharing, feedback and export.
+
+## The analysis engine
+
+`services/analysisService.ts` runs the stages in order. Stages 1 to 4 are deterministic: the same
+log gives the same incidents, at no cost and with no network call.
+
+1. **Normalize** (`parser/`). `recordSplitter` groups lines into logical records (a stack trace
+   stays with its headline); a parser per format (JSON lines, syslog 3164/5424, nginx and Apache
+   access and error logs, Docker/Kubernetes, Node, Python and Java traces, PostgreSQL, MySQL,
+   systemd, Windows events, generic application logs) turns each record into a
+   `NormalizedLogEvent`: time with a confidence (`exact`, `assumed`, `partial`, `none`), level,
+   service, host, identifiers (trace, span, request, session, user, order, deployment...), status,
+   attributes, original line range and the raw text. A line that cannot be read becomes an
+   `unparsed` event. Mixed formats in one file are detected per record.
+2. **Select context** (`analysis/contextSelection.ts`). Failures, changes, state transitions, events
+   that share an identifier with a failure and the events around them are kept; routine traffic is
+   counted. The scan is chunked with overlap, never cuts a stack trace, and honours a budget. The
+   result carries a **coverage** record (events read, ignored routine, not selected, cut by the
+   budget, not acquired) and says when the analysis is partial.
+3. **Correlate** (`analysis/eventCorrelation.ts`). Events are ordered by time (with the basis of
+   each position: exact, assumed, inferred from the file), grouped by shared identifiers, and linked.
+   A link is `same-identifier`, `change-precedes-anomaly`, `dependency-failure`, `entity-sequence`
+   or `known-relation`, with a certainty (`confirmed`, `probable`, `possible`), the evidence lines
+   and the reasons it might be wrong. Rules: a shared identifier is evidence; **time is a hint,
+   never a proof**; a shared IP or category is not a link; links only go forward in time, so the
+   graph has no cycles.
+4. **Incidents and root cause** (`analysis/incidents.ts`, `rootCause.ts`). Failures joined by links of
+   at least probable certainty, shared identifiers or being the same recurring failure (same text, or
+   the same known kind of failure such as failed logins) form one incident; independent problems stay
+   separate. A log with no identifiers has nothing else to go on, so consecutive failures of one place
+   within a second are grouped, and the incident says it was grouped by time only (never a causal claim). Hypotheses (a change, a failing dependency, an
+   exception, an attack) are checked against the links and against earlier failures of the same
+   kind. Status: `confirmed` (the log itself shows cause and effects, nothing contradicts),
+   `probable`, `unverified`, `insufficient`. Severity comes from impact, spread, availability,
+   integrity and security (`incidentImpact.ts`); one HTTP 500 is medium and an attack attempt is
+   never a compromise.
+5. **Engine** (`ai/providers/hybridProvider.ts`, `analysis/complexity.ts`). The complexity of the
+   incidents decides who writes the analysis. In `hybrid` mode a **complex** incident (several
+   services, a change before the failures, a cause not settled, competing hypotheses, a partial
+   analysis) goes to the model even when a known rule matches; a log with no incident, or a simple
+   one with a known rule, stays with the rules. Before a call the budget is checked
+   (`ai/aiBudget.ts`: context size, calls, estimated cost, timeout). If the model fails or the
+   budget refuses, the rules answer and the report carries `engine.fallbackReason`. `engine.aiUsed`
+   is true only when a model's answer was used.
+6. **Model input** (`ai/structuredContext.ts`, `ai/prompt.ts`). The model gets a JSON document of
+   events (ids, original lines, identifiers, time basis), links with certainty and uncertainty,
+   groups and the incidents with a **candidate** root cause that it must verify. It returns an
+   assessment for each incident id; it never creates incidents. Secrets are masked first
+   (`analysis/masking.ts`); request, trace and order ids stay.
+7. **Evidence Validator** (`ai/evidenceValidator.ts`, `ai/incidentReport.ts`). The model's
+   assessment is merged only after checks: cited event ids must exist and their lines and quotes are
+   rebuilt from the log; sentences naming an order, amount, time or event that is not in the log
+   are removed; `confirmed` is allowed only when the engine confirmed; a claim with no valid evidence
+   falls to `insufficient`; a command piped into a shell is dropped and a destructive one gets a
+   warning. Every correction is listed in `report.validation`.
+
+The report (`types/report.ts`) keeps the earlier fields and adds `incidents[]` (root cause with
+status and evidence, confidence with measurable criteria, a full timeline, secondary symptoms,
+observed against potential impact, immediate actions, permanent fix, preventive measures),
+`engine`, `coverage`, `validation` and `promptInjection`. Stored reports are JSON, so no migration
+is needed; reports made before this change simply have none of the new fields.
+
+**The log is untrusted.** A line that tries to instruct the analyser (`analysis/promptInjection.ts`)
+is reported and kept out of the incidents; the prompt separates instructions from data with a random
+boundary; nothing the log or the model says is ever executed.
 
 ## Retention and cleanup
 
@@ -65,10 +125,13 @@ flowchart LR
 
 ## Key design decisions
 
-- **Rules first.** The built-in rules answer without a key or a network call. A model is a
-  fallback for unknown logs, which keeps the cost and the data that leaves the server small.
-- **Parse before prompting.** The model never sees the whole file: the parser narrows it down
-  first. This is cheaper, faster and more accurate.
+- **Rules for the simple, a model for the complex.** The rules answer simple incidents without a
+  key or a network call. A model reasons about incidents whose shape the rules cannot judge, within
+  a budget, which keeps the cost and the data that leaves the server small.
+- **Prove, do not guess.** Links need evidence, root causes carry a status, and a deterministic
+  validator checks every claim against the log. Nothing is forced to look certain.
+- **Narrow before prompting.** The model never sees the whole file: the engine selects and
+  correlates first. This is cheaper, faster and more accurate.
 - **Structured output, then a guard.** The model must return JSON that matches a fixed schema,
   and the guard checks that JSON against the log, so the app relies on facts, not on prose.
 - **One interface for providers.** `AIProvider` has `mock`, `rules`, `hybrid`, `openai` and
@@ -90,7 +153,10 @@ LogLens/
 │   └── e2e/              # Playwright end-to-end tests
 ├── server/               # Express + TypeScript
 │   ├── src/routes/       # the /api routes
-│   ├── src/ai/           # parser output, rules, providers, guard, correlation
+│   ├── src/parser/       # records, formats, normalized events
+│   ├── src/analysis/     # context selection, correlation, incidents, root cause
+│   ├── src/ai/           # rules, providers, prompt, budget, Evidence Validator
+│   ├── benchmarks/       # scenarios with known answers and the evaluator
 │   ├── src/services/     # limits, retention, saving analyses
 │   └── prisma/           # schema.prisma and seed
 ├── docs/                 # architecture, prompts, decisions, status, changelog, screenshots

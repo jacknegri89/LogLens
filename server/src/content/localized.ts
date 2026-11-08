@@ -13,6 +13,8 @@ import {
 import { OVERVIEW_TEXT_IT, RELATION_EXPLANATION_IT } from './correlations.it';
 import { FORMAT_LABEL, type FormatKey } from './formatLabels';
 import { FORMAT_LABEL_IT } from './formatLabels.it';
+import { INCIDENT_TEXT, type IncidentText } from './incidentText';
+import { INCIDENT_TEXT_IT } from './incidentText.it';
 import type { LogDetails } from './logDetails';
 import { REPORT_TEXT, type ReportText } from './reportText';
 import { REPORT_TEXT_IT } from './reportText.it';
@@ -28,6 +30,7 @@ const FORMAT_LABELS: Record<TranslatedLanguage, Record<FormatKey, string>> = {
   it: FORMAT_LABEL_IT,
 };
 const REPORT: Record<TranslatedLanguage, ReportText> = { it: REPORT_TEXT_IT };
+const INCIDENT: Record<TranslatedLanguage, IncidentText> = { it: INCIDENT_TEXT_IT };
 
 /** What the reader is told about a rule: causes and next steps. */
 export function ruleText(rule: Rule, language: Language): RuleText {
@@ -68,4 +71,12 @@ export function reportText(language: Language): ReportText {
     return REPORT_TEXT;
   }
   return REPORT[language];
+}
+
+/** The words of the incident part of a report: root cause wording, impact, actions, headings. */
+export function incidentText(language: Language): IncidentText {
+  if (language === DEFAULT_LANGUAGE) {
+    return INCIDENT_TEXT;
+  }
+  return INCIDENT[language];
 }

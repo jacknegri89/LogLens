@@ -26,12 +26,13 @@ const NOISE_PATTERNS: { kind: NoiseKind; pattern: RegExp }[] = [
 ];
 
 /** A routine line is still kept when it reports a failure: a failing health check is news. */
-const FAILURE_SIGNAL =
+export const FAILURE_SIGNAL =
   /\b(?:error|exception|fatal|panic|fail(?:ed|ure)?|timeout|timed out|refused|denied)\b|"\s*[45]\d{2}\s|\bstatus[=:\s]+[45]\d{2}\b/i;
 
 const TRACE_ID = /\b(?:trace|request|req|correlation)[_-]?id[=:\s"']+([\w-]{6,})/gi;
 
-function noiseKindOf(content: string): NoiseKind | null {
+/** The kind of routine traffic a line is (health check, probe, static asset), or null for a line that is not routine. */
+export function noiseKindOf(content: string): NoiseKind | null {
   const routine = NOISE_PATTERNS.find(({ pattern }) => pattern.test(content));
   if (routine) {
     return routine.kind;

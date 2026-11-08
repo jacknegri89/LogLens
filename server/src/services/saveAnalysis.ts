@@ -1,8 +1,7 @@
-import type { AIReport } from '../ai/schema';
 import { createAnalysis } from '../repositories/analysisRepository';
 import type { CreateAnalysisBody } from '../schemas/createAnalysis';
 import type { Language } from '../types/language';
-import { analyzeLog } from './analysisService';
+import { analyzeLog, type FullReport } from './analysisService';
 
 export interface Submitter {
   owner: string;
@@ -10,7 +9,7 @@ export interface Submitter {
 }
 
 /** The parts of a report that are saved with the analysis. */
-function pickStoredReport(report: AIReport) {
+function pickStoredReport(report: FullReport) {
   return {
     keyLines: report.keyLines,
     causes: report.causes,
@@ -20,6 +19,11 @@ function pickStoredReport(report: AIReport) {
     findings: report.findings,
     overview: report.overview,
     timeline: report.timeline,
+    incidents: report.incidents,
+    engine: report.engine,
+    coverage: report.coverage,
+    validation: report.validation,
+    promptInjection: report.promptInjection,
   };
 }
 

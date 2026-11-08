@@ -3,12 +3,15 @@ import type { ReactNode } from 'react';
 import { REPORT_TEXT } from '../content/report';
 import { useText } from '../i18n/useText';
 import { findLineNumbers } from '../lib/format';
+import { boardEntriesFrom } from '../lib/incidentBoard';
 import type { Finding, ReportSource, TimelineEntry } from '../lib/types';
 import { BigPicture } from './BigPicture';
 import { CaseHeader } from './CaseHeader';
+import { EngineNotice } from './EngineNotice';
 import { EvidenceBoard } from './EvidenceBoard';
 import { FailingLines } from './FailingLines';
 import { FindingsList } from './FindingsList';
+import { IncidentsSection } from './IncidentsSection';
 import { IssueActions } from './IssueActions';
 import { CauseList, StepList } from './ProcedureList';
 import { ReportSection } from './ReportSection';
@@ -28,13 +31,29 @@ interface ReportViewProps {
 export function ReportView({ analysis, children, pageTitle = false }: ReportViewProps) {
   const text = useText(REPORT_TEXT);
   const { report } = analysis;
+  // Reports with incidents tell the story there; the board is drawn from them, and the earlier
+  // summary and findings list (which use the rules' own categories) would only contradict them.
+  const incidents = report.incidents ?? [];
+  const hasIncidents = incidents.length > 0;
+  let boardEntries = report.timeline;
+  if (hasIncidents) {
+    boardEntries = boardEntriesFrom(incidents);
+  }
 
   return (
     <article className="report-case">
       <CaseHeader analysis={analysis} pageTitle={pageTitle} />
-      <BigPictureSection overview={report.overview} />
-      <EvidenceBoardSection timeline={report.timeline} />
-      <FindingsSection findings={report.findings} />
+      <EngineNotice
+        engine={report.engine}
+        coverage={report.coverage}
+        validation={report.validation}
+        promptInjection={report.promptInjection}
+        hasLog={analysis.rawLog !== undefined}
+      />
+      <IncidentsSection incidents={incidents} hasLog={analysis.rawLog !== undefined} />
+      {!hasIncidents && <BigPictureSection overview={report.overview} />}
+      <EvidenceBoardSection timeline={boardEntries} />
+      {!hasIncidents && <FindingsSection findings={report.findings} />}
       <FailingLinesSection analysis={analysis} />
       <div className="report-procedures">
         <ReportSection title={text.probableCauses}>

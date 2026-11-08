@@ -48,7 +48,8 @@ interface Chain {
 
 const MAX_CONSEQUENCES_NAMED = 2;
 
-function matchesAny(matchers: EventMatcher[], finding: Finding): boolean {
+/** True when a finding fits one of the matchers: its category, and its evidence when the matcher asks for it. */
+export function matchesAny(matchers: EventMatcher[], finding: Finding): boolean {
   return matchers.some(
     (matcher) =>
       matcher.categories.includes(finding.category) &&
@@ -56,7 +57,8 @@ function matchesAny(matchers: EventMatcher[], finding: Finding): boolean {
   );
 }
 
-function findRelation(cause: Finding, effect: Finding): CausalRelation | undefined {
+/** The relation of the knowledge base that says the first finding can cause the second, if there is one. */
+export function findRelation(cause: Finding, effect: Finding): CausalRelation | undefined {
   return CAUSAL_RELATIONS.find(
     (relation) => matchesAny(relation.causes, cause) && matchesAny(relation.effects, effect),
   );

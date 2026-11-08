@@ -1,6 +1,5 @@
 export type FileReadResult =
-  | { ok: true; text: string }
-  | { ok: false; reason: 'tooBig' | 'unreadable' };
+  { ok: true; text: string } | { ok: false; reason: 'tooBig' | 'unreadable' };
 
 export const MEGABYTE = 1024 * 1024;
 
