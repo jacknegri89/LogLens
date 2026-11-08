@@ -3,7 +3,12 @@ import type { ParsedLine } from '../types';
 
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'severe';
 export type RiskFactorId =
-  'severity' | 'faultRatio' | 'findings' | 'rootCause' | 'security' | 'burst';
+  | 'severity'
+  | 'faultRatio'
+  | 'findings'
+  | 'rootCause'
+  | 'security'
+  | 'burst';
 
 export interface RiskFactor {
   id: RiskFactorId;
