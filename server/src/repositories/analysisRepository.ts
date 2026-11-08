@@ -278,3 +278,15 @@ export function tryReserveAttempt(
     { maxWait: TRANSACTION_MAX_WAIT_MS, timeout: TRANSACTION_TIMEOUT_MS },
   );
 }
+
+/**
+ * Removes attempts older than the limit window. They no longer count towards any limit, so keeping
+ * their hashed addresses would only extend how long they are stored. The daily job calls this, so
+ * the hashes go even when nobody is using the demo.
+ */
+export async function deleteExpiredAttempts(): Promise<number> {
+  const result = await prisma.analysisAttempt.deleteMany({
+    where: { createdAt: { lt: new Date(Date.now() - ONE_HOUR_MS) } },
+  });
+  return result.count;
+}
