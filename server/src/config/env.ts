@@ -167,9 +167,6 @@ export function productionWarnings(value: Env): string[] {
       'CRON_SECRET is not set: the scheduled cleanup refuses every call, so analyses are not deleted after the retention period.',
     );
   }
-  if (value.CORS_ORIGIN === '' || value.CORS_ORIGIN === '*') {
-    warnings.push('CORS_ORIGIN is open: in production the API answers same-site requests only.');
-  }
   return warnings;
 }
 
