@@ -40,7 +40,7 @@ export const PRIVACY_TEXT = defineText({
         body: [
           'Vercel, which hosts the site and runs the aggregated analytics. Vercel is based in the United States.',
           'Neon, which hosts the database where analyses and attempt counts are saved. The database is hosted by AWS in the US East 1 region (N. Virginia, United States).',
-          'OpenAI, only when the operator enables an OpenAI-based AI provider. In that case, an excerpt of the log, made of the lines selected for the analysis, is sent to OpenAI, which is based in the United States.',
+          'OpenAI, only when the operator enables an OpenAI-based AI provider. In that case, a structured summary of the events of the log (message, level, time, service and identifiers) is sent to OpenAI, which is based in the United States. Passwords, tokens, keys and similar secrets are hidden first, and session identifiers are replaced by pseudonyms.',
           'Transfers outside the European Economic Area are covered by the data processing addenda of these providers, which include the European Commission’s standard contractual clauses.',
         ],
       },
@@ -111,7 +111,7 @@ export const PRIVACY_TEXT = defineText({
         body: [
           'Vercel, che ospita il sito ed effettua le statistiche aggregate. Vercel ha sede negli Stati Uniti.',
           'Neon, che ospita il database in cui vengono salvate le analisi e i conteggi dei tentativi. Il database è ospitato da AWS nella regione US East 1 (Virginia del Nord, Stati Uniti).',
-          'OpenAI, solo quando il gestore del sito attiva un fornitore di AI basato su OpenAI. In quel caso viene inviato a OpenAI, che ha sede negli Stati Uniti, un estratto del log composto dalle righe selezionate per l’analisi.',
+          'OpenAI, solo quando il gestore del sito attiva un fornitore di AI basato su OpenAI. In quel caso viene inviato a OpenAI, che ha sede negli Stati Uniti, un riepilogo strutturato degli eventi del log (messaggio, livello, orario, servizio e identificatori). Password, token, chiavi e segreti simili vengono prima nascosti e gli identificatori di sessione sono sostituiti da pseudonimi.',
           'I trasferimenti fuori dallo Spazio economico europeo sono coperti dagli addendum sul trattamento dei dati di questi fornitori, che includono le clausole contrattuali tipo della Commissione europea.',
         ],
       },
