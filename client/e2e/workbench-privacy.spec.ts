@@ -51,6 +51,8 @@ test('anonymized uploads omit the file name on both analysis paths', async ({ pa
   await expect.poll(() => submissions.length).toBe(1);
 
   await page.getByRole('link', { name: 'Workbench', exact: true }).click();
+  // The page loads on demand: wait for the Workbench itself, or the file lands on the Analyze page.
+  await expect(page.locator('#wbx-paste-input')).toBeVisible();
   await page.locator('input[type="file"]').setInputFiles(file);
   await expect(
     page.getByRole('button', { name: /analyze this log|analizza questo log/i }),

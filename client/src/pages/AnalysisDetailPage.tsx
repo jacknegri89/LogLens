@@ -15,9 +15,15 @@ export function AnalysisDetailPage() {
   const text = useText(DETAIL_TEXT);
   const { id } = useParams();
   const { data: loaded, error } = useLoad(() => api.getAnalysis(id ?? ''), [id], text.loadFallback);
+  // While there is no report, the page still needs its one heading, for screen readers.
+  let placeholderHeading = text.loading;
+  if (error) {
+    placeholderHeading = text.loadFailed;
+  }
 
   return (
     <div className="report-page">
+      {!loaded && <h1 className="sr-only">{placeholderHeading}</h1>}
       <Link to="/history" className="report-back-link">
         {text.backLink}
       </Link>

@@ -3,4 +3,10 @@
   <url>
     <loc>https://loglens-demo.vercel.app/</loc>
   </url>
+  <url>
+    <loc>https://loglens-demo.vercel.app/workbench</loc>
+  </url>
+  <url>
+    <loc>https://loglens-demo.vercel.app/privacy</loc>
+  </url>
 </urlset>
