@@ -1,0 +1,260 @@
+/* ------------------------------------------- incidents: root cause on paper */
+
+.incident-notices {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 auto 1.5rem;
+  max-width: 52rem;
+}
+.incident-notice {
+  padding: 0.7rem 1rem;
+  border-left: 4px solid var(--color-chalk-dim);
+  background: var(--color-felt-2);
+  color: var(--color-chalk);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.incident-notice[data-tone='warning'] {
+  border-left-color: var(--color-marker);
+  color: var(--color-paper);
+}
+.incident-notice[data-ai='true'] {
+  border-left-color: var(--color-blueink);
+}
+.incident-notice-title,
+.incident-notice-label {
+  font-weight: 800;
+  color: var(--color-marker);
+}
+.incident-notice-list {
+  margin-top: 0.4rem;
+  padding-left: 1.1rem;
+  list-style: disc;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.incident-list {
+  display: grid;
+  gap: 2rem;
+  max-width: 52rem;
+}
+.incident-card {
+  padding: 1.4rem clamp(1rem, 4cqi, 2rem) 1.2rem;
+  color: var(--color-ink);
+}
+.incident-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+.incident-title {
+  flex: 1 1 14rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.incident-id {
+  margin-right: 0.3rem;
+  color: var(--color-pen-deep);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.incident-category {
+  margin-top: 0.25rem;
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.incident-cause,
+.incident-impact,
+.incident-symptoms,
+.incident-actions {
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed rgb(23 32 28 / 0.28);
+}
+.incident-label {
+  margin-top: 0.7rem;
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.incident-cause > .incident-label:first-child,
+.incident-impact > .incident-label:first-child,
+.incident-symptoms > .incident-label:first-child,
+.incident-actions > .incident-label:first-child {
+  margin-top: 0;
+}
+.incident-sublabel {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.incident-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  margin-top: 0.4rem;
+}
+/* The four statuses differ by more than colour: fill, outline and dash say it too. */
+.incident-status-chip {
+  padding: 0.15rem 0.6rem;
+  border: 2px solid var(--color-ink);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.incident-status-chip[data-status='confirmed'] {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.incident-status-chip[data-status='probable'] {
+  border-color: var(--color-amber);
+  color: var(--color-amber);
+}
+.incident-status-chip[data-status='unverified'] {
+  border-style: dashed;
+  border-color: var(--color-blueink);
+  color: var(--color-blueink);
+}
+.incident-status-chip[data-status='insufficient'] {
+  border-color: var(--color-pen-deep);
+  color: var(--color-pen-deep);
+}
+.incident-status-hint {
+  color: var(--color-ink-soft);
+  font-size: 0.84rem;
+}
+.incident-summary {
+  margin-top: 0.5rem;
+  font-weight: 700;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.incident-reasoning {
+  margin-top: 0.4rem;
+  line-height: 1.55;
+}
+.incident-more {
+  margin-top: 0.5rem;
+  font-size: 0.88rem;
+}
+.incident-more > summary,
+.incident-timeline > summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.incident-more > summary:focus-visible,
+.incident-timeline > summary:focus-visible {
+  outline: 3px solid var(--color-blueink);
+  outline-offset: 2px;
+}
+.incident-bullets {
+  margin-top: 0.3rem;
+  padding-left: 1.1rem;
+  list-style: disc;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.incident-bullets[data-potential='true'] {
+  font-style: italic;
+}
+
+.incident-evidence {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+.incident-evidence li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  padding: 0.3rem 0.55rem;
+  background: var(--color-band);
+}
+.incident-line {
+  flex: none;
+  color: var(--color-pen-deep);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+a.incident-line {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+a.incident-line:focus-visible {
+  outline: 3px solid var(--color-blueink);
+  outline-offset: 2px;
+}
+.incident-quote {
+  flex: 1 1 14rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.incident-note {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+}
+
+.incident-timeline {
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed rgb(23 32 28 / 0.28);
+}
+.incident-timeline-list {
+  max-height: 26rem;
+  margin-top: 0.6rem;
+  overflow-y: auto;
+}
+.incident-timeline-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.6rem;
+  padding: 0.35rem 0 0.35rem 0.6rem;
+  border-left: 3px solid var(--color-chalk-dim);
+  font-size: 0.86rem;
+}
+.incident-timeline-list li[data-role='cause'] {
+  border-left-color: var(--color-pen);
+  font-weight: 700;
+}
+.incident-timeline-list li[data-role='symptom'] {
+  border-left-color: var(--color-amber);
+}
+.incident-role {
+  min-width: 4.8rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.incident-time,
+.incident-service {
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+.incident-event {
+  flex: 1 1 14rem;
+  overflow-wrap: anywhere;
+}
+
+/* The line a piece of evidence points at, in the original log. */
+.report-original-focus {
+  background: var(--color-marker);
+  color: var(--color-ink);
+}

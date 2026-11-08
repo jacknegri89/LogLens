@@ -22,18 +22,37 @@ structured** answer the app can render and store — not free-form text.
    (`guardReport`: severity floor for attacks, evidence lines must exist, no links or images
    that the log does not contain).
 
+## Structured mode (correlation engine)
+
+When the deterministic engine finds incidents, the model does not read the log excerpt. It gets a
+JSON document built by `ai/structuredContext.ts`: events (id, original line, time and its basis,
+level, service, identifiers, short message, exception facts), links with certainty and uncertainty,
+groups of events that share an identifier, and the incidents with a **candidate** root cause it must
+verify. The system prompt adds the structured contract (`STRUCTURED_CONTRACT` in `ai/prompt.ts`): reason
+from the events, consider more than one hypothesis, look for contradicting events, use the four
+statuses honestly, cite only event ids that exist, never state a cause as certain when the links say
+"probable", return `incidentAssessments` with one item per incident id. The answer is checked by the
+Evidence Validator before anything is merged into the report. Secrets are masked before the document
+leaves the server, and it contains none of the benchmark solutions.
+
+The owner's text (`content/analystPrompt.ts`) was revised in this change: phase 2 now asks for
+evidence-based correlation and no default technical conclusions (409 is not a network problem, a
+timeout is not packet loss, a 500 is not automatically critical, an attack attempt is not a
+compromise); the role, the four phases and the four report sections are unchanged.
+
 ## System prompt
 
 Built by `buildSystemPrompt(language)` in `server/src/ai/prompt.ts`. In order:
 
-1. **Role and process (owner's text, Italian, verbatim):** Senior SRE and Tier 3 security expert;
-   FASE 1 entities (client IP, session, user, trace id), FASE 2 rigid correlation (events are
-   linked only by a shared id or IP; a network/hardware fault plus 504, pool exhaustion or
-   OOMKilled is ONE infrastructure incident), FASE 3 security isolation (attacks are separate
-   incidents, never mixed with performance problems unless they share an id), FASE 4 report format.
+1. **Role and process (owner's text, Italian, revised in the RCA upgrade):** Senior SRE and Tier 3
+   security expert; FASE 1 entities (IP, session, user, trace, request, order, deployment), FASE 2
+   evidence-based correlation (a link needs evidence; time or a shared IP alone is not evidence;
+   separate symptoms from causes; state how sure each conclusion is), FASE 3 security isolation,
+   FASE 4 report format.
 2. **What the code did before the model:** the pre-filter above.
-3. **Severity scale:** five levels; attacks, DB connection failures, unhandled exceptions and 5xx
-   are at least `high`; a successful attack or a core service down is `critical`.
+3. **Severity scale:** five levels, from the real effect (users, orders, services, availability,
+   integrity, security). A single 500 or exception is `medium`; an attack attempt is at least `high`
+   and `critical` only when it succeeded or got a 5xx.
 4. **How to deliver the report:** the four headings, in order, written exactly as the owner wrote
    them (Italian: `## 🚨 INCIDENTI DI SICUREZZA RILEVATI`, `## ⚙️ DISSERVIZI INFRASTRUTTURALI / PERFORMANCE`,
    `## 🟢 RUMORE DI FONDO IGNORATO`, `## 🚀 PROSSIMI PASSI (NEXT STEPS) CORRETTI`; for an English

@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
 import { env } from '../../config/env';
+import { maskSecrets } from '../../analysis/masking';
 import { AppError } from '../../middleware/errorHandler';
 import type { AIProvider, AnalyzeInput } from '../AIProvider';
+import { MAX_OUTPUT_TOKENS } from '../aiBudget';
 import { guardReport } from '../guardReport';
 import { parseReport } from '../parseReport';
 import { buildSystemPrompt, buildUserPrompt } from '../prompt';
@@ -11,10 +13,6 @@ import type { AIReport } from '../schema';
 
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 const OPENAI_TEMPERATURE = 0.2;
-/* A stalled model call would hold the request until the platform kills it; fail fast instead. */
-const OPENAI_TIMEOUT_MS = 20_000;
-/* The answer is billed per token; a cap stops a log from asking the model for a long one. */
-const OPENAI_MAX_TOKENS = 2500;
 const OPENAI_ENVELOPE = z.object({
   choices: z.array(z.object({ message: z.object({ content: z.string() }) })).min(1),
 });
@@ -27,7 +25,9 @@ const OPENAI_ENVELOPE = z.object({
 export class OpenAIProvider implements AIProvider {
   readonly name = 'openai';
 
-  async analyze(input: AnalyzeInput): Promise<AIReport> {
+  async analyze(rawInput: AnalyzeInput): Promise<AIReport> {
+    // The log leaves the server here: tokens, passwords and keys are hidden before it does.
+    const input = withMaskedExcerpt(rawInput);
     const response = await postChatCompletion(input);
 
     if (!response.ok) {
@@ -49,6 +49,10 @@ export class OpenAIProvider implements AIProvider {
   }
 }
 
+function withMaskedExcerpt(input: AnalyzeInput): AnalyzeInput {
+  return { ...input, excerpt: maskSecrets(input.excerpt).text };
+}
+
 function postChatCompletion(input: AnalyzeInput): Promise<Response> {
   return fetch(OPENAI_URL, {
     method: 'POST',
@@ -57,7 +61,8 @@ function postChatCompletion(input: AnalyzeInput): Promise<Response> {
       Authorization: `Bearer ${env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify(buildRequestBody(input)),
-    signal: AbortSignal.timeout(OPENAI_TIMEOUT_MS),
+    // A stalled model call would hold the request until the platform kills it; fail fast instead.
+    signal: AbortSignal.timeout(env.AI_TIMEOUT_MS),
   }).catch(rethrowTimeout);
 }
 
@@ -72,10 +77,13 @@ function buildRequestBody(input: AnalyzeInput) {
   return {
     model: env.OPENAI_MODEL,
     temperature: OPENAI_TEMPERATURE,
-    max_tokens: OPENAI_MAX_TOKENS,
+    max_tokens: MAX_OUTPUT_TOKENS,
     response_format: { type: 'json_object' },
     messages: [
-      { role: 'system', content: buildSystemPrompt(input.language) },
+      {
+        role: 'system',
+        content: buildSystemPrompt(input.language, input.structured !== undefined),
+      },
       { role: 'user', content: buildUserPrompt(input) },
     ],
   };

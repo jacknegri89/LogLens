@@ -1,11 +1,5 @@
 export type PageKey =
-  | 'home'
-  | 'workbench'
-  | 'history'
-  | 'privacy'
-  | 'analysis'
-  | 'shared'
-  | 'notFound';
+  'home' | 'workbench' | 'history' | 'privacy' | 'analysis' | 'shared' | 'notFound';
 
 /** Which page a path belongs to, so the tab title and description can match it. */
 export function pageKeyForPath(pathname: string): PageKey {

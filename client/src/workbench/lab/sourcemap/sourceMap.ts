@@ -30,8 +30,7 @@ export type SourceMapProblem =
   | 'badSection';
 
 export type ParsedSourceMap =
-  | { ok: true; map: LoadedSourceMap }
-  | { ok: false; problem: SourceMapProblem };
+  { ok: true; map: LoadedSourceMap } | { ok: false; problem: SourceMapProblem };
 
 type Json = Record<string, unknown>;
 

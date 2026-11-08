@@ -34,15 +34,24 @@ describe('buildSystemPrompt', () => {
     },
   );
 
-  it('carries the four phases and the rigid correlation rules of the owner', () => {
+  it('carries the four phases and the evidence-based correlation rules', () => {
     const prompt = buildSystemPrompt('en');
 
     for (const phase of ['FASE 1', 'FASE 2', 'FASE 3', 'FASE 4']) {
       expect(prompt).toContain(phase);
     }
-    expect(prompt).toContain('Correlazione per ID');
-    expect(prompt).toContain('UNICO incidente infrastrutturale');
+    expect(prompt).toContain('CORRELAZIONE BASATA SU EVIDENZE');
+    expect(prompt).toContain('NON sono prove');
     expect(prompt).toContain('Chain-of-Thought');
+  });
+
+  it('does not push default technical conclusions on the model', () => {
+    const prompt = buildSystemPrompt('en');
+
+    expect(prompt).not.toContain('UNICO incidente infrastrutturale');
+    expect(prompt).not.toContain('Non ipotizzare bug software');
+    expect(prompt).toContain('Un HTTP 409 è un conflitto applicativo, non un problema di rete');
+    expect(prompt).toContain('Non forzare una causa radice');
   });
 
   it('asks for the four Italian headings in Italian and their English translation in English', () => {

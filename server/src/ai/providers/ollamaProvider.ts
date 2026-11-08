@@ -47,7 +47,10 @@ function buildRequestBody(input: AnalyzeInput) {
     stream: false,
     options: { temperature: OLLAMA_TEMPERATURE },
     messages: [
-      { role: 'system', content: buildSystemPrompt(input.language) },
+      {
+        role: 'system',
+        content: buildSystemPrompt(input.language, input.structured !== undefined),
+      },
       { role: 'user', content: buildUserPrompt(input) },
     ],
   };

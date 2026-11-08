@@ -2,6 +2,14 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-08 — Motore di analisi con prove e causa radice
+
+- **Decisione:** l'analisi legge ogni evento (parser universale), sceglie il contesto invece di scartare, correla solo con prove e costruisce incidenti con una causa radice che ha uno stato (confermata, probabile, ipotesi non verificata, informazioni insufficienti). Un incidente complesso va al modello anche se una regola corrisponde; il modello giudica gli incidenti ricevuti, non li crea. Un validatore deterministico controlla ogni affermazione sul log.
+- **Motivo:** il filtro per parole chiave perdeva gli eventi che spiegano i guasti (una modifica di configurazione è una riga INFO), la correlazione per soli identificatori o per categoria forzava conclusioni (la rete causa tutto) e una regola nota impediva al modello di vedere una catena complessa.
+- **Prompt:** il testo del proprietario è stato rivisto, su richiesta, nelle sole regole di correlazione della fase 2 e nella scala di gravità; ruolo, quattro fasi e quattro sezioni del report restano. Il test che fissava le frasi rigide è stato aggiornato di conseguenza.
+- **Vincoli:** niente modifiche al database (il report è JSON), campi precedenti invariati. La certezza "confermata" richiede che il log stesso mostri causa ed effetti; un'ipotesi del modello non può superarla. Un tentativo di attacco resta almeno "alto" come prima, ma non è mai una compromissione.
+- **Scartato:** un grafo causale libero generato dal modello (non verificabile), tetti fissi su incidenti e cronologia (i limiti sono di visualizzazione, non di analisi), una coda o un servizio separato per i log grandi (la scansione a blocchi basta entro i limiti serverless).
+
 ## 2026-11-08 — Regole di sintassi e limite di richieste per minuto
 
 - **Decisione:** nel codice JavaScript/TypeScript niente ternari e niente `if`, `else` o cicli senza graffe, anche negli esempi di codice dentro le stringhe. Un limite di 120 richieste al minuto per indirizzo protegge tutte le rotte `/api`, contato nella memoria di ogni istanza.

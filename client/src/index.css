@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './styles/report.css';
+@import './styles/incidents.css';
 @import './styles/pages.css';
 @import './styles/legal.css';
 

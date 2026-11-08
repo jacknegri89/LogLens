@@ -48,6 +48,24 @@ const envSchema = z
     // Ollama (used when AI_PROVIDER=ollama)
     OLLAMA_BASE_URL: z.string().url().default('http://localhost:11434'),
     OLLAMA_MODEL: z.string().default('llama3.2'),
+
+    // Analysis budget. The deterministic engine reads every event it acquires; these limits say how
+    // much of a log is selected for the report and how much is sent to a model.
+    // Events kept for the analysis after the contextual selection.
+    ANALYSIS_MAX_SELECTED_EVENTS: z.coerce.number().int().min(10).max(20_000).default(1500),
+    // Size of the context sent to a model, in characters and in events.
+    AI_CONTEXT_MAX_CHARS: z.coerce.number().int().min(2000).max(200_000).default(24_000),
+    AI_CONTEXT_MAX_EVENTS: z.coerce.number().int().min(10).max(2000).default(250),
+    // Model calls allowed for one analysis (0 turns the model off even in openai or hybrid mode).
+    AI_MAX_CALLS_PER_ANALYSIS: z.coerce.number().int().min(0).max(3).default(1),
+    // Highest estimated cost of one analysis, in US dollars. A call that could cost more is skipped
+    // and the report says the rules answered instead.
+    AI_MAX_COST_USD_PER_ANALYSIS: z.coerce.number().min(0).max(10).default(0.05),
+    // Prices used for the estimate, in US dollars per million tokens.
+    AI_INPUT_USD_PER_MILLION_TOKENS: z.coerce.number().min(0).default(0.15),
+    AI_OUTPUT_USD_PER_MILLION_TOKENS: z.coerce.number().min(0).default(0.6),
+    // How long a model call may take before the rules answer instead.
+    AI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60_000).default(40_000),
   })
   .superRefine((value, ctx) => {
     // Conditional rule: OpenAI needs a key, but only when it's the chosen provider.
