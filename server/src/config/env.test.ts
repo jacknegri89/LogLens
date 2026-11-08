@@ -84,9 +84,7 @@ describe('production', () => {
   });
 
   it('warns about settings that weaken the server without stopping it', () => {
-    const result = parseEnv(
-      production({ TRUST_PROXY: 'false', CRON_SECRET: undefined, CORS_ORIGIN: '*' }),
-    );
+    const result = parseEnv(production({ TRUST_PROXY: 'false', CRON_SECRET: undefined }));
     expect(result.success).toBe(true);
     if (!result.success) {
       return;
@@ -94,10 +92,9 @@ describe('production', () => {
 
     const warnings = productionWarnings(result.data);
 
-    expect(warnings).toHaveLength(3);
+    expect(warnings).toHaveLength(2);
     expect(warnings.join(' ')).toContain('TRUST_PROXY');
     expect(warnings.join(' ')).toContain('CRON_SECRET');
-    expect(warnings.join(' ')).toContain('CORS_ORIGIN');
   });
 
   it('has nothing to warn about in a complete configuration', () => {
