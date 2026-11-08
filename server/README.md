@@ -49,7 +49,7 @@ curl http://localhost:3001/api/health
 ## AI provider
 
 LogLens analyzes logs through a single `AIProvider` interface with five
-interchangeable implementations, selected by the `AI_PROVIDER` env var:
+interchangeable implementations, selected by the `AI_PROVIDER` env var (in production it must be set explicitly and `mock` is refused unless `ALLOW_MOCK_PROVIDER=true`; the server also refuses to start with the default or a weak `VISITOR_SALT`):
 
 | `AI_PROVIDER` | Engine                                           | Setup                                  |
 | ------------- | ------------------------------------------------ | -------------------------------------- |
@@ -91,7 +91,7 @@ src/
 ├── services/
 │   ├── analysisService.ts            # parse -> AI -> validated report
 │   ├── addCorrelation.ts             # adds the overview, findings and timeline to a model report
-│   ├── attemptLimit.ts               # counts the attempts of a visitor and the whole demo
+│   ├── attemptLimit.ts               # hourly limits: one locked database transaction checks and records the attempt
 │   ├── retention.ts                  # deletes analyses past the 90-day retention period
 │   └── saveAnalysis.ts               # analyses a log and stores the report
 ├── repositories/
@@ -110,7 +110,7 @@ src/
     ├── apiRateLimit.ts               # 120 requests per minute per address on every /api route
     ├── clientAddress.ts              # caller address, trusted behind a proxy only with TRUST_PROXY
     ├── visitor.ts                    # visitor id header and owner check
-    ├── errorHandler.ts               # centralized error handling
+    ├── errorHandler.ts               # centralized error handling (503 when the database is down; the log never holds the data of a failed query)
     └── notFound.ts                   # 404 JSON fallback
 
 prisma/
@@ -136,8 +136,8 @@ Tests (`*.test.ts`) sit next to the file they cover.
 | `GET`    | `/api/shared/:token`         | Read-only report behind a secret link, without the raw log       |
 | `GET`    | `/api/cron/retention`        | Deletes analyses older than 90 days; called daily by Vercel Cron |
 
-Every `/api/analyses` route needs the `X-Visitor-Id` header, or it answers `400`.
-The `/api/shared/:token` route needs no header: the token is the permission.
+Every `/api/analyses` route needs the `X-Visitor-Id` header, or it answers `400`. The id is a random value the browser keeps (a UUID); an id that is too regular to be random is refused. It is not a login: it behaves like a session cookie, so whoever holds it can read and delete that history.
+The `/api/shared/:token` route needs no header: the token is the permission. The report it returns has every secret and e-mail address masked at every level (incidents, evidence, Markdown), and carries the incidents, engine, coverage and validation of the report but never the raw log, the owner or the address hash. It is sent with `Cache-Control: no-store`, `X-Robots-Tag: noindex` and `Referrer-Policy: no-referrer`.
 Every `/api` route answers `429` to an address that sends more requests per minute than allowed.
 
 `GET /api/cron/retention` needs `Authorization: Bearer <CRON_SECRET>`, which Vercel Cron sends

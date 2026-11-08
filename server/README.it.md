@@ -49,7 +49,7 @@ curl http://localhost:3001/api/health
 ## Motore AI
 
 LogLens analizza i log tramite una sola interfaccia, `AIProvider`, con cinque
-implementazioni intercambiabili, scelte dalla variabile `AI_PROVIDER`:
+implementazioni intercambiabili, scelte dalla variabile `AI_PROVIDER` (in produzione va indicata esplicitamente e `mock` è rifiutato salvo `ALLOW_MOCK_PROVIDER=true`; il server non parte nemmeno con il `VISITOR_SALT` predefinito o debole):
 
 | `AI_PROVIDER` | Motore                                        | Preparazione                              |
 | ------------- | --------------------------------------------- | ----------------------------------------- |
@@ -90,7 +90,7 @@ src/
 ├── services/
 │   ├── analysisService.ts            # parser -> motore AI -> report validato
 │   ├── addCorrelation.ts             # aggiunge quadro generale, findings e cronologia a un report del modello
-│   ├── attemptLimit.ts               # conta i tentativi di un visitatore e dell'intera demo
+│   ├── attemptLimit.ts               # limiti orari: una transazione con lock controlla e registra il tentativo
 │   ├── retention.ts                  # cancella le analisi oltre i 90 giorni di conservazione
 │   └── saveAnalysis.ts               # analizza un log e salva il report
 ├── repositories/
@@ -109,7 +109,7 @@ src/
     ├── apiRateLimit.ts               # 120 richieste al minuto per indirizzo su tutte le rotte /api
     ├── clientAddress.ts              # indirizzo di chi chiama, fidato dietro un proxy solo con TRUST_PROXY
     ├── visitor.ts                    # intestazione con l'id del visitatore e controllo del proprietario
-    ├── errorHandler.ts               # gestione centralizzata degli errori
+    ├── errorHandler.ts               # gestione centralizzata degli errori (503 se il database non risponde; il log non contiene mai i dati di una query fallita)
     └── notFound.ts                   # risposta JSON 404
 
 prisma/
@@ -135,8 +135,8 @@ I test (`*.test.ts`) stanno accanto al file che provano.
 | `GET`    | `/api/shared/:token`         | Report in sola lettura dietro un link segreto, senza il log grezzo    |
 | `GET`    | `/api/cron/retention`        | Cancella le analisi oltre i 90 giorni; chiamata ogni giorno da Vercel |
 
-Ogni rotta `/api/analyses` richiede l'intestazione `X-Visitor-Id`, altrimenti risponde `400`.
-La rotta `/api/shared/:token` non richiede intestazioni: il token è il permesso.
+Ogni rotta `/api/analyses` richiede l'intestazione `X-Visitor-Id`, altrimenti risponde `400`. L'id è un valore casuale che il browser conserva (un UUID); un id troppo regolare per essere casuale viene rifiutato. Non è un login: si comporta come un cookie di sessione, quindi chi lo possiede può leggere e cancellare quella cronologia.
+La rotta `/api/shared/:token` non richiede intestazioni: il token è il permesso. Il report che restituisce ha ogni segreto e indirizzo e-mail mascherato a ogni livello (incidenti, prove, Markdown), porta incidenti, motore, copertura e validazione del report ma mai il log grezzo, il proprietario o l'hash dell'indirizzo. Viene inviato con `Cache-Control: no-store`, `X-Robots-Tag: noindex` e `Referrer-Policy: no-referrer`.
 Tutte le rotte `/api` rispondono `429` a un indirizzo che supera le richieste al minuto consentite.
 
 `GET /api/cron/retention` richiede `Authorization: Bearer <CRON_SECRET>`, che Vercel Cron invia

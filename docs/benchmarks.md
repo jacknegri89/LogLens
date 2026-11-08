@@ -63,6 +63,15 @@ Known limit: a line with no time and no marker of its own (a bare "Server listen
 where most lines have a time is read as the continuation of the line before it, since that is what a
 stack trace or a multi-line message looks like.
 
+## After the security audit (2026-11-08)
+
+The deterministic benchmarks were run before and after the audit changes and give the same
+result: parsing, event coverage, incident precision and recall, root-cause accuracy and evidence
+validity all 1.0, false positives 0 on the 15 scenarios (the earlier analysis: recall 0.893,
+precision 0.7, root-cause accuracy 0). The audit adds regression tests, not benchmark scenarios:
+the certainty cap, the shared-report masking, the size of the model context, the hourly-limit
+transaction and 15 hostile inputs.
+
 ## Real public logs (Loghub, 2000 lines from each of 16 systems)
 
 Checked by hand on 2026-11-08 (the files are not stored in the repository; they come from
