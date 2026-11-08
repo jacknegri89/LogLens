@@ -67,6 +67,10 @@ const RECORD_START_PATTERNS: RegExp[] = [
   /^(?:Normal|Warning)\s{2,}\S/,
   // IIS and other W3C extended logs announce themselves with directives.
   /^#(?:Software|Version|Date|Fields):/,
+  // Blue Gene/L and Thunderbird: "- 1117838570 2005.06.03 node ..." (a dash or an alert name first)
+  /^(?:-|[A-Z][A-Z_]{2,15}) \d{10} \d{4}\.\d{2}\.\d{2} /,
+  // HDFS: 081109 203615 148 INFO ...
+  /^\d{6} \d{6} \d+ [A-Z]{4,5}\b/,
   // Docker Compose prefixes every line with the service: "web_1  | message" (not a stack frame).
   /^[\w.-]{1,60}\s+\| (?!\s+at\s|\s{2,}|Caused by)/,
 ];

@@ -49,7 +49,7 @@ const STATE_WORDING =
  * not start. "crash recovery" is routine in a database log and is not one.
  */
 const RESOURCE_FAILURE =
-  /out of memory|\boom\b|\bcrash(?:ed|es|ing)?\b(?! recovery)|segfault|core dumped|deadlock|corrupt(?:ed|ion)?\b|cannot (?:allocate|open|connect|bind|start)|could not (?:connect|open|bind|start|allocate)|unable to (?:connect|open|bind|start|allocate)|\bpanicked\b|\bORA-\d{4,5}\b|\bviolated\b|\b(?:is|are) full\b|no space left|rolled back|\bsuccess=no\b|\bback-off (?:pulling|restarting)\b|crashloop|\berrimagepull\b|\bimagepullbackoff\b|\bevicted\b|\bfailed(?:scheduling|mount|create)\b|\bnot allowed\b|\bnot permitted\b|\bunhealthy\b|\bunreachable\b|not responding|blocked for more than|soft lockup|hung task|\bBUG:|\berrors\b/i;
+  /out of memory|\boom\b|\bcrash(?:ed|es|ing)?\b(?! recovery)|segfault|core dumped|deadlock|corrupt(?:ed|ion)?\b|cannot (?:allocate|open|connect|bind|start)|could not (?:connect|open|bind|start|allocate)|unable to (?:connect|open|bind|start|allocate)|cannot assign|connection reset|\baborted\b|\bpanicked\b|\bORA-\d{4,5}\b|\bviolated\b|\b(?:is|are) full\b|no space left|rolled back|\bsuccess=no\b|\bback-off (?:pulling|restarting)\b|crashloop|\berrimagepull\b|\bimagepullbackoff\b|\bevicted\b|\bfailed(?:scheduling|mount|create)\b|\bnot allowed\b|\bnot permitted\b|\bunhealthy\b|\bunreachable\b|not responding|blocked for more than|soft lockup|hung task|\bBUG:|\berrors\b/i;
 
 function textOf(event: NormalizedLogEvent): string {
   return `${event.message}\n${event.raw.slice(0, TEXT_WINDOW)}`;
@@ -73,8 +73,12 @@ function anomalyFromFields(event: NormalizedLogEvent): Anomaly | null {
  * Phrases that say there was no failure: "errors=0", "0 failures", "no errors", "error budget".
  * They are taken out before the text is read for failure wording, so a metrics line is not a failure.
  */
+// The "0" must stand alone: in "80@0 failed:" the 0 is part of an address and the line is a failure.
 const NEGATED_FAILURE =
-  /\b(?:errors?|fail(?:ed|ures?)?|exceptions?|max[_ -]?failures?|timeouts?)\s*[=:]\s*0\b|\b0 (?:errors?|failures?|failed|exceptions?)\b|\b(?:no|without|zero) (?:errors?|failures?|exceptions?)\b|\berror[ _-](?:budget|rate|free|count|level|handling|page)\b/gi;
+  /\b(?:errors?|fail(?:ed|ures?)?|exceptions?|max[_ -]?failures?|timeouts?)\s*[=:]\s*0\b|(?<![\w.@:/-])0 (?:errors?|failures?|failed|exceptions?)\b|\b(?:no|without|zero) (?:errors?|failures?|exceptions?)\b|\berror[ _-](?:budget|rate|free|count|level|handling|page)\b|\berrors?(?:\(s\))?\b[^\n]{0,30}\bcorrected\b|\balignment exceptions?\b/gi;
+// "No configuration change required" says that nothing changed.
+const NEGATED_CHANGE =
+  /\b(?:no|not|without|nothing)\s+(?:\w+\s+)?(?:change[ds]?|updated?|reload(?:ed)?|restart(?:ed)?|rollback|deploy\w*)\b/gi;
 
 function anomalyFromWording(originalText: string): Anomaly | null {
   if (ATTACK_SIGNATURE.test(originalText)) {
@@ -123,7 +127,7 @@ function anomalyFromEvent(event: NormalizedLogEvent): Anomaly | null {
 
 /** Changes and state transitions are INFO lines that often explain an error that comes later. */
 export function significantKindOf(event: NormalizedLogEvent): SignificantKind | null {
-  const text = event.message;
+  const text = event.message.replace(NEGATED_CHANGE, ' ');
   const saysChange = CHANGE_WORDING.test(text);
   const changesAValue = VALUE_CHANGE.test(text) && CONFIGURABLE_SUBJECT.test(text);
   if (saysChange || changesAValue) {

@@ -69,6 +69,10 @@ const LOGCAT_PATTERN = /(?<![\d-])(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d{3
 const AUDIT_PATTERN = /audit\((\d{10}(?:\.\d{1,9})?):\d+\)/;
 // A line that starts with a Unix time: 1730714403 ERROR ...
 const LEADING_EPOCH_PATTERN = /^\s{0,3}(\d{10}(?:\.\d{1,9})?|\d{13})(?=\s)/;
+// Blue Gene/L: 2005-06-03-15.42.50.675872 (date, then time with dots, after a dash)
+const DASHED_PATTERN = /(\d{4})-(\d{2})-(\d{2})-(\d{2})\.(\d{2})\.(\d{2})(?:\.(\d{1,9}))?/;
+// HDFS: 081110 020724 (yymmdd HHMMSS) at the very start of the line
+const COMPACT_PATTERN = /^\s{0,3}(\d{2})(\d{2})(\d{2}) (\d{2})(\d{2})(\d{2})(?=\s)/;
 // A bare clock time: 14:02:00.112
 const CLOCK_PATTERN = /\b(\d{2}):(\d{2}):(\d{2})(?:[.,](\d{1,9}))?\b/;
 
@@ -182,6 +186,40 @@ function parseSlash(match: RegExpExecArray, options: TimestampOptions): ParsedTi
   return build(text, toEpoch(parts, options.defaultOffsetMinutes), 'assumed');
 }
 
+function parseDashed(match: RegExpExecArray, options: TimestampOptions): ParsedTimestamp | null {
+  const [text, year, month, day, hour, minute, second, fraction] = match;
+  const parts: DateParts = {
+    year: Number(year),
+    month: Number(month),
+    day: Number(day),
+    hour: Number(hour),
+    minute: Number(minute),
+    second: Number(second),
+    millisecond: fractionToMilliseconds(fraction),
+  };
+  return build(text, toEpoch(parts, options.defaultOffsetMinutes), 'assumed');
+}
+
+function parseCompact(match: RegExpExecArray, options: TimestampOptions): ParsedTimestamp | null {
+  const [text, shortYear, month, day, hour, minute, second] = match;
+  if (Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > 31) {
+    return null;
+  }
+  if (!isValidClock(Number(hour), Number(minute), Number(second))) {
+    return null;
+  }
+  const parts: DateParts = {
+    year: 2000 + Number(shortYear),
+    month: Number(month),
+    day: Number(day),
+    hour: Number(hour),
+    minute: Number(minute),
+    second: Number(second),
+    millisecond: 0,
+  };
+  return build(text.trim(), toEpoch(parts, options.defaultOffsetMinutes), 'assumed');
+}
+
 function parseCommonLog(match: RegExpExecArray): ParsedTimestamp | null {
   const [text, day, monthName, year, hour, minute, second, zone] = match;
   const month = MONTHS[monthName.toLowerCase()];
@@ -285,6 +323,8 @@ interface TimestampShape {
 /** From the most to the least specific: a full date beats a clock time that sits inside it. */
 const SHAPES: TimestampShape[] = [
   { pattern: ISO_PATTERN, read: parseIso },
+  { pattern: DASHED_PATTERN, read: parseDashed },
+  { pattern: COMPACT_PATTERN, read: parseCompact },
   { pattern: COMMON_LOG_PATTERN, read: (match) => parseCommonLog(match) },
   { pattern: SLASH_PATTERN, read: parseSlash },
   { pattern: AMERICAN_PATTERN, read: parseAmerican },

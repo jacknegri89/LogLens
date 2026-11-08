@@ -10,7 +10,8 @@ import type { FormatParser, FormatResult } from './formatTypes';
  * reports `partial` when only some of the parts are there.
  */
 
-const PREFIX_WINDOW = 90;
+// Wide enough for formats that put the level after a long header (Blue Gene/L: node, time, node, "RAS KERNEL INFO").
+const PREFIX_WINDOW = 160;
 const LEVEL_NAMES =
   'TRACE|DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|ERR|FATAL|CRITICAL|CRIT|ALERT|EMERG|PANIC|SEVERE';
 // [ERROR], (WARN), "ERROR:" at the very start of what follows the time.
