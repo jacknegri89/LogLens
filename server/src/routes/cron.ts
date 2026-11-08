@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 
 import { env } from '../config/env';
 import { AppError } from '../middleware/errorHandler';
+import { deleteExpiredAttempts } from '../repositories/analysisRepository';
 import { purgeExpiredAnalyses } from '../services/retention';
 
 /**
@@ -23,11 +24,14 @@ function isAuthorized(authorizationHeader: string | undefined): boolean {
   return expected.length === received.length && timingSafeEqual(expected, received);
 }
 
-// GET /api/cron/retention — deletes the analyses past the retention period, for everyone.
+// GET /api/cron/retention — deletes the analyses past the retention period, for everyone,
+// and the expired attempts of the hourly limit.
 cronRouter.get('/retention', async (req: Request, res: Response) => {
   if (!isAuthorized(req.get('authorization'))) {
     throw new AppError(401, 'Not allowed.');
   }
   const deleted = await purgeExpiredAnalyses();
+  // The hashed addresses kept for the hourly limit are removed as soon as they stop counting.
+  await deleteExpiredAttempts();
   res.json({ deleted });
 });
