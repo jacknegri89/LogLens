@@ -69,25 +69,67 @@ describe('sanitizeClaims', () => {
 });
 
 describe('capCertainty', () => {
-  it('does not let a model confirm what the engine did not confirm', () => {
-    expect(capCertainty('confirmed', 'probable', 2)).toEqual({
+  const base = {
+    claimed: 'probable',
+    engine: 'insufficient',
+    validEvidenceCount: 2,
+    support: 'none',
+    contradictions: 0,
+  } as const;
+
+  it('does not promote a cause because the model cited events that exist', () => {
+    // The old rule turned "insufficient" into "probable" as soon as two real events were cited.
+    expect(capCertainty({ ...base })).toEqual({ status: 'insufficient', downgraded: true });
+    expect(capCertainty({ ...base, claimed: 'confirmed' }).status).toBe('insufficient');
+  });
+
+  it('does not promote on events that belong to the incident but are not tied to its failures', () => {
+    expect(capCertainty({ ...base, support: 'related' }).status).toBe('unverified');
+  });
+
+  it('allows "unverified" for a possible link and "probable" for a probable or confirmed link', () => {
+    expect(capCertainty({ ...base, support: 'possible' }).status).toBe('unverified');
+    expect(capCertainty({ ...base, support: 'probable' })).toEqual({
       status: 'probable',
-      downgraded: true,
+      downgraded: false,
     });
-    expect(capCertainty('confirmed', 'insufficient', 2).status).toBe('probable');
+    expect(capCertainty({ ...base, support: 'confirmed' }).status).toBe('probable');
+  });
+
+  it('keeps a promotion at "unverified" when something speaks against the cause', () => {
+    expect(capCertainty({ ...base, support: 'probable', contradictions: 1 }).status).toBe(
+      'unverified',
+    );
+  });
+
+  it('never confirms what the engine did not confirm, however strong the link', () => {
+    const result = capCertainty({
+      ...base,
+      claimed: 'confirmed',
+      engine: 'probable',
+      support: 'confirmed',
+    });
+    expect(result).toEqual({ status: 'probable', downgraded: true });
   });
 
   it('lets a confirmed engine result stand, and lets the model be more cautious', () => {
-    expect(capCertainty('confirmed', 'confirmed', 1).downgraded).toBe(false);
-    expect(capCertainty('unverified', 'confirmed', 1)).toEqual({
+    const confirmed = { ...base, engine: 'confirmed', support: 'none' } as const;
+    expect(capCertainty({ ...confirmed, claimed: 'confirmed' }).downgraded).toBe(false);
+    expect(capCertainty({ ...confirmed, claimed: 'unverified' })).toEqual({
       status: 'unverified',
       downgraded: false,
     });
   });
 
-  it('needs evidence for any claim above insufficient', () => {
-    expect(capCertainty('probable', 'insufficient', 0).status).toBe('insufficient');
-    expect(capCertainty('probable', 'confirmed', 0).status).toBe('confirmed');
+  it('lets the model lower the engine conclusion even with strong support and contradictions', () => {
+    const strong = { ...base, engine: 'probable', support: 'probable', contradictions: 2 } as const;
+    expect(capCertainty({ ...strong, claimed: 'insufficient' }).status).toBe('insufficient');
+  });
+
+  it('needs at least one real event for any claim above insufficient', () => {
+    const noEvidence = { ...base, validEvidenceCount: 0, support: 'probable' } as const;
+    expect(capCertainty(noEvidence).status).toBe('insufficient');
+    expect(capCertainty({ ...noEvidence, engine: 'confirmed' }).status).toBe('confirmed');
   });
 });
 
