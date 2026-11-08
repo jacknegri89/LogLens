@@ -176,6 +176,7 @@ export type ValidationIssueCode =
   | 'quote-mismatch'
   | 'unknown-value'
   | 'certainty-downgraded'
+  | 'unrelated-evidence'
   | 'dangerous-command'
   | 'missing-evidence';
 
