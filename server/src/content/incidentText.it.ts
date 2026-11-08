@@ -69,6 +69,9 @@ export const INCIDENT_TEXT_IT: IncidentText = {
     `Lo stesso tipo di guasto compare già alla riga ${line}, prima di questo evento.`,
   dangerousCaution:
     'Attenzione: questo comando è distruttivo o difficile da annullare. Controlla il bersaglio e fai prima un backup.',
+  unverifiedCausePrefix: 'Ipotesi non verificata (il log non la dimostra):',
+  removedUnsupportedLine: '(riga rimossa: citava un valore che non è nel log)',
+  neutralTitle: 'Analisi del log',
   actions: {
     change: {
       immediate: [

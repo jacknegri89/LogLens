@@ -9,6 +9,9 @@ const INJECTION_PHRASE =
   /ignore (?:all |the )?(?:previous|above|prior)|disregard (?:all |the )?(?:previous|above)|you are now|new instructions|system prompt|classify (?:this )?as/i;
 const MARKDOWN_IMAGE = /!\[[^\]]*\]\([^)]*\)/g;
 const HTML_TAG = /<\/?[a-z][^>]*>/gi;
+// [text](javascript:alert(1)), [text](data:text/html,...): a link that runs code or carries data.
+const UNSAFE_SCHEME_LINK = /\[([^\]]*)\]\(\s*(?:javascript|data|vbscript|file):[^)]*\)/gi;
+const UNSAFE_SCHEME_BARE = /\b(?:javascript|vbscript):/gi;
 const URL_PATTERN = /https?:\/\/[^\s)"'<>`]+/gi;
 const PIPE_TO_SHELL = /\|\s*(?:sudo\s+)?(?:sh|bash|zsh|python\d?|node|perl)\b/i;
 
@@ -42,6 +45,8 @@ function keepRealLines(keyLines: string[], excerpt: string): string[] {
 function cleanText(text: string, excerpt: string): string {
   return text
     .replace(MARKDOWN_IMAGE, '')
+    .replace(UNSAFE_SCHEME_LINK, '$1')
+    .replace(UNSAFE_SCHEME_BARE, '')
     .replace(HTML_TAG, '')
     .replace(URL_PATTERN, (url) => {
       if (excerpt.includes(url)) {
