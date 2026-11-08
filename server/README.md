@@ -1,150 +1,151 @@
 # server
 
-The LogLens backend: **Node.js + Express + TypeScript**, with **Prisma + PostgreSQL**
-(Neon on Vercel, or any PostgreSQL) for data access.
+Il backend di LogLens: **Node.js + Express + TypeScript**, con **Prisma 7 + PostgreSQL**
+(Neon su Vercel, oppure un qualsiasi PostgreSQL) per l'accesso ai dati.
 
-## Run
+## Avvio
 
 ```bash
-npm install
-cp .env.example .env        # fill in your DATABASE_URL and DIRECT_URL
-npm run prisma:migrate      # push schema; review changes and back up existing data first
-npm run db:seed             # optional: example data, only if the table is empty
-npm run dev                 # http://localhost:3001 with auto-reload
+npm install                 # genera anche il client Prisma
+cp .env.example .env        # inserisci DATABASE_URL e DIRECT_URL
+npm run prisma:migrate      # crea le tabelle: controlla le modifiche e fai un backup se ci sono dati
+npm run db:seed             # facoltativo: dati di esempio, solo se la tabella è vuota
+npm run dev                 # http://localhost:3001 con ricarica automatica
 ```
 
-Check it's alive:
+Controlla che risponda:
 
 ```bash
 curl http://localhost:3001/api/health
 # { "status": "ok", "service": "loglens-server", "timestamp": "..." }
 ```
 
-## Scripts
+## Script
 
-| Script                    | What it does                                                                  |
-| ------------------------- | ----------------------------------------------------------------------------- |
-| `npm run dev`             | Start with auto-reload (tsx)                                                  |
-| `npm run build`           | Compile to `dist/` (tsup)                                                     |
-| `npm start`               | Run the compiled server from `dist/`                                          |
-| `npm run typecheck`       | Type-check the project without emitting                                       |
-| `npm run prisma:migrate`  | Push the Prisma schema to the database; review changes and back up data first |
-| `npm run prisma:generate` | Regenerate the Prisma client                                                  |
-| `npm run prisma:studio`   | Browse the data in the browser (like phpMyAdmin)                              |
-| `npm run db:seed`         | Add example data, only when the table is empty                                |
-| `npm test`                | Run the unit tests once                                                       |
-| `npm run test:watch`      | Run tests in watch mode                                                       |
+| Script                    | Cosa fa                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| `npm run dev`             | Avvia con ricarica automatica (tsx)                                          |
+| `npm run build`           | Compila in `dist/` (tsup)                                                    |
+| `npm start`               | Avvia il server compilato da `dist/`                                         |
+| `npm run typecheck`       | Controlla i tipi senza produrre file                                         |
+| `npm run prisma:migrate`  | Applica lo schema Prisma al database: controlla le modifiche e fai un backup |
+| `npm run prisma:generate` | Rigenera il client Prisma                                                    |
+| `npm run prisma:studio`   | Mostra i dati nel browser (come phpMyAdmin)                                  |
+| `npm run db:seed`         | Aggiunge dati di esempio, solo se la tabella è vuota                         |
+| `npm test`                | Esegue i test unitari una volta                                              |
+| `npm run test:watch`      | Esegue i test e li ripete a ogni modifica                                    |
 
 ## Database
 
-- **ORM:** Prisma 7, with the PostgreSQL driver adapter. Schema lives in `prisma/schema.prisma`; the CLI settings (direct URL, seed) live in `prisma.config.ts`. The client is generated into `src/generated/prisma` by `npm run prisma:generate` (also run after `npm install`).
-- **Provider:** PostgreSQL (Neon free tier works well; Supabase works too).
-- **Browse the data:** `npm run prisma:studio` opens a GUI in the browser.
-- **Two connection URLs are needed** (see `.env.example`):
-  - `DATABASE_URL` — transaction-mode pooler (port 6543, used by the app at runtime)
-  - `DIRECT_URL` — session-mode connection (port 5432, used by `prisma db push`)
+- **ORM:** Prisma 7, con l'adattatore per PostgreSQL. Lo schema è in `prisma/schema.prisma`; le impostazioni della CLI (indirizzo diretto, dati di esempio) sono in `prisma.config.ts`. Il client viene generato in `src/generated/prisma` da `npm run prisma:generate` (eseguito anche dopo `npm install`).
+- **Database:** PostgreSQL (il piano gratuito di Neon va bene; anche Supabase).
+- **Vedere i dati:** `npm run prisma:studio` apre un'interfaccia nel browser.
+- **Servono due indirizzi di connessione** (vedi `.env.example`):
+  - `DATABASE_URL`: connessione con pooler, usata dall'applicazione mentre gira
+  - `DIRECT_URL`: connessione diretta, usata dalla CLI di Prisma (`prisma db push`)
 
-## AI provider
+## Motore AI
 
-LogLens analyzes logs through a single `AIProvider` interface with five
-interchangeable implementations, selected by the `AI_PROVIDER` env var:
+LogLens analizza i log tramite una sola interfaccia, `AIProvider`, con cinque
+implementazioni intercambiabili, scelte dalla variabile `AI_PROVIDER`:
 
-| `AI_PROVIDER` | Engine                                           | Setup                                  |
-| ------------- | ------------------------------------------------ | -------------------------------------- |
-| `mock`        | Canned plausible report                          | None — works offline (default)         |
-| `rules`       | Built-in rules engine                            | None — no network, deterministic       |
-| `hybrid`      | Rules first, OpenAI only for logs no rule covers | Set `OPENAI_API_KEY`                   |
-| `openai`      | OpenAI Chat Completions                          | Set `OPENAI_API_KEY`                   |
-| `ollama`      | Local Ollama model                               | Install Ollama + `ollama pull <model>` |
+| `AI_PROVIDER` | Motore                                        | Preparazione                              |
+| ------------- | --------------------------------------------- | ----------------------------------------- |
+| `mock`        | Un report plausibile già pronto               | Nessuna: funziona offline (predefinito)   |
+| `rules`       | Motore a regole integrato                     | Nessuna: senza rete, deterministico       |
+| `hybrid`      | Prima le regole, OpenAI solo per i log ignoti | Imposta `OPENAI_API_KEY`                  |
+| `openai`      | OpenAI Chat Completions                       | Imposta `OPENAI_API_KEY`                  |
+| `ollama`      | Modello Ollama locale                         | Installa Ollama e `ollama pull <modello>` |
 
-The flow: `parseLog` trims the log to an excerpt, the provider returns JSON, and
-we validate it with Zod before using it. Prompt design lives in
-[`../docs/prompts.md`](../docs/prompts.md).
+Il flusso: `parseLog` riduce il log a un estratto, il motore restituisce un JSON, e lo
+validiamo con Zod prima di usarlo. Il prompt è descritto in [`../docs/prompts.md`](../docs/prompts.md).
 
-## Structure
+## Struttura
 
 ```text
 src/
-├── index.ts                          # entry point: starts the HTTP server
-├── vercel.ts                         # entry point on Vercel (no listen())
-├── app.ts                            # builds the Express app
+├── index.ts                          # punto di ingresso: avvia il server HTTP
+├── vercel.ts                         # punto di ingresso su Vercel (senza listen())
+├── app.ts                            # costruisce l'app Express
 ├── config/
-│   └── env.ts                        # validated env vars (Zod + dotenv)
+│   └── env.ts                        # variabili d'ambiente validate (Zod + dotenv)
 ├── db/
-│   └── prisma.ts                     # shared Prisma client (singleton, PostgreSQL adapter)
+│   └── prisma.ts                     # client Prisma condiviso (singleton, adattatore PostgreSQL)
 ├── parser/
-│   ├── logParser.ts                  # pure function: extract relevant lines
-│   └── lineFields.ts                 # time, level, address, hex code, event id of one line
+│   ├── logParser.ts                  # funzione pura: estrae le righe rilevanti
+│   └── lineFields.ts                 # ora, livello, indirizzo, codice esadecimale, id evento di una riga
 ├── ai/
-│   ├── AIProvider.ts                 # the provider interface
-│   ├── schema.ts                     # Zod schema for the AI report
-│   ├── prompt.ts                     # system + user prompts, random boundary per request
-│   ├── parseReport.ts                # parse + validate the AI's JSON
-│   ├── guardReport.ts                # check the report against the log it came from
-│   ├── correlation.ts                # links the events of a log: root cause, effects, shared addresses
-│   ├── index.ts                      # factory: pick provider from env
+│   ├── AIProvider.ts                 # l'interfaccia dei motori
+│   ├── schema.ts                     # schema Zod del report AI
+│   ├── prompt.ts                     # prompt di sistema e utente, delimitatore casuale a ogni richiesta
+│   ├── parseReport.ts                # legge e valida il JSON del motore
+│   ├── guardReport.ts                # controlla il report contro il log da cui nasce
+│   ├── correlation.ts                # collega gli eventi di un log: causa radice, effetti, indirizzi in comune
+│   ├── index.ts                      # fabbrica: sceglie il motore dalle variabili d'ambiente
 │   └── providers/                    # mock, rules, hybrid, openai, ollama
 ├── content/
-│   └── rules.ts                      # rules engine: known failures and their advice
+│   └── rules.ts                      # motore a regole: errori noti e consigli
 ├── services/
-│   ├── analysisService.ts            # parse -> AI -> validated report
-│   ├── addCorrelation.ts             # adds the overview, findings and timeline to a model report
-│   ├── attemptLimit.ts               # counts the attempts of a visitor and the whole demo
-│   ├── retention.ts                  # deletes analyses past the 90-day retention period
-│   └── saveAnalysis.ts               # analyses a log and stores the report
+│   ├── analysisService.ts            # parser -> motore AI -> report validato
+│   ├── addCorrelation.ts             # aggiunge quadro generale, findings e cronologia a un report del modello
+│   ├── attemptLimit.ts               # conta i tentativi di un visitatore e dell'intera demo
+│   ├── retention.ts                  # cancella le analisi oltre i 90 giorni di conservazione
+│   └── saveAnalysis.ts               # analizza un log e salva il report
 ├── repositories/
-│   └── analysisRepository.ts         # all Analysis database queries
+│   └── analysisRepository.ts         # tutte le query al database sulle analisi
 ├── schemas/
-│   ├── createAnalysis.ts             # body of POST /api/analyses
-│   └── feedback.ts                   # body of PUT /api/analyses/:id/feedback
+│   ├── createAnalysis.ts             # corpo di POST /api/analyses
+│   └── feedback.ts                   # corpo di PUT /api/analyses/:id/feedback
 ├── types/
-│   └── report.ts                     # report types
+│   └── report.ts                     # tipi del report
 ├── routes/
-│   ├── analyses.ts                   # /api/analyses (needs X-Visitor-Id)
-│   ├── cron.ts                       # GET /api/cron/retention (Vercel Cron, needs CRON_SECRET)
+│   ├── analyses.ts                   # /api/analyses (richiede X-Visitor-Id)
+│   ├── cron.ts                       # GET /api/cron/retention (Vercel Cron, richiede CRON_SECRET)
 │   ├── health.ts                     # GET /api/health
-│   └── shared.ts                     # GET /api/shared/:token (secret link, read-only)
+│   └── shared.ts                     # GET /api/shared/:token (link segreto, sola lettura)
 └── middleware/
-    ├── clientAddress.ts              # caller address, trusted behind a proxy only with TRUST_PROXY
-    ├── visitor.ts                    # visitor id header and owner check
-    ├── errorHandler.ts               # centralized error handling
-    └── notFound.ts                   # 404 JSON fallback
+    ├── apiRateLimit.ts               # 120 richieste al minuto per indirizzo su tutte le rotte /api
+    ├── clientAddress.ts              # indirizzo di chi chiama, fidato dietro un proxy solo con TRUST_PROXY
+    ├── visitor.ts                    # intestazione con l'id del visitatore e controllo del proprietario
+    ├── errorHandler.ts               # gestione centralizzata degli errori
+    └── notFound.ts                   # risposta JSON 404
 
 prisma/
-├── schema.prisma                     # the data model (Analysis)
-└── seed.ts                           # example data for local dev
+├── schema.prisma                     # il modello dei dati (Analysis, AnalysisAttempt)
+└── seed.ts                           # dati di esempio per lo sviluppo
 ```
 
-Tests (`*.test.ts`) sit next to the file they cover.
+I test (`*.test.ts`) stanno accanto al file che provano.
 
 ## API
 
-| Method   | Path                         | Description                                                      |
-| -------- | ---------------------------- | ---------------------------------------------------------------- |
-| `GET`    | `/api/health`                | Liveness check                                                   |
-| `POST`   | `/api/analyses`              | Analyze a log and save the result                                |
-| `GET`    | `/api/analyses`              | History of this visitor (lightweight summaries)                  |
-| `DELETE` | `/api/analyses`              | Delete this visitor's history                                    |
-| `DELETE` | `/api/analyses/:id`          | Delete one analysis of this visitor                              |
-| `GET`    | `/api/analyses/:id`          | A single analysis with its full report                           |
-| `PUT`    | `/api/analyses/:id/feedback` | Mark it useful (`true`), not useful (`false`), or clear (`null`) |
-| `POST`   | `/api/analyses/:id/share`    | Create the secret read-only link (or return the existing one)    |
-| `DELETE` | `/api/analyses/:id/share`    | Revoke the secret link                                           |
-| `GET`    | `/api/shared/:token`         | Read-only report behind a secret link, without the raw log       |
-| `GET`    | `/api/cron/retention`        | Deletes analyses older than 90 days; called daily by Vercel Cron |
+| Metodo   | Percorso                     | Descrizione                                                           |
+| -------- | ---------------------------- | --------------------------------------------------------------------- |
+| `GET`    | `/api/health`                | Controllo che il server sia vivo                                      |
+| `POST`   | `/api/analyses`              | Analizza un log e salva il risultato                                  |
+| `GET`    | `/api/analyses`              | Cronologia di questo visitatore (riassunti leggeri)                   |
+| `DELETE` | `/api/analyses`              | Cancella la cronologia di questo visitatore                           |
+| `DELETE` | `/api/analyses/:id`          | Cancella una analisi di questo visitatore                             |
+| `GET`    | `/api/analyses/:id`          | Una singola analisi con il report completo                            |
+| `PUT`    | `/api/analyses/:id/feedback` | Segna utile (`true`), non utile (`false`) o toglie il voto (`null`)   |
+| `POST`   | `/api/analyses/:id/share`    | Crea il link segreto in sola lettura (o restituisce quello esistente) |
+| `DELETE` | `/api/analyses/:id/share`    | Revoca il link segreto                                                |
+| `GET`    | `/api/shared/:token`         | Report in sola lettura dietro un link segreto, senza il log grezzo    |
+| `GET`    | `/api/cron/retention`        | Cancella le analisi oltre i 90 giorni; chiamata ogni giorno da Vercel |
 
-Every `/api/analyses` route needs the `X-Visitor-Id` header, or it answers `400`.
-The `/api/shared/:token` route needs no header: the token is the permission.
+Ogni rotta `/api/analyses` richiede l'intestazione `X-Visitor-Id`, altrimenti risponde `400`.
+La rotta `/api/shared/:token` non richiede intestazioni: il token è il permesso.
+Tutte le rotte `/api` rispondono `429` a un indirizzo che supera le richieste al minuto consentite.
 
-`GET /api/cron/retention` needs `Authorization: Bearer <CRON_SECRET>`, which Vercel Cron sends
-itself (the schedule is in `vercel.json`). Without `CRON_SECRET` it refuses every call. Analyses are also
-checked on each `GET` and `POST /api/analyses`, since the hosting only runs the schedule once a day.
+`GET /api/cron/retention` richiede `Authorization: Bearer <CRON_SECRET>`, che Vercel Cron invia
+da solo (la pianificazione è in `vercel.json`). Senza `CRON_SECRET` rifiuta ogni chiamata. Le analisi
+scadute vengono cancellate anche a ogni `GET` e `POST /api/analyses`, perché l'hosting esegue la
+pianificazione una sola volta al giorno.
 
-`POST /api/analyses` body:
+Corpo di `POST /api/analyses`:
 
 ```json
 { "rawLog": "ERROR ...", "source": "paste", "fileName": "app.log" }
 ```
 
-Only `rawLog` is required; `source` (`paste` | `upload`) and `fileName` are
-optional.
+Solo `rawLog` è obbligatorio; `source` (`paste` | `upload`) e `fileName` sono facoltativi.

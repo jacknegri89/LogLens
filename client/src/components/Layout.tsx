@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LAYOUT_TEXT } from '../content/layout';
 import { PRIVACY_TEXT } from '../content/privacy';
 import { useHeaderVisibility } from '../hooks/useHeaderVisibility';
+import { usePageMeta } from '../hooks/usePageMeta';
 import { useText } from '../i18n/useText';
 import { CommandPalette } from '../workbench/palette/CommandPalette';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -14,6 +15,7 @@ const NAV_TAB_CLASS =
 export function Layout() {
   const text = useText(LAYOUT_TEXT);
   const location = useLocation();
+  usePageMeta();
   return (
     <div className="desk flex min-h-dvh flex-col">
       <a
