@@ -17,6 +17,6 @@
 | Fatto   | Parere legale sulla pagina privacy ricevuto e accettato                                                                                                |
 | Fatto   | Prisma 7, `npm audit` a zero, intestazioni di sicurezza, limite di richieste per minuto                                                                |
 | Fatto   | Regole di sintassi del CLAUDE.md applicate a tutto il repository (controllo sull'albero sintattico)                                                    |
-| Fatto   | README in italiano, titoli e descrizioni per pagina, Open Graph, sitemap                                                                               |
+| Fatto   | README in inglese con copia italiana, schermate aggiornate, titoli e descrizioni per pagina, Open Graph, sitemap                                       |
 | Da fare | Attivare le schede Correzione e Chiedi: rivedere prima il generatore di alert cron (pianificazione oltre 59 minuti, cartella HOME) e la CSP per Ollama |
 | Da fare | Rimisurare funzioni sotto circa 20 righe e duplicazioni (voci 3 e 4 della checklist)                                                                   |

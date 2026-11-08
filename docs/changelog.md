@@ -7,7 +7,7 @@ Modifiche approvate, dalla più recente.
 - Ramo `handoff/revisione-2026-11-05` rivisto e unito: regole di sintassi del codice (nessun ternario, nessun `if` o ciclo senza graffe in tutto il repository, esempi di codice JavaScript nelle stringhe compresi), privacy dei report e dei link di condivisione, limiti e timeout sugli input, correzioni di prestazioni nel parser e nell'interfaccia.
 - Limite di richieste per minuto su tutte le API (`middleware/apiRateLimit.ts`, `API_RATE_LIMIT_PER_MINUTE`, 120 per indirizzo), prima della lettura del corpo della richiesta.
 - Le schede Correzione e Chiedi del Workbench mostrano un messaggio "non ancora disponibile" invece di un riquadro vuoto.
-- README e server/README in italiano, come richiede il CLAUDE.md; elenco dei file principali e dei controlli.
+- README rifatto in inglese (con indice, schermate nuove, diagramma, configurazione, sicurezza e limiti) e copia in italiano in `README.it.md`; lo stesso per `server/README.md`. `docs/architecture.md` allineato al codice.
 - Titolo e descrizione diversi per ogni pagina (`hooks/usePageMeta.ts`, `content/pageMeta.ts`), tag Open Graph in `index.html`, `/workbench` e `/privacy` nella sitemap. La pagina di dettaglio ha sempre un h1, anche mentre carica o in errore.
 - Test end-to-end corretto: aspettava il caricamento della pagina Workbench prima di scegliere il file, e falliva sulla CI più lenta (riprodotto con CPU rallentata 4 volte).
 
