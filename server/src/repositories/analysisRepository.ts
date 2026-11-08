@@ -223,35 +223,58 @@ export function toSharedReport(report: AnalysisReport): AnalysisReport {
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const ONE_DAY_MS = 24 * ONE_HOUR_MS;
 
-/** Saves one attempt before the AI runs. Returns its id, so a refused attempt can be removed. */
-export async function recordAttempt(clientHash: string): Promise<string> {
-  const attempt = await prisma.analysisAttempt.create({ data: { clientHash } });
-  return attempt.id;
+/** Which limit, if any, stopped an attempt. */
+export type AttemptDecision = 'allowed' | 'client-limit' | 'global-limit';
+
+export interface AttemptLimits {
+  /** Attempts one client may make per hour; 0 turns the limit off. */
+  perClientPerHour: number;
+  /** Attempts everybody together may make per hour; 0 turns the limit off. */
+  globalPerHour: number;
 }
 
-export async function removeAttempt(id: string): Promise<void> {
-  await prisma.analysisAttempt.delete({ where: { id } });
-}
+/** The key of the advisory lock that makes reservations take turns (any fixed number will do). */
+const ATTEMPT_LOCK_KEY = 727_001;
+const TRANSACTION_MAX_WAIT_MS = 5000;
+const TRANSACTION_TIMEOUT_MS = 10_000;
 
 /**
- * Removes attempts older than the limit window. They no longer count towards any limit, so
- * keeping their hashed addresses would only extend how long the data is stored.
+ * Decides whether a client may start an analysis and, if so, saves the attempt: all in ONE
+ * transaction that first takes a PostgreSQL advisory lock. Requests that arrive together queue up
+ * on the lock, so each one counts the attempts of the ones before it and no more: exactly the
+ * allowed number gets through, and a refused attempt is never written (so it can never be counted
+ * against anybody else). The lock is released when the transaction ends, and works through a
+ * transaction-mode pooler such as the one in front of Neon.
+ * Attempts older than the window are removed here too, so the hashed addresses do not pile up.
  */
-export async function deleteExpiredAttempts(): Promise<number> {
-  const result = await prisma.analysisAttempt.deleteMany({
-    where: { createdAt: { lt: new Date(Date.now() - ONE_HOUR_MS) } },
-  });
-  return result.count;
-}
-
-/** Attempts in the last hour by one client, or by everyone when no hash is given. */
-export function countAttemptsInLastHour(clientHash?: string): Promise<number> {
-  const since = new Date(Date.now() - ONE_HOUR_MS);
-  const where: { createdAt: { gte: Date }; clientHash?: string } = { createdAt: { gte: since } };
-  if (clientHash) {
-    where.clientHash = clientHash;
-  }
-  return prisma.analysisAttempt.count({
-    where,
-  });
+export function tryReserveAttempt(
+  clientHash: string,
+  limits: AttemptLimits,
+): Promise<AttemptDecision> {
+  return prisma.$transaction(
+    async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(${ATTEMPT_LOCK_KEY})`;
+      const since = new Date(Date.now() - ONE_HOUR_MS);
+      await transaction.analysisAttempt.deleteMany({ where: { createdAt: { lt: since } } });
+      if (limits.perClientPerHour > 0) {
+        const used = await transaction.analysisAttempt.count({
+          where: { clientHash, createdAt: { gte: since } },
+        });
+        if (used >= limits.perClientPerHour) {
+          return 'client-limit';
+        }
+      }
+      if (limits.globalPerHour > 0) {
+        const used = await transaction.analysisAttempt.count({
+          where: { createdAt: { gte: since } },
+        });
+        if (used >= limits.globalPerHour) {
+          return 'global-limit';
+        }
+      }
+      await transaction.analysisAttempt.create({ data: { clientHash } });
+      return 'allowed';
+    },
+    { maxWait: TRANSACTION_MAX_WAIT_MS, timeout: TRANSACTION_TIMEOUT_MS },
+  );
 }

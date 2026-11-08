@@ -11,6 +11,13 @@ describe('readVisitorId', () => {
     );
   });
 
+  it.each(['aaaaaaaaaaaaaaaaaaaa', '1234512345123451', '0000000000000000', 'abababababababab'])(
+    'rejects an id that is too regular to be random: %s',
+    (id) => {
+      expect(readVisitorId(id)).toBe('');
+    },
+  );
+
   it('rejects a missing, short or unsafe id', () => {
     expect(readVisitorId(undefined)).toBe('');
     expect(readVisitorId('short')).toBe('');
