@@ -174,8 +174,10 @@ function countFormats(events: NormalizedLogEvent[]): {
  * formats. A line it cannot interpret becomes an `unparsed` event: nothing is lost.
  */
 /** Terminal colour codes (ESC [ 31 m) and a byte order mark: noise that would hide a line's time and level. */
+// The escape character is the whole point of this pattern.
+// eslint-disable-next-line no-control-regex
 const ANSI_ESCAPE = /\u001b\[[\d;]{0,20}[A-Za-z]/g;
-const BYTE_ORDER_MARK = /^﻿/;
+const BYTE_ORDER_MARK = /^\uFEFF/;
 
 /** The text without colour codes and without a byte order mark. Line breaks are untouched, so line numbers hold. */
 export function withoutTerminalNoise(text: string): string {
