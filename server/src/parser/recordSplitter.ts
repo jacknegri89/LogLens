@@ -126,7 +126,12 @@ function isMostlyTimestamped(lines: string[]): boolean {
 }
 
 type OpenBlock =
-  'none' | 'python-traceback' | 'windows-xml' | 'windows-text' | 'stack' | 'json-object';
+  | 'none'
+  | 'python-traceback'
+  | 'windows-xml'
+  | 'windows-text'
+  | 'stack'
+  | 'json-object';
 
 interface SplitState {
   records: RawRecord[];

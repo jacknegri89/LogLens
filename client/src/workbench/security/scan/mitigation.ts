@@ -3,7 +3,12 @@ import { signatureById } from './signatures';
 import type { ScanResult, WafField, WafHint } from './types';
 
 export type MitigationId =
-  'iptables' | 'ufw' | 'cloudflareAddresses' | 'cloudflarePatterns' | 'nginx' | 'fail2ban';
+  | 'iptables'
+  | 'ufw'
+  | 'cloudflareAddresses'
+  | 'cloudflarePatterns'
+  | 'nginx'
+  | 'fail2ban';
 
 export interface MitigationSnippet {
   id: MitigationId;
