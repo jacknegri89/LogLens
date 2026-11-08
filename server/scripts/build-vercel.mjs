@@ -56,9 +56,23 @@ await build({
   },
 });
 
+// The model call can take 14-20 seconds and AI_TIMEOUT_MS is 40 seconds, so the function must be
+// allowed to run longer than that. With a prebuilt output the limit is read from this file, not
+// from vercel.json. 60 seconds is the highest value the free plan accepts.
+const MAX_FUNCTION_SECONDS = 60;
+
 writeFileSync(
   resolve(functionDir, '.vc-config.json'),
-  JSON.stringify({ runtime: 'nodejs22.x', handler: 'index.mjs', launcherType: 'Nodejs' }, null, 2),
+  JSON.stringify(
+    {
+      runtime: 'nodejs22.x',
+      handler: 'index.mjs',
+      launcherType: 'Nodejs',
+      maxDuration: MAX_FUNCTION_SECONDS,
+    },
+    null,
+    2,
+  ),
 );
 
 // 2. Frontend: static files.

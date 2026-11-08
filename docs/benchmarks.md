@@ -50,7 +50,7 @@ incidents. Not run yet: it needs a key that only you should enter.
 
 ## Log formats
 
-`benchmarks/fixtures/formatCorpus.ts` holds 44 small real-world shapes: Apache and nginx, syslog 3164 and
+`benchmarks/fixtures/formatCorpus.ts` holds 59 small real-world shapes: Apache and nginx, syslog 3164 and
 5424, journald (text and JSON), klog, Docker json-file and compose, CRI, Logback, Log4j, Python, logrus,
 zap, pino, Rails, Laravel, PostgreSQL, MySQL, MongoDB, Redis, Elasticsearch, Kafka, HAProxy, AWS ALB, IIS
 W3C, Windows events, Android logcat, Serilog, Heroku, GitHub Actions, pretty-printed JSON, ANSI-coloured
@@ -62,6 +62,16 @@ output, files with a byte order mark, Go and Rust panics, and healthy lines that
 Known limit: a line with no time and no marker of its own (a bare "Server listening on 3000") in a file
 where most lines have a time is read as the continuation of the line before it, since that is what a
 stack trace or a multi-line message looks like.
+
+## Real public logs (Loghub, 2000 lines from each of 16 systems)
+
+Checked by hand on 2026-11-08 (the files are not stored in the repository; they come from
+https://github.com/logpai/loghub). Blue Gene/L marks its alarms in the first column, so it gives a real
+measure: the engine found 143 of 143 alarms. The same file flags 278 lines that the log marks as normal,
+mostly INFO lines that talk about exceptions or timeouts (for example `MACHINE CHECK DCR read timeout`).
+The other systems have no labels: the engine flagged 0 lines in Spark (all INFO) and between 52 and 1422
+lines in the others, and the unflagged lines that contain a failure word were read one by one. The real
+misses found this way were fixed and five real lines were added to the corpus.
 
 ## Logs invented by a model (`npm run benchmark:generate -- --yes`)
 

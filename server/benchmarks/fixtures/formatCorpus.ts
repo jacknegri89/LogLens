@@ -584,6 +584,58 @@ export const FORMAT_CORPUS: CorpusSample[] = [
     healthy: ['Successfully assigned'],
     hasTime: false,
   },
+  // The five samples below are lines copied from the public Loghub collection (real systems).
+  {
+    name: 'Blue Gene/L RAS log: level after a long header, corrected errors are healthy',
+    log: [
+      '- 1117838570 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.42.50.675872 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected',
+      '- 1117842440 2005.06.03 R23-M0-NE-C:J05-U01 2005-06-03-16.47.20.730545 R23-M0-NE-C:J05-U01 RAS KERNEL INFO 63543 double-hummer alignment exceptions',
+      'APPREAD 1117869872 2005.06.04 R04-M1-N4-I:J18-U11 2005-06-04-00.24.32.432192 R04-M1-N4-I:J18-U11 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33569',
+    ].join('\n'),
+    failures: ['failed to read message prefix'],
+    healthy: ['parity error corrected', 'double-hummer alignment exceptions'],
+    hasTime: true,
+  },
+  {
+    name: 'HDFS compact date and time',
+    log: [
+      '081109 203615 148 INFO dfs.DataNode$PacketResponder: PacketResponder 1 for block blk_38865049064139660 terminating',
+      '081109 214043 2561 WARN dfs.DataNode$DataXceiver: 10.251.30.85:50010:Got exception while serving blk_-2918118818249673980 to /10.251.90.64:',
+    ].join('\n'),
+    failures: ['Got exception while serving'],
+    healthy: ['terminating'],
+    hasTime: true,
+  },
+  {
+    name: 'macOS syslog: a failed connect to an address ending in @0',
+    log: [
+      'Jul  1 09:00:55 calvisitor-10-105-160-95 kernel[0]: IOThunderboltSwitch<0>(0x0)::listenerCallback - Thunderbolt HPD packet for route = 0x0 port = 11 unplug = 0',
+      'Jul  1 11:49:29 calvisitor-10-105-160-95 QQ[10018]: tcp_connection_destination_perform_socket_connect 19110 connectx to 183.57.48.75:80@0 failed: [50] Network is down',
+    ].join('\n'),
+    failures: ['Network is down'],
+    healthy: ['Thunderbolt HPD packet'],
+    hasTime: true,
+  },
+  {
+    name: 'Linux syslog: warning with a reset connection',
+    log: [
+      'Jul 25 23:23:13 combo ftpd[26466]: getpeername (ftpd): Transport endpoint is not connected',
+      "Jul 25 23:23:13 combo xinetd[26482]: warning: can't get client address: Connection reset by peer",
+    ].join('\n'),
+    failures: ["can't get client address"],
+    healthy: [],
+    hasTime: true,
+  },
+  {
+    name: 'Thunderbird syslog: deferred mail and a message that says nothing changed',
+    log: [
+      '- 1131566474 2005.11.09 tbird-sm1 Nov 9 12:01:14 src@tbird-sm1 ib_sm.x[24904]: [ib_sm_sweep.c:1482]: No configuration change required',
+      '- 1131566491 2005.11.09 eadmin1 Nov 9 12:01:31 src@eadmin1 sendmail[4306]: jA9J1UvC004306: to=root, ctladdr=root (0/0), delay=00:00:01, xdelay=00:00:00, mailer=relay, pri=659060, relay=[127.0.0.1] [127.0.0.1], dsn=4.0.0, stat=Deferred: Connection refused by [127.0.0.1]',
+    ].join('\n'),
+    failures: ['stat=Deferred: Connection refused'],
+    healthy: ['No configuration change required'],
+    hasTime: true,
+  },
   {
     name: 'auditd denied syscall',
     log: [

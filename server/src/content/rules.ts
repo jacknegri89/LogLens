@@ -100,7 +100,7 @@ export const ATTACK_SIGNATURE =
   /sqlmap|\bnikto\b|\bnmap\b|dirbuster|gobuster|acunetix|union(?:\s|%20|\+)+select|(?:'|%27)(?:\s|%20|\+)*or(?:\s|%20|\+)+\d+(?:=|%3d)\d+|sleep\(\d+\)|<script|\.\.\/\.\.\/|%2e%2e(?:%2f|\/)|\$\{jndi:|onerror\s*=|;\s*cat\s+\/etc\/passwd/i;
 
 export const FAILURE_LINE =
-  /\berror\b|[a-z]Error\b|exception|\bfatal\b|\bpanic\b|\bfail(?:ed|ure|s)?\b|refused|killed|\btimeout\b|timed out|denied|traceback/i;
+  /\berror\b|[a-z]Error\b|[a-z]Fail(?:ed|ure)?\b|\berr=-\d+|exception|\bfatal\b|\bpanic\b|\bfail(?:ed|ure|s)?\b|refused|killed|\btimeout\b|timed out|denied|traceback/i;
 
 const FAILING_LINE = 'the failing line of the log';
 
