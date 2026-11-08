@@ -4,6 +4,7 @@ import { env } from '../../config/env';
 import { AppError } from '../../middleware/errorHandler';
 import type { AIProvider, AnalyzeInput } from '../AIProvider';
 import { guardReport } from '../guardReport';
+import { maskInputForModel } from '../maskInput';
 import { parseReport } from '../parseReport';
 import { buildSystemPrompt, buildUserPrompt } from '../prompt';
 import { readJsonResponse } from '../readJsonResponse';
@@ -21,7 +22,9 @@ const OLLAMA_ENVELOPE = z.object({ message: z.object({ content: z.string() }) })
 export class OllamaProvider implements AIProvider {
   readonly name = 'ollama';
 
-  async analyze(input: AnalyzeInput): Promise<AIReport> {
+  async analyze(rawInput: AnalyzeInput): Promise<AIReport> {
+    // Ollama may run on another machine (OLLAMA_BASE_URL), so the same masking applies.
+    const input = maskInputForModel(rawInput);
     const response = await postChat(input);
     let data: unknown;
     try {
