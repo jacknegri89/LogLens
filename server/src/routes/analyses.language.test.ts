@@ -28,10 +28,7 @@ vi.mock('../ai', () => ({
 // The database is out of scope here: every repository call answers as if the visitor were new.
 vi.mock('../repositories/analysisRepository', () => ({
   deleteAnalysesOlderThan: vi.fn().mockResolvedValue(0),
-  deleteExpiredAttempts: vi.fn().mockResolvedValue(0),
-  recordAttempt: vi.fn().mockResolvedValue('attempt-1'),
-  removeAttempt: vi.fn().mockResolvedValue(undefined),
-  countAttemptsInLastHour: vi.fn().mockResolvedValue(1),
+  tryReserveAttempt: vi.fn().mockResolvedValue('allowed'),
   createAnalysis: vi.fn().mockResolvedValue({ id: 'analysis-1' }),
   createShareToken: vi.fn(),
   deleteAnalysesByOwner: vi.fn(),
