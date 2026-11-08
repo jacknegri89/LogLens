@@ -72,7 +72,11 @@ describe('saved progress', () => {
     (saved) => {
       const storage = memoryStorage({ 'loglens.runbook.a1': saved });
       const loaded = loadDoneSteps(storage, 'a1', 4);
-      expect([...loaded]).toEqual(saved.includes('2]') ? [2] : []);
+      let expectedLoaded: number[] = [];
+      if (saved.includes('2]')) {
+        expectedLoaded = [2];
+      }
+      expect([...loaded]).toEqual(expectedLoaded);
     },
   );
 

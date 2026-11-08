@@ -14,7 +14,9 @@ describe('connectWithRetry', () => {
     let calls = 0;
     const flaky = async () => {
       calls++;
-      if (calls < 3) throw new Error('connect ECONNREFUSED 127.0.0.1:5432');
+      if (calls < 3) {
+        throw new Error('connect ECONNREFUSED 127.0.0.1:5432');
+      }
       return 'connected';
     };
     await expect(connectWithRetry(flaky, 6, noWait)).resolves.toBe('connected');
@@ -284,7 +286,9 @@ import { createLoginLimiter } from './loginLimiter';
 describe('createLoginLimiter', () => {
   it('locks the account on the fifth failure', () => {
     const limiter = createLoginLimiter({ maxFailures: 5, windowMs: 60_000, lockMs: 60_000 });
-    for (let attempt = 0; attempt < 4; attempt++) limiter.recordFailure('alice', attempt);
+    for (let attempt = 0; attempt < 4; attempt++) {
+      limiter.recordFailure('alice', attempt);
+    }
     expect(limiter.isLocked('alice', 10)).toBe(false);
     limiter.recordFailure('alice', 4);
     expect(limiter.isLocked('alice', 10)).toBe(true);

@@ -251,7 +251,9 @@ function walkBack(previous: Map<string, string>, start: string, goal: string): s
     return [];
   }
   const path = [goal];
-  while (path[0] !== start) path.unshift(previous.get(path[0])!);
+  while (path[0] !== start) {
+    path.unshift(previous.get(path[0])!);
+  }
   return path;
 }
 

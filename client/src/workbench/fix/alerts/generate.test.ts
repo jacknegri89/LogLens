@@ -57,9 +57,16 @@ function readSimpleYaml(text: string): { indent: number; key: string; value: str
     .filter((line) => line.trim() !== '' && !line.trim().startsWith('#'))
     .map((line) => {
       const match = line.match(/^( *)(?:- )?([A-Za-z_]+):(?: (.+))?$/);
-      if (!match) throw new Error('Not a simple YAML line: ' + line);
-      const value = match[3] === undefined ? null : match[3];
-      if (value !== null && value.startsWith('"')) unquote(value.slice(1, -1));
+      if (!match) {
+        throw new Error('Not a simple YAML line: ' + line);
+      }
+      let value: string | null = null;
+      if (match[3] !== undefined) {
+        value = match[3];
+      }
+      if (value !== null && value.startsWith('"')) {
+        unquote(value.slice(1, -1));
+      }
       return { indent: match[1].length, key: match[2], value };
     });
 }

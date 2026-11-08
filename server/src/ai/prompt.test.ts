@@ -37,7 +37,9 @@ describe('buildSystemPrompt', () => {
   it('carries the four phases and the rigid correlation rules of the owner', () => {
     const prompt = buildSystemPrompt('en');
 
-    for (const phase of ['FASE 1', 'FASE 2', 'FASE 3', 'FASE 4']) expect(prompt).toContain(phase);
+    for (const phase of ['FASE 1', 'FASE 2', 'FASE 3', 'FASE 4']) {
+      expect(prompt).toContain(phase);
+    }
     expect(prompt).toContain('Correlazione per ID');
     expect(prompt).toContain('UNICO incidente infrastrutturale');
     expect(prompt).toContain('Chain-of-Thought');

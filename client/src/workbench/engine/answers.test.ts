@@ -151,7 +151,9 @@ describe.each(LANGUAGES)('built-in answers in %s', (language) => {
   it('lists what it can answer when the question is not understood', () => {
     const text = answer(null);
     expect(text).toContain(ASK_TEXT[language].answers.fallback.lead);
-    for (const topic of ASK_TEXT[language].answers.fallback.topics) expect(text).toContain(topic);
+    for (const topic of ASK_TEXT[language].answers.fallback.topics) {
+      expect(text).toContain(topic);
+    }
   });
 
   it('never leaves a template placeholder in an answer', () => {

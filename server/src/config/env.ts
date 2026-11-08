@@ -29,6 +29,9 @@ const envSchema = z
     // an API bill for anyone who asks. 0 turns a limit off, for local use only.
     RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(5),
     GLOBAL_LIMIT_PER_HOUR: z.coerce.number().int().min(0).default(100),
+    // Requests per minute that one address may send to the whole API (0 turns the limit off).
+    // It is counted in each server instance's memory, so it is a first barrier against bursts.
+    API_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(0).default(120),
     VISITOR_SALT: z.string().default('loglens'),
     // Secret that Vercel Cron sends as "Authorization: Bearer <CRON_SECRET>". Without it, the
     // scheduled cleanup refuses every call, so nobody else can trigger it.

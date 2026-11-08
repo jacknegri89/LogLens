@@ -72,6 +72,8 @@ describe.each(LANGUAGES)('quick questions in %s', (language) => {
   });
 
   it('routes each one to the intent it is meant for', () => {
-    for (const item of items) expect(routeIntent(item.question), item.question).toBe(item.intent);
+    for (const item of items) {
+      expect(routeIntent(item.question), item.question).toBe(item.intent);
+    }
   });
 });

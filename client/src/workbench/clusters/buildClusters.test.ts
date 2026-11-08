@@ -78,7 +78,11 @@ describe('performance budget', () => {
     const text = Array.from({ length: 50_000 }, (_, i) => {
       const time = new Date(Date.UTC(2024, 0, 1) + i * 1000).toISOString();
       const kind = i % 7;
-      return `${time} ${kind === 0 ? 'ERROR' : 'INFO'} [${services[i % 4]}] req-${i.toString(16).padStart(8, '0')} user=${i} handled /orders/${i}/items in ${i % 900}ms from 10.0.${i % 255}.${i % 200}`;
+      let level = 'INFO';
+      if (kind === 0) {
+        level = 'ERROR';
+      }
+      return `${time} ${level} [${services[i % 4]}] req-${i.toString(16).padStart(8, '0')} user=${i} handled /orders/${i}/items in ${i % 900}ms from 10.0.${i % 255}.${i % 200}`;
     }).join('\n');
     const lines = parseLines(text);
     const started = performance.now();

@@ -165,7 +165,9 @@ function decodeUntil(reader: ReaderState, generatedLine: number): void {
     throw reader.failure;
   }
   try {
-    while (reader.lines.length <= generatedLine && !reader.finished) decodeNextLine(reader);
+    while (reader.lines.length <= generatedLine && !reader.finished) {
+      decodeNextLine(reader);
+    }
   } catch (error) {
     if (error instanceof MappingsError) {
       reader.failure = error;

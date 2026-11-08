@@ -95,7 +95,9 @@ describe('createStreamDriver', () => {
     const recorder = createRecorder();
     const driver = createStreamDriver(clock.timers, () => 200, 3);
     driver.start(['1', '2', '3', '4', '5'], recorder.sink);
-    while (clock.fireNext() !== null);
+    while (clock.fireNext() !== null) {
+      // The condition does the work: it runs each scheduled timer.
+    }
     expect(recorder.lines).toEqual(['1', '2', '3']);
     expect(recorder.ends).toEqual(['limit']);
   });
@@ -105,7 +107,9 @@ describe('createStreamDriver', () => {
     const recorder = createRecorder();
     const driver = createStreamDriver(clock.timers, () => 200, 2);
     driver.start(['1', '2'], recorder.sink);
-    while (clock.fireNext() !== null);
+    while (clock.fireNext() !== null) {
+      // The condition does the work: it runs each scheduled timer.
+    }
     expect(recorder.ends).toEqual(['finished']);
   });
 

@@ -28,7 +28,9 @@ function streamOf(...chunks: (string | Uint8Array)[]): ReadableStream<Uint8Array
 
 async function collect(generator: AsyncGenerator<string>): Promise<string[]> {
   const pieces: string[] = [];
-  for await (const piece of generator) pieces.push(piece);
+  for await (const piece of generator) {
+    pieces.push(piece);
+  }
   return pieces;
 }
 
@@ -158,7 +160,9 @@ describe('readTokens', () => {
     const pieces: string[] = [];
     await expect(
       (async () => {
-        for await (const piece of readTokens(body)) pieces.push(piece);
+        for await (const piece of readTokens(body)) {
+          pieces.push(piece);
+        }
       })(),
     ).rejects.toThrow('model requires more memory');
     expect(pieces).toEqual(['partial']);

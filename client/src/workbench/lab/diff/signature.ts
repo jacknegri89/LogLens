@@ -38,7 +38,9 @@ function placeholderForWord(word: string): string {
  */
 export function normalizeMessage(message: string): string {
   let shaped = message;
-  for (const [shape, placeholder] of SHAPES) shaped = shaped.replace(shape, placeholder);
+  for (const [shape, placeholder] of SHAPES) {
+    shaped = shaped.replace(shape, placeholder);
+  }
   const normalized = shaped
     .replace(WORD_WITH_DIGIT, placeholderForWord)
     .replace(/\s+/g, ' ')

@@ -52,10 +52,15 @@ export function requireVisitorOwner(_req: Request, res: Response, next: NextFunc
   next();
 }
 
+/** The salted hash of the caller's network address: how the limits tell callers apart. */
+export function readClientHash(req: Request): string {
+  return hashAddress(readAddress(req));
+}
+
 export function identifyVisitor(req: Request, res: Response, next: NextFunction) {
   const visitor: Visitor = {
     owner: readVisitorId(req.header('x-visitor-id')),
-    clientHash: hashAddress(readAddress(req)),
+    clientHash: readClientHash(req),
   };
   res.locals.visitor = visitor;
   next();

@@ -21,7 +21,9 @@ describe('addMessage', () => {
 
   it('drops the oldest messages beyond the limit', () => {
     let list: ChatMessage[] = [];
-    for (let id = 1; id <= MAX_MESSAGES + 5; id++) list = addMessage(list, message(id));
+    for (let id = 1; id <= MAX_MESSAGES + 5; id++) {
+      list = addMessage(list, message(id));
+    }
     expect(list).toHaveLength(MAX_MESSAGES);
     expect(list[0].id).toBe(6);
   });

@@ -22,13 +22,15 @@ export function Sparkline({ counts, byTime }: { counts: readonly number[]; byTim
         if (count === 0) {
           return null;
         }
-        return <rect
+        return (
+          <rect
             key={position}
             x={position * slot + 0.5}
             width={Math.max(1, slot - 1)}
             y={HEIGHT - Math.max(2, (count / peak) * (HEIGHT - 2))}
             height={Math.max(2, (count / peak) * (HEIGHT - 2))}
-          />;
+          />
+        );
       })}
     </svg>
   );

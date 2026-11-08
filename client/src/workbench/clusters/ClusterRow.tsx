@@ -52,18 +52,16 @@ function SampleLines({
           if (index === selectedIndex) {
             current = 'true';
           }
-          return <li key={index}>
-            <button
-              type="button"
-              aria-current={current}
-              onClick={() => select(index)}
-            >
-              <span className="cluster-sample-number">{text.sampleLine(index + 1)}</span>
-              <span className="cluster-sample-text">
-                {lines[findLinePosition(lines, index)]?.raw}
-              </span>
-            </button>
-          </li>;
+          return (
+            <li key={index}>
+              <button type="button" aria-current={current} onClick={() => select(index)}>
+                <span className="cluster-sample-number">{text.sampleLine(index + 1)}</span>
+                <span className="cluster-sample-text">
+                  {lines[findLinePosition(lines, index)]?.raw}
+                </span>
+              </button>
+            </li>
+          );
         })}
       </ul>
     </>

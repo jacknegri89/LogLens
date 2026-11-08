@@ -2,6 +2,15 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-08 — Regole di sintassi e limite di richieste per minuto
+
+- **Decisione:** nel codice JavaScript/TypeScript niente ternari e niente `if`, `else` o cicli senza graffe, anche negli esempi di codice dentro le stringhe. Un limite di 120 richieste al minuto per indirizzo protegge tutte le rotte `/api`, contato nella memoria di ogni istanza.
+- **Motivo:** le regole di sintassi sono nel CLAUDE.md del proprietario. Il limite orario sulle analisi non copriva le altre rotte che leggono o scrivono sul database.
+- **Vincoli:** su un host serverless ogni istanza conta per conto suo, quindi il limite ferma le raffiche ma non è una quota globale. La pulizia delle analisi scadute usa una richiesta GET protetta da `CRON_SECRET`, perché Vercel Cron chiama solo in GET: è l'unica eccezione alla regola di non modificare dati con GET.
+- **Referrer-Policy:** `no-referrer` su tutte le risposte, più severo del valore `strict-origin-when-cross-origin` richiesto come minimo: i link di condivisione contengono un token.
+- **Pannelli non pronti:** Correzione e Chiedi mostrano "non ancora disponibile"; il codice dei generatori (alert cron, Ollama dal browser) resta non raggiungibile e va rivisto prima di attivarlo (pianificazione oltre 59 minuti, sicurezza della cartella HOME, `connect-src` della CSP).
+- **Scartato:** quota condivisa nel database per ogni richiesta, che aggiungerebbe una query a ogni chiamata.
+
 ## 2026-11-04 — Prisma 7 e intestazioni di sicurezza
 
 - **Decisione:** Prisma 7 con l'adattatore PostgreSQL (`@prisma/adapter-pg`) e il client generato in `src/generated/prisma`; le URL del database stanno in `prisma.config.ts` (CLI) e in `src/db/prisma.ts` (applicazione). Ogni risposta riceve intestazioni di sicurezza da `config.json` generato da `scripts/build-vercel.mjs`: Content-Security-Policy che consente solo script, API e font di Google dichiarati, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS.

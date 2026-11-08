@@ -14,7 +14,9 @@ export function MirrorText({
   mirrorRef: RefObject<HTMLDivElement | null>;
 }) {
   const lines = text.split('\n');
-  while (lines.length < MIN_EDITOR_ROWS) lines.push('');
+  while (lines.length < MIN_EDITOR_ROWS) {
+    lines.push('');
+  }
 
   return (
     <div

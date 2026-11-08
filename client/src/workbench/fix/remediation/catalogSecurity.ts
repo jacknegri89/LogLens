@@ -10,10 +10,15 @@ response.sendFile(file);`,
         after: `import { resolve, sep } from 'node:path';
 
 export function resolveInside(baseDirectory: string, requested: string): string | null {
-  if (requested.includes('\\0')) return null;
+  if (requested.includes('\\0')) {
+    return null;
+  }
   const base = resolve(baseDirectory);
   const target = resolve(base, requested);
-  return target.startsWith(base + sep) ? target : null; // never outside the base folder
+  if (target.startsWith(base + sep)) {
+    return target;
+  }
+  return null; // never outside the base folder
 }`,
       },
       python: {
@@ -67,7 +72,9 @@ file, err := os.Open(target)`,
       node: {
         before: `app.post('/login', async (request, response) => {
   const user = await verifyPassword(request.body.email, request.body.password); // unlimited guesses
-  if (!user) return response.status(401).end();
+  if (!user) {
+    return response.status(401).end();
+  }
   response.json(await createSession(user));
 });`,
         after: `interface LimiterOptions {
@@ -89,7 +96,9 @@ export function createLoginLimiter({
       const recent = (failures.get(key) ?? []).filter((time) => now - time < windowMs);
       recent.push(now);
       failures.set(key, recent);
-      if (recent.length >= maxFailures) lockedUntil.set(key, now + lockMs);
+      if (recent.length >= maxFailures) {
+        lockedUntil.set(key, now + lockMs);
+      }
     },
     reset(key: string) {
       failures.delete(key);
