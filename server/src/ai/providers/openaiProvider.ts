@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 import { env } from '../../config/env';
-import { maskSecrets } from '../../analysis/masking';
 import { AppError } from '../../middleware/errorHandler';
 import type { AIProvider, AnalyzeInput } from '../AIProvider';
 import { MAX_OUTPUT_TOKENS } from '../aiBudget';
+import { maskInputForModel } from '../maskInput';
 import { guardReport } from '../guardReport';
 import { parseReport } from '../parseReport';
 import { buildSystemPrompt, buildUserPrompt } from '../prompt';
@@ -27,7 +27,7 @@ export class OpenAIProvider implements AIProvider {
 
   async analyze(rawInput: AnalyzeInput): Promise<AIReport> {
     // The log leaves the server here: tokens, passwords and keys are hidden before it does.
-    const input = withMaskedExcerpt(rawInput);
+    const input = maskInputForModel(rawInput);
     const response = await postChatCompletion(input);
 
     if (!response.ok) {
@@ -47,10 +47,6 @@ export class OpenAIProvider implements AIProvider {
     }
     return guardReport(parseReport(parsed.data.choices[0].message.content), input);
   }
-}
-
-function withMaskedExcerpt(input: AnalyzeInput): AnalyzeInput {
-  return { ...input, excerpt: maskSecrets(input.excerpt).text };
 }
 
 function postChatCompletion(input: AnalyzeInput): Promise<Response> {

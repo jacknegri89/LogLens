@@ -26,15 +26,44 @@ async function serverMessage(response: Response): Promise<string> {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Visitor-Id': getVisitorId(),
-      'X-Language': detectLanguage(),
-    },
-    ...init,
-  });
+/** Reading and small writes. */
+const REQUEST_TIMEOUT_MS = 30_000;
+/** An analysis: the server may wait up to 40 s for the model, and its function stops at 60 s. */
+const ANALYSIS_TIMEOUT_MS = 90_000;
+
+/** The signal of the caller, if any, together with the timeout: whichever fires first stops the request. */
+function signalWithTimeout(callerSignal: AbortSignal | null | undefined, timeoutMs: number) {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  if (!callerSignal) {
+    return timeout;
+  }
+  return AbortSignal.any([callerSignal, timeout]);
+}
+
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  timeoutMs: number = REQUEST_TIMEOUT_MS,
+): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Visitor-Id': getVisitorId(),
+        'X-Language': detectLanguage(),
+      },
+      ...init,
+      signal: signalWithTimeout(init?.signal, timeoutMs),
+    });
+  } catch (failure) {
+    // A request that outlived the timeout is told like a gateway timeout, which the pages
+    // already know how to explain (and which lets a saved copy stand in for a read).
+    if (failure instanceof DOMException && failure.name === 'TimeoutError') {
+      throw new RequestError(504);
+    }
+    throw failure;
+  }
 
   if (!response.ok) {
     throw new RequestError(response.status, await serverMessage(response));
@@ -62,11 +91,11 @@ export interface LoadedAnalysis {
 }
 
 async function createAnalysis(input: CreateAnalysisInput, signal?: AbortSignal) {
-  const record = await request<AnalysisRecord>('/api/analyses', {
-    method: 'POST',
-    body: JSON.stringify(input),
-    signal,
-  });
+  const record = await request<AnalysisRecord>(
+    '/api/analyses',
+    { method: 'POST', body: JSON.stringify(input), signal },
+    ANALYSIS_TIMEOUT_MS,
+  );
   if (signal?.aborted) {
     throw new DOMException('Aborted', 'AbortError');
   }
@@ -90,7 +119,10 @@ async function listAnalyses(): Promise<AnalysisList> {
 
 async function getAnalysis(id: string): Promise<LoadedAnalysis> {
   try {
-    return { analysis: await request<AnalysisRecord>(`/api/analyses/${id}`), offline: false };
+    return {
+      analysis: await request<AnalysisRecord>(`/api/analyses/${encodeURIComponent(id)}`),
+      offline: false,
+    };
   } catch (failure) {
     let analysis: AnalysisRecord | null = null;
     if (isServerUnreachable(failure)) {
@@ -132,13 +164,17 @@ export const api = {
   deleteAnalysis,
   deleteAnalyses,
   setFeedback: (id: string, helpful: boolean | null) =>
-    request<{ helpful: boolean | null }>(`/api/analyses/${id}/feedback`, {
+    request<{ helpful: boolean | null }>(`/api/analyses/${encodeURIComponent(id)}/feedback`, {
       method: 'PUT',
       body: JSON.stringify({ helpful }),
     }),
   createShare: (id: string) =>
-    request<{ shareToken: string }>(`/api/analyses/${id}/share`, { method: 'POST' }),
+    request<{ shareToken: string }>(`/api/analyses/${encodeURIComponent(id)}/share`, {
+      method: 'POST',
+    }),
   revokeShare: (id: string) =>
-    request<{ revoked: true }>(`/api/analyses/${id}/share`, { method: 'DELETE' }),
+    request<{ revoked: true }>(`/api/analyses/${encodeURIComponent(id)}/share`, {
+      method: 'DELETE',
+    }),
   getShared: (token: string) => request<SharedAnalysis>(`/api/shared/${encodeURIComponent(token)}`),
 };

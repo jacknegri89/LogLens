@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
     "benchmark": "tsx benchmarks/run.ts",
     "benchmark:live": "tsx benchmarks/live.ts",
     "benchmark:ai": "tsx benchmarks/aiCompare.ts",
@@ -37,20 +38,26 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.10.0",
     "@types/pg": "^8.23.1",
     "esbuild": "^0.28.2",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
     "prisma": "^7.10.1",
     "tsup": "^8.3.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
     "vitest": "^4.1.12"
   },
   "overrides": {
-    "esbuild": "$esbuild"
+    "esbuild": "$esbuild",
+    "brace-expansion": "5.0.12",
+    "minimatch": "11.0.4"
   }
 }

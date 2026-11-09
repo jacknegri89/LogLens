@@ -6,7 +6,7 @@ import { readClientHash } from './visitor';
 
 const WINDOW_MS = 60 * 1000;
 
-/** When this many addresses are tracked, the ones whose window has ended are dropped. */
+/** The most addresses tracked at once: first the ended windows are dropped, then the oldest. */
 const MAX_TRACKED_CLIENTS = 10_000;
 
 interface RequestWindow {
@@ -34,9 +34,16 @@ export function createApiRateLimiter(limitPerWindow: number, readNow: () => numb
 
   function startWindow(clientHash: string, now: number): RequestWindow {
     const requestWindow: RequestWindow = { startedAt: now, requests: 0 };
+    // Deleting first moves the address to the end of the map, so the map stays in start order.
+    windows.delete(clientHash);
     windows.set(clientHash, requestWindow);
     if (windows.size > MAX_TRACKED_CLIENTS) {
       dropEndedWindows(now);
+    }
+    // Many addresses inside one minute must not grow the memory without limit: the oldest go first.
+    while (windows.size > MAX_TRACKED_CLIENTS) {
+      const [oldest] = windows.keys();
+      windows.delete(oldest);
     }
     return requestWindow;
   }

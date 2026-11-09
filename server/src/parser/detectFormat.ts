@@ -72,7 +72,7 @@ const KUBERNETES_SIGNAL =
   /\b(?:CrashLoopBackOff|ImagePullBackOff|ErrImagePull|OOMKilled|kubelet|containerd|dockerd)\b|^[EIWF]\d{4} \d{2}:\d{2}:\d{2}\.\d+\s+\d+ \S+:\d+\]|Cannot connect to the Docker daemon|Error response from daemon/;
 // PostgreSQL writes "LOG:  message" with two spaces, usually after a "[pid]" in the prefix.
 const POSTGRES_LINE =
-  /\[\d+\]\s+(?:LOG|ERROR|FATAL|PANIC|WARNING|STATEMENT|DETAIL|HINT):\s|^\s*(?:LOG|ERROR|FATAL|PANIC|STATEMENT|DETAIL|HINT):  \S/;
+  /\[\d+\]\s+(?:LOG|ERROR|FATAL|PANIC|WARNING|STATEMENT|DETAIL|HINT):\s|^\s*(?:LOG|ERROR|FATAL|PANIC|STATEMENT|DETAIL|HINT): {2}\S/;
 const ACCESS_LOG_LINE =
   /"(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS|CONNECT|TRACE) \S+ HTTP\/[\d.]+" \d{3}\b/;
 const SYSLOG_LINE =

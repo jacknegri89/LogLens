@@ -1,5 +1,7 @@
 export type StreamEvent =
-  { type: 'token'; text: string } | { type: 'done' } | { type: 'error'; message: string };
+  | { type: 'token'; text: string }
+  | { type: 'done' }
+  | { type: 'error'; message: string };
 
 export interface NdjsonParser {
   /** Adds a piece of the response; returns the events of the lines it completed. */

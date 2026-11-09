@@ -13,13 +13,13 @@ import type {
   IncidentRootCause,
   IncidentTimelineEntry,
   ReportEvidence,
-  RootCauseStatus,
   ValidationIssue,
   ValidationInfo,
 } from '../types/report';
 import {
   capCertainty,
   checkCommandStep,
+  type CausalSupport,
   evidenceFromEvent,
   sanitizeClaims,
   validateIncidentReports,
@@ -306,17 +306,67 @@ function cleanSteps(
   return { kept, issues };
 }
 
+const SUPPORT_RANK: Record<CausalSupport, number> = {
+  none: 0,
+  related: 1,
+  possible: 2,
+  probable: 3,
+  confirmed: 4,
+};
+
+/** Every event that belongs to the incident: its failures, its context and its supposed cause. */
+function eventsOfIncident(incident: Incident): Set<string> {
+  const ids = new Set([...incident.anomalyEventIds, ...incident.contextEventIds]);
+  if (incident.rootCause.sourceEventId !== null) {
+    ids.add(incident.rootCause.sourceEventId);
+  }
+  return ids;
+}
+
+/**
+ * The strongest causal link from a cited event to a failure of the incident. A cited event that
+ * belongs to the incident but has no such link is only `related`: it is in the story, it is not
+ * shown to be the cause.
+ */
+function causalSupportOf(
+  citedIds: string[],
+  incident: Incident,
+  links: CausalLink[],
+): CausalSupport {
+  if (citedIds.length === 0) {
+    return 'none';
+  }
+  const cited = new Set(citedIds);
+  const failures = new Set(incident.anomalyEventIds);
+  let support: CausalSupport = 'related';
+  for (const link of links) {
+    if (!link.causal || !cited.has(link.sourceEventId)) {
+      continue;
+    }
+    if (!failures.has(link.targetEventId) || link.targetEventId === link.sourceEventId) {
+      continue;
+    }
+    if (SUPPORT_RANK[link.certainty] > SUPPORT_RANK[support]) {
+      support = link.certainty;
+    }
+  }
+  return support;
+}
+
 /** Merges what a model said about an incident, after checking every claim against the log. */
 function mergeAssessment(
   base: IncidentRootCause,
   assessment: IncidentAssessment,
-  engineStatus: RootCauseStatus,
+  incident: Incident,
+  links: CausalLink[],
   context: ValidationContext,
   text: IncidentText,
-  incidentId: string,
 ): MergeOutcome {
+  const incidentId = incident.id;
+  const engineStatus = incident.rootCause.status;
   const issues: ValidationIssue[] = [];
   const cited: ReportEvidence[] = [];
+  const belongsToIncident = eventsOfIncident(incident);
   for (const eventId of assessment.evidenceEventIds) {
     const event = context.eventsById.get(eventId);
     if (event === undefined) {
@@ -327,9 +377,28 @@ function mergeAssessment(
       });
       continue;
     }
+    if (!belongsToIncident.has(eventId)) {
+      issues.push({
+        code: 'unrelated-evidence',
+        incidentId,
+        detail: `The model cited ${eventId}, which does not belong to this incident: it was not used as evidence.`,
+      });
+      continue;
+    }
     cited.push(evidenceFromEvent(event, 'cited by the analysis'));
   }
-  const certainty = capCertainty(assessment.rootCauseStatus, engineStatus, cited.length);
+  const ownNotes = assessment.contradictingNotes.filter((note) => note.trim() !== '');
+  const certainty = capCertainty({
+    claimed: assessment.rootCauseStatus,
+    engine: engineStatus,
+    validEvidenceCount: cited.length,
+    support: causalSupportOf(
+      cited.map((reference) => reference.eventId),
+      incident,
+      links,
+    ),
+    contradictions: incident.rootCause.contradicting.length + ownNotes.length,
+  });
   if (certainty.downgraded) {
     issues.push({
       code: 'certainty-downgraded',
@@ -404,10 +473,10 @@ export function buildIncidentReports(input: BuildInput): IncidentReports {
       const merged = mergeAssessment(
         rootCause,
         assessment,
-        incident.rootCause.status,
+        incident,
+        analysis.correlation.links,
         context,
         text,
-        incident.id,
       );
       rootCause = merged.rootCause;
       issues.push(...merged.issues);

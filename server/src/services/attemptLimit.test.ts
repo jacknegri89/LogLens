@@ -3,12 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { reserveAttempt } from './attemptLimit';
 
 const { repository } = vi.hoisted(() => ({
-  repository: {
-    deleteExpiredAttempts: vi.fn(),
-    recordAttempt: vi.fn(),
-    removeAttempt: vi.fn(),
-    countAttemptsInLastHour: vi.fn(),
-  },
+  repository: { tryReserveAttempt: vi.fn() },
 }));
 
 vi.mock('../repositories/analysisRepository', () => repository);
@@ -19,23 +14,40 @@ vi.mock('../config/env', () => ({
 describe('reserveAttempt', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    repository.deleteExpiredAttempts.mockResolvedValue(0);
-    repository.recordAttempt.mockResolvedValue('attempt-1');
   });
 
-  it('removes expired attempts before recording a new one', async () => {
-    repository.countAttemptsInLastHour.mockResolvedValue(1);
+  it('asks the repository with the limits of the configuration', async () => {
+    repository.tryReserveAttempt.mockResolvedValue('allowed');
 
     await reserveAttempt('hash-a');
 
-    expect(repository.deleteExpiredAttempts).toHaveBeenCalledBefore(repository.recordAttempt);
-    expect(repository.removeAttempt).not.toHaveBeenCalled();
+    expect(repository.tryReserveAttempt).toHaveBeenCalledWith('hash-a', {
+      perClientPerHour: 2,
+      globalPerHour: 100,
+    });
   });
 
-  it('removes the refused attempt when the client is over its hourly limit', async () => {
-    repository.countAttemptsInLastHour.mockResolvedValueOnce(3).mockResolvedValueOnce(3);
+  it('refuses with 429 and the hourly limit when the client is over it', async () => {
+    repository.tryReserveAttempt.mockResolvedValue('client-limit');
 
-    await expect(reserveAttempt('hash-a')).rejects.toMatchObject({ statusCode: 429 });
-    expect(repository.removeAttempt).toHaveBeenCalledWith('attempt-1');
+    await expect(reserveAttempt('hash-a')).rejects.toMatchObject({
+      statusCode: 429,
+      message: expect.stringContaining('2 analyses per hour'),
+    });
+  });
+
+  it('refuses with 429 and a busy message when everybody together is over the limit', async () => {
+    repository.tryReserveAttempt.mockResolvedValue('global-limit');
+
+    await expect(reserveAttempt('hash-a')).rejects.toMatchObject({
+      statusCode: 429,
+      message: expect.stringContaining('busy'),
+    });
+  });
+
+  it('lets the error of a failing database through instead of allowing the attempt', async () => {
+    repository.tryReserveAttempt.mockRejectedValue(new Error('database down'));
+
+    await expect(reserveAttempt('hash-a')).rejects.toThrow('database down');
   });
 });

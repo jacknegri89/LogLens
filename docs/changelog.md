@@ -2,6 +2,20 @@
 
 Modifiche approvate, dalla più recente.
 
+## 2026-11-08 (audit di sicurezza e affidabilità)
+
+Ramo `fix/security-reliability-audit`, non ancora unito.
+
+- Report condivisi: ogni stringa, a ogni profondità (incidenti, prove, titoli, Markdown), passa dal mascheramento e gli indirizzi e-mail diventano `[email]`, ogni volta che il link viene aperto (vale anche per i report vecchi). Il report condiviso ora porta `incidents`, `engine`, `coverage`, `validation` e `promptInjection`; mai `rawLog`, `owner`, `clientHash`. Il mascheramento nasconde anche un token scritto dentro una frase ("the token tok\_… expired").
+- Contesto per il modello: gli id di sessione sono pseudonimizzati (`session-1`) in id, gruppi, messaggi e attributi (prima restavano in chiaro nel testo); servizi, categorie e note dei legami sono mascherati; il limite `AI_CONTEXT_MAX_CHARS` vale per l'intero documento (prima contava solo gli eventi) e per ogni incidente si dichiara quanti guasti sono stati tagliati. Mascheramento finale comune a OpenAI e Ollama (`ai/maskInput.ts`), con test che leggono il corpo della richiesta HTTP.
+- Configurazione di produzione: senza `AI_PROVIDER` o con `mock` (salvo `ALLOW_MOCK_PROVIDER=true`), con `VISITOR_SALT` predefinito, corto o povero, o con un `CORS_ORIGIN` che non è un'origine semplice, il server non parte. Avvisi (senza fermare il server) per `TRUST_PROXY` falso e `CRON_SECRET` mancante. **Prima del prossimo deploy controlla queste variabili su Vercel.**
+- Causa radice: un modello non promuove più la certezza citando eventi che esistono. Per salire sopra lo stato del motore deve citare eventi dello stesso incidente legati ai suoi guasti da un legame causale (possibile → non verificata; probabile o confermato → probabile); con contraddizioni resta "non verificata"; "confermata" solo se la conferma è del motore. Prima bastava citare due eventi qualsiasi per passare da "insufficiente" a "probabile". Le evidenze di un altro incidente non sono usate (codice `unrelated-evidence`).
+- Titolo, cause, passi e testo dell'issue scritti dal modello sono controllati sul log: frasi con ordini, importi, orari o eventi inesistenti rimosse, righe inventate in un blocco di codice sostituite da un avviso, comandi pericolosi rimossi o con avviso; senza una causa provata le cause sono mostrate come ipotesi. Via anche i link Markdown `javascript:`, `data:`, `vbscript:`, `file:`.
+- Limiti orari: riprodotto che 6 richieste insieme con limite 2 ne facevano passare 0; ora verifica e scrittura sono un'unica transazione PostgreSQL con `pg_advisory_xact_lock`, passano esattamente quante ne sono ammesse e un tentativo rifiutato non viene scritto. La mappa del limite al minuto ha un tetto reale. Id visitatore troppo regolari rifiutati.
+- Errori: il log del server non contiene più il messaggio intero (un errore Prisma può contenere il log del visitatore); database irraggiungibile → 503; il cron toglie anche i tentativi scaduti. Client: timeout su ogni richiesta (30 s, 90 s per l'analisi), id codificati negli indirizzi.
+- CI: lint anche sul server (ESLint con la stessa base del client), `npm audit` su radice/server/client, build del bundle Vercel, permessi minimi. Il server riceve gli overrides del client (audit a zero). 15 input ostili nei test.
+- Testo della pagina privacy: la frase su OpenAI ora descrive il riepilogo strutturato mascherato al posto di "un estratto del log". Il testo aveva un parere legale: da rivedere.
+
 ## 2026-11-08 (motore di analisi con causa radice)
 
 Ramo `feature/rca-upgrade`, unito in `main` il 2026-11-08.
