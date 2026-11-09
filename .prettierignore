@@ -7,3 +7,4 @@ package-lock.json
 *.prisma
 examples/
 *.log
+client/brand

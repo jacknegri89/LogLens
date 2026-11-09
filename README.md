@@ -12,7 +12,7 @@ explains the probable causes and drafts the GitHub issue, ready to copy.
 [**Live demo**](https://loglens-demo.vercel.app) ·
 [Italiano](./README.it.md) ·
 [Architecture](./docs/architecture.md) ·
-[Changelog](./docs/changelog.md)
+[Benchmarks](./docs/benchmarks.md)
 
 [![CI](https://github.com/jacknegri89/LogLens/actions/workflows/ci.yml/badge.svg)](https://github.com/jacknegri89/LogLens/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
@@ -30,12 +30,15 @@ explains the probable causes and drafts the GitHub issue, ready to copy.
 ## Contents
 
 - [What it does](#what-it-does)
+- [Why it is technically interesting](#why-it-is-technically-interesting)
 - [See it](#see-it)
 - [How it works](#how-it-works)
+- [Built with](#built-with)
 - [Quick start](#quick-start)
 - [Configuration](#configuration)
 - [API](#api)
 - [Project structure](#project-structure)
+- [Tests and benchmarks](#tests-and-benchmarks)
 - [Quality checks](#quality-checks)
 - [Deploy on Vercel](#deploy-on-vercel)
 - [Security and privacy](#security-and-privacy)
@@ -61,7 +64,7 @@ LogLens turns a wall of log text into an answer you can act on.
 **Keep and share**
 
 - Each analysis is saved in a history that only its owner can see, and kept for 90 days. A copy stays in the browser, so the history still opens when the server is down.
-- Share a report with a secret, read-only link. The original log is never included, secrets and e-mail addresses in the report text are masked when the link is opened, and the link can be revoked at any time.
+- Share a report with a secret, read-only link. The original log is never included, secrets and e-mail addresses in the report text are masked when the link is opened, and the link can be revoked at any time. A shared link shows the same generic preview image and title as the site: nothing about the report appears in it.
 - Mark a report useful or not useful.
 
 **Workbench**: a set of tools that work on a log without leaving your browser.
@@ -72,6 +75,14 @@ LogLens turns a wall of log text into an answer you can act on.
 - **Security**: a scanner for suspicious patterns and a scrubber that hides sensitive data.
 - **Insights**: risk score, flame graph and a map of the services involved.
 - **Export** as a GitHub issue, a Slack message, a PagerDuty event, a post-mortem or JSON, plus permalinks. A command palette (`Ctrl K`) reaches everything.
+
+## Why it is technically interesting
+
+- **Evidence, not guesses.** Events are linked only by something the log shows: a shared identifier, a changed value that later failures report, a dependency the log names. Time alone is never a link, and a root cause is called _confirmed_ only when the log itself shows it.
+- **The model is a witness, not the judge.** Whatever an AI writes is checked against the original log. It can lower the certainty of a root cause freely, but it can raise it only by citing events that the correlation ties to the failures.
+- **Useful without AI.** A rules engine works offline with no key. The model is optional, limited in calls, size, cost and time, and every report says which engine wrote it.
+- **Measured, not claimed.** 15 benchmark scenarios with known answers, 59 log-format samples and a set of ambiguous-log tests run in CI: the build fails if the engine gets worse.
+- **Privacy and security as design constraints.** Secrets are masked before any external call, shared reports are cleaned each time they are opened, and the hourly limits are a locked database transaction tested against a real PostgreSQL.
 
 ## See it
 
@@ -94,7 +105,7 @@ LogLens turns a wall of log text into an answer you can act on.
   </tr>
 </table>
 
-> Screenshots come from the live demo, which runs with `AI_PROVIDER=hybrid`: the built-in rules answer first, and OpenAI only handles logs no rule covers.
+> Screenshots come from a local run of this repository with the built-in rules engine (`AI_PROVIDER=rules`): no AI was used for the reports shown. The live demo runs `hybrid`, where OpenAI only handles what no rule covers.
 
 ## How it works
 
@@ -124,6 +135,17 @@ flowchart LR
 7. The report is validated with Zod, saved with Prisma and returned.
 
 The prompt, its four phases and its protection against prompt injection are described in [`docs/prompts.md`](./docs/prompts.md). The full design is in [`docs/architecture.md`](./docs/architecture.md). The analysis engine is measured against 15 realistic logs with known answers, with no paid API: see [`docs/benchmarks.md`](./docs/benchmarks.md) (`npm run benchmark` in `server/`).
+
+## Built with
+
+| Layer    | Technology                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------ |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS 4, React Router; fonts served from the app itself |
+| Backend  | Node.js 20+, Express 5, TypeScript, Zod                                                    |
+| Data     | PostgreSQL (Neon), Prisma 7                                                                |
+| Analysis | A rules engine of its own; OpenAI and Ollama as optional providers                         |
+| Quality  | Vitest, Playwright, ESLint, Prettier, `npm audit`, GitHub Actions                          |
+| Hosting  | Vercel: the static client and one serverless function for the API, with a daily cron       |
 
 ## Quick start
 
@@ -215,6 +237,8 @@ LogLens/
 │   ├── src/pages/        # analyze, history, report, shared link, privacy
 │   ├── src/content/      # every visible text, in English and Italian
 │   ├── src/workbench/    # the Workbench, one folder per tab
+│   ├── plugins/          # build step: one HTML file per page, with its own link-preview tags
+│   ├── brand/            # source of the social preview image (`npm run brand:render`)
 │   └── e2e/              # Playwright end-to-end tests
 ├── server/               # Node.js + Express + TypeScript
 │   ├── src/routes/       # the /api routes
@@ -224,11 +248,25 @@ LogLens/
 │   ├── benchmarks/       # realistic logs with known answers, metrics, `npm run benchmark`
 │   ├── src/services/     # limits, retention, saving analyses
 │   └── prisma/           # schema and seed data
-├── docs/                 # architecture, prompts, decisions, status, changelog
+├── docs/                 # architecture, prompts, decisions, benchmarks, screenshots
 ├── examples/             # sample logs to try
 ├── vercel.json           # build command and the daily cron
 └── .github/workflows/    # CI
 ```
+
+## Tests and benchmarks
+
+| Check                                         | Result                                                                                                                |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Server tests (Vitest)                         | 955 passing, including 5 against a real PostgreSQL (they need `TEST_DATABASE_URL`, see below)                         |
+| Client tests (Vitest)                         | 1,369 passing                                                                                                         |
+| End-to-end tests (Playwright, phone viewport) | 10 passing                                                                                                            |
+| Engine benchmarks, 15 scenarios               | Parsing, event coverage, incident precision and recall, root cause and evidence validity all 100%; false positives 0% |
+| Dependency audit (`npm audit`)                | 0 known vulnerabilities in the root, server and client                                                                |
+
+The benchmarks run with the deterministic engine, so they are repeatable and free; the scenarios
+and what each one checks are in [`docs/benchmarks.md`](./docs/benchmarks.md). The model path has not
+been scored with a real key (see [Status and limits](#status-and-limits)).
 
 ## Quality checks
 
@@ -239,6 +277,8 @@ npm run typecheck --prefix client
 npm run lint                         # client and server
 npm audit --audit-level=moderate     # also in server/ and client/
 npm test --prefix server             # unit, API and regression tests, benchmarks
+#   with TEST_DATABASE_URL=<a local PostgreSQL whose tables exist (`prisma db push`)>
+#   it also runs the hourly-limit tests against a real database; without it they are skipped
 npm test --prefix client             # unit tests
 npm run test:e2e --prefix client     # Playwright, phone viewport
 ```
@@ -282,23 +322,22 @@ Even so, do not paste real secrets into a public instance.
 - The **Fix** and **Ask** tabs of the Workbench show "not available yet". Their code is in the repository but unreachable until it is reviewed.
 - `X-Visitor-Id` is not a login. It works like a session cookie: whoever holds the id can read and delete that history, and a guessable id is refused. It keeps histories apart in a demo without accounts; it does not protect sensitive logs.
 - A database error answers `503`, not `500`, and the server log never contains the data of a failed query.
-- The hourly-limit transaction is tested against a stand-in database that interleaves requests; it has not been run against a real PostgreSQL yet.
+- The hourly-limit transaction is tested against a real PostgreSQL with concurrent connections (in CI, and locally with `TEST_DATABASE_URL`); without the lock, 10 simultaneous requests pass a global limit of 4.
+- Vercel preview deployments only start if their environment variables are valid too: set `AI_PROVIDER` and a strong `VISITOR_SALT` for the Preview environment as well, or their API answers 500.
 - The per-minute API limit is counted in each server instance's memory: it stops bursts, but it is not a global quota. The hourly analysis limits are in the database and are shared.
 - The daily cleanup runs on Vercel's schedule; analyses past 90 days are also removed on the next history read or new analysis.
 
-See [`docs/stato.md`](./docs/stato.md) for the current status and [`docs/decisions.md`](./docs/decisions.md) for why things are the way they are.
+See [`docs/decisions.md`](./docs/decisions.md) (in Italian) for why things are the way they are.
 
 ## Documentation
 
-| File                                             | What is in it                                   |
-| ------------------------------------------------ | ----------------------------------------------- |
-| [`docs/architecture.md`](./docs/architecture.md) | The flow, the components and the design choices |
-| [`docs/prompts.md`](./docs/prompts.md)           | The prompt, its phases and the JSON contract    |
-| [`docs/decisions.md`](./docs/decisions.md)       | Decisions, with the reason and the alternatives |
-| [`docs/changelog.md`](./docs/changelog.md)       | What changed and when                           |
-| [`docs/stato.md`](./docs/stato.md)               | Current status and what is left                 |
-| [`docs/checklist.md`](./docs/checklist.md)       | The latest end-of-task checks, PASS or FAIL     |
-| [`server/README.md`](./server/README.md)         | The backend: scripts, structure and API details |
+| File                                             | What is in it                                                |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| [`docs/architecture.md`](./docs/architecture.md) | The flow, the components and the design choices              |
+| [`docs/prompts.md`](./docs/prompts.md)           | The prompt, its phases and the JSON contract                 |
+| [`docs/decisions.md`](./docs/decisions.md)       | Decisions, with the reason and the alternatives (in Italian) |
+| [`docs/benchmarks.md`](./docs/benchmarks.md)     | The benchmark scenarios and how to run them                  |
+| [`server/README.md`](./server/README.md)         | The backend: scripts, structure and API details              |
 
 Issues and pull requests are welcome. Run the [quality checks](#quality-checks) first.
 

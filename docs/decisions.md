@@ -2,12 +2,20 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-09 — Anteprime social e pubblicazione
+
+- **Un HTML per pagina, generato in build, senza SSR.** Un crawler che non esegue JavaScript legge solo l'HTML che riceve; con una sola `index.html` tutte le pagine avrebbero avuto i tag della home. Il plugin `client/plugins/socialPages.ts` scrive `workbench.html`, `privacy.html`, `shared.html` ecc. a partire da `pageMeta.ts` (la stessa tabella che imposta il titolo della scheda) e Vercel indirizza ogni percorso al suo file. Scartato: migrare a Next.js (costo sproporzionato per sette pagine) e un servizio di prerendering.
+- **Pagine private senza canonical né `og:url`.** Cronologia, analisi, report condiviso e 404 sono `noindex` (meta e `X-Robots-Tag`). L'indirizzo di un report condiviso contiene il token: non viene copiato nei metadati. L'anteprima di un link condiviso è quindi generica e uguale per tutti, e non rivela nulla del report. Scartato: un'anteprima dinamica con il titolo del report (servirebbe leggere il report per ogni crawler, esponendo contenuti e rendendo la revoca meno netta).
+- **`robots.txt` non blocca più `/shared/`.** Un crawler che non può leggere la pagina non vede nemmeno l'anteprima (Facebook rispetta `robots.txt`) e non vede il `noindex`. L'esclusione dall'indice è affidata a header e meta; `robots.txt` blocca solo `/api/`.
+- **Immagine Open Graph in JPEG.** 1200×630, 112 KB: il PNG equivalente pesava 300 KB, il limite oltre cui alcune app (WhatsApp) smettono di mostrare l'anteprima grande. Il sorgente (`client/brand/og-image.html`) si rigenera con `npm run brand:render`.
+- **Vero 404 per gli indirizzi sconosciuti** (prima 200 con la home), e cache di un anno per `/assets/*`, i cui nomi contengono l'hash del contenuto.
+
 ## 2026-11-08 — Audit di sicurezza e affidabilità
 
 - **Report condiviso:** la pulizia avviene alla lettura, non al salvataggio. Il report del proprietario cita le righe com'è, così i numeri di riga funzionano; chi apre il link riceve solo testo mascherato. Motivo: vale anche per i report già salvati e non cambia i dati. Scartato: pulire alla scrittura (i vecchi report resterebbero esposti) e una migrazione del database.
 - **Pseudonimi per le sessioni:** un id di sessione è una credenziale; al modello arriva `session-N`, stabile, così le relazioni tra eventi restano. Gli id di richiesta, traccia e ordine restano in chiaro: senza di essi il modello non segue una storia. Scartato: mascherare tutti gli identificatori.
 - **Certezza della causa radice:** un modello può abbassarla sempre; può alzarla solo con prove che il motore stesso riconosce (un legame causale dagli eventi citati ai guasti dell'incidente). Esistere non è causare. "Confermata" resta del solo motore. Scartato: impedire ogni promozione (il modello deve poter migliorare una conclusione quando le prove ci sono).
-- **Limite orario:** una transazione PostgreSQL con lock consultivo, non Redis: nessun servizio in più e il database c'è già. Il prezzo è che le prenotazioni fanno la coda per pochi millisecondi. Non provato su un PostgreSQL vero in questo ambiente.
+- **Limite orario:** una transazione PostgreSQL con lock consultivo, non Redis: nessun servizio in più e il database c'è già. Il prezzo è che le prenotazioni fanno la coda per pochi millisecondi. Provato su un PostgreSQL vero con connessioni concorrenti (`attemptReservation.integration.test.ts`, in CI con un servizio PostgreSQL): senza il lock, 10 richieste simultanee con limite globale 4 passano tutte.
 - **Visitatore senza account:** `X-Visitor-Id` resta un identificatore come un cookie di sessione, con un controllo contro id banali. Documentato che non protegge log sensibili. Scartato: login (non serve a una demo), hash dell'id nel database (renderebbe illeggibili le righe esistenti).
 - **Produzione:** il server si rifiuta di partire con una configurazione debole invece di avvisare, per le variabili che non si possono correggere dopo (sale, provider). Per quelle correggibili (proxy, cron, CORS) solo avvisi.
 

@@ -21,6 +21,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    # A throw-away PostgreSQL for the tests of the hourly limits, which need real concurrent
+    # connections (src/repositories/attemptReservation.integration.test.ts).
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: loglens_test
+          POSTGRES_PASSWORD: loglens_test
+          POSTGRES_DB: loglens_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U loglens_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -64,12 +81,21 @@ jobs:
           npm audit --audit-level=moderate --prefix server
           npm audit --audit-level=moderate --prefix client
 
+      - name: Create the tables of the test database
+        working-directory: server
+        run: npx prisma db push
+        env:
+          DIRECT_URL: postgresql://loglens_test:loglens_test@localhost:5432/loglens_test
+
       # Unit tests, API integration tests (the app is started on a free port and called over
-      # HTTP, with the database replaced by a stand-in), regression tests of the security fixes
-      # and the deterministic benchmarks (benchmarks/benchmarks.test.ts fails if the engine
-      # gets worse). No test needs a real database, a key or the network.
+      # HTTP, with the database replaced by a stand-in), regression tests of the security fixes,
+      # the deterministic benchmarks (benchmarks/benchmarks.test.ts fails if the engine gets
+      # worse) and the hourly-limit transaction on the real PostgreSQL service above.
+      # No test needs a key or the network.
       - name: Test (server)
         run: npm test --prefix server
+        env:
+          TEST_DATABASE_URL: postgresql://loglens_test:loglens_test@localhost:5432/loglens_test
 
       - name: Test (client)
         run: npm test --prefix client

@@ -1,0 +1,321 @@
+<!doctype html>
+<!-- Source of public/og-image.jpg (1200 x 630). Render it with: npm run brand:render -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LogLens social preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Courier+Prime:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --felt: #0f2a24;
+        --felt-deep: #0a1e19;
+        --felt-2: #16372f;
+        --chalk: #b7c9bd;
+        --paper: #f1e9d2;
+        --band: #dfe7cb;
+        --ink: #17201c;
+        --marker: #ffe45c;
+        --pen: #c8321f;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        position: relative;
+        background: radial-gradient(
+          ellipse at 70% 45%,
+          #17382f 0%,
+          var(--felt) 55%,
+          var(--felt-deep) 100%
+        );
+        font-family: 'Archivo', sans-serif;
+        color: var(--paper);
+      }
+
+      /* Faint log lines in the background, like the hero of the site. */
+      .backdrop {
+        position: absolute;
+        inset: 0;
+        font-family: 'Courier Prime', monospace;
+        font-size: 17px;
+        line-height: 30px;
+        color: #1f4a3e;
+        padding: 18px 0 0 520px;
+        -webkit-mask-image: linear-gradient(90deg, transparent 52%, #000 80%);
+        mask-image: linear-gradient(90deg, transparent 52%, #000 80%);
+      }
+
+      .backdrop div {
+        white-space: pre;
+      }
+
+      .brand {
+        position: absolute;
+        left: 80px;
+        top: 62px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand svg {
+        width: 44px;
+        height: 44px;
+      }
+
+      .brand span {
+        font-size: 31px;
+        font-weight: 800;
+        font-stretch: 100%;
+        letter-spacing: 0.04em;
+        padding-bottom: 3px;
+        border-bottom: 4px solid var(--marker);
+      }
+
+      .hero {
+        position: absolute;
+        left: 80px;
+        top: 128px;
+        font-size: 90px;
+        font-weight: 900;
+        font-stretch: 78%;
+        line-height: 0.93;
+        text-transform: uppercase;
+        letter-spacing: 0.005em;
+      }
+
+      .hero .marked {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 2px 18px 0 12px;
+        color: var(--ink);
+        background: var(--marker);
+        transform: rotate(-1.6deg);
+        transform-origin: left center;
+      }
+
+      .claim {
+        position: absolute;
+        left: 80px;
+        bottom: 54px;
+        width: 520px;
+        font-size: 25px;
+        font-weight: 500;
+        line-height: 1.3;
+        color: var(--chalk);
+      }
+
+      .sheet {
+        position: absolute;
+        left: 600px;
+        top: 90px;
+        width: 520px;
+        padding: 30px 22px 30px 52px;
+        background: var(--paper);
+        color: var(--ink);
+        border-radius: 4px;
+        box-shadow:
+          0 26px 40px rgba(0, 0, 0, 0.45),
+          0 4px 0 rgba(0, 0, 0, 0.18);
+        transform: rotate(2.4deg);
+        font-family: 'Courier Prime', monospace;
+        font-size: 19px;
+      }
+
+      .sheet .holes {
+        position: absolute;
+        left: 20px;
+        top: 24px;
+        bottom: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .sheet .holes i {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: var(--felt);
+      }
+
+      .row {
+        height: 40px;
+        line-height: 40px;
+        padding: 0 8px;
+        white-space: pre;
+        overflow: hidden;
+      }
+
+      .row:nth-child(even) {
+        background: var(--band);
+      }
+
+      .row b {
+        font-weight: 700;
+      }
+
+      .row.fail {
+        background: var(--marker);
+      }
+
+      .row.fail b {
+        color: var(--pen);
+      }
+
+      .stamp {
+        position: absolute;
+        right: -26px;
+        top: -17px;
+        padding: 5px 14px 3px;
+        font-family: 'Archivo', sans-serif;
+        font-size: 19px;
+        font-weight: 800;
+        font-stretch: 85%;
+        letter-spacing: 0.08em;
+        color: #fff;
+        background: var(--pen);
+        transform: rotate(5deg);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+      }
+
+      /* The magnifier: an enlarged copy of the sheet seen through a round window. */
+      .lens {
+        position: absolute;
+        left: 792px;
+        top: 200px;
+        width: 220px;
+        height: 220px;
+        z-index: 2;
+      }
+
+      .lens .glass {
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 9px solid var(--paper);
+        background: var(--paper);
+        box-shadow:
+          0 14px 26px rgba(0, 0, 0, 0.5),
+          inset 0 0 0 2px rgba(23, 32, 28, 0.25);
+      }
+
+      .lens .glass .zoom {
+        position: absolute;
+        left: -176px;
+        top: -8px;
+        width: 520px;
+        transform: scale(1.7);
+        transform-origin: 0 0;
+        font-family: 'Courier Prime', monospace;
+        font-size: 19px;
+        color: var(--ink);
+      }
+
+      .lens .handle {
+        position: absolute;
+        left: 168px;
+        top: 168px;
+        width: 118px;
+        height: 24px;
+        background: var(--marker);
+        border-radius: 11px;
+        transform-origin: 0 50%;
+        transform: rotate(45deg);
+        z-index: 0;
+        box-shadow: 0 8px 14px rgba(0, 0, 0, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="backdrop">
+      <div>09:13:58 INFO  scheduler tick</div>
+      <div>09:14:02 DEBUG GET /health 200 2ms</div>
+      <div>09:14:03 INFO  cache hit ratio 0.91</div>
+      <div>09:14:06 WARN  slow query 1840ms</div>
+      <div>09:14:09 INFO  session resumed</div>
+      <div>09:14:10 DEBUG POST /api/analyses</div>
+      <div>09:14:13 INFO  backup snapshot 1/3</div>
+      <div>09:14:14 WARN  retry 2 of 5</div>
+      <div>09:14:18 INFO  gc pause 3ms</div>
+      <div>09:14:21 DEBUG health check ok</div>
+      <div>09:14:25 INFO  worker 2 ready</div>
+      <div>09:14:29 WARN  queue depth 41</div>
+      <div>09:14:31 INFO  metrics flushed</div>
+      <div>09:14:36 DEBUG GET /api/history</div>
+      <div>09:14:40 INFO  rotate logs</div>
+      <div>09:14:44 INFO  worker 1 ready</div>
+      <div>09:14:48 DEBUG tls session reuse</div>
+      <div>09:14:51 INFO  scheduler tick</div>
+      <div>09:14:55 WARN  pool at 17/20</div>
+      <div>09:14:59 INFO  health check passed</div>
+    </div>
+
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <clipPath id="lens"><circle cx="14" cy="14" r="7.4" /></clipPath>
+        </defs>
+        <rect width="32" height="32" rx="7" fill="#16372f" />
+        <circle cx="14" cy="14" r="7.4" fill="#0f2a24" />
+        <rect x="5" y="11.4" width="18" height="5.2" fill="#ffe45c" clip-path="url(#lens)" />
+        <circle cx="14" cy="14" r="8.6" fill="none" stroke="#f1e9d2" stroke-width="3" />
+        <line
+          x1="20.6"
+          y1="20.6"
+          x2="27"
+          y2="27"
+          stroke="#ffe45c"
+          stroke-width="4"
+          stroke-linecap="round"
+        />
+      </svg>
+      <span>LOGLENS</span>
+    </div>
+
+    <h1 class="hero">
+      Find<br />
+      the line<br />
+      that<br />
+      <span class="marked">broke.</span>
+    </h1>
+
+    <p class="claim">Root-cause analysis for logs and stack traces, with the evidence.</p>
+
+    <div class="sheet">
+      <div class="holes"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="row">09:14:01 <b>INFO</b>&nbsp; server listening :8080</div>
+      <div class="row">09:14:02 <b>DEBUG</b> GET /health 200 2ms</div>
+      <div class="row">09:14:05 <b>WARN</b>&nbsp; pool at 18/20 conns</div>
+      <div class="row">09:14:06 <b>INFO</b>&nbsp; worker 4 started</div>
+      <div class="row fail">09:14:07 <b>ERROR</b> connect ECONNREFUSED</div>
+      <div class="row">09:14:07 <b>ERROR</b> unhandled TypeError</div>
+      <div class="row">09:14:08 <b>INFO</b>&nbsp; GET /api/history 200</div>
+      <div class="stamp">ROOT CAUSE</div>
+    </div>
+
+    <div class="lens">
+      <div class="handle"></div>
+      <div class="glass">
+        <div class="zoom">
+          <div class="row">09:14:06 <b>INFO</b>&nbsp; worker 4 started</div>
+          <div class="row fail">09:14:07 <b>ERROR</b> connect ECONNREFUSED</div>
+          <div class="row">09:14:07 <b>ERROR</b> unhandled TypeError</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

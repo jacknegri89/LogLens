@@ -14,14 +14,14 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(functionDir, { recursive: true });
 
 // Headers sent with every response. The content security policy allows only what the app
-// loads: its own scripts, its own API and the Google Fonts stylesheet and files. Inline styles
-// are allowed because React sets some layout values as style attributes.
+// loads: its own scripts, fonts and API. Inline styles are allowed because React sets some layout
+// values as style attributes.
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'",
     "script-src 'self'",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: blob:",
     "connect-src 'self'",
     "worker-src 'self' blob:",
@@ -78,8 +78,30 @@ writeFileSync(
 // 2. Frontend: static files.
 cpSync(resolve(root, 'client/dist'), resolve(out, 'static'), { recursive: true });
 
-// 3. Routing: security headers on every response, then real files first, /api/* to the
-//    function, everything else to index.html (the React router handles the page).
+// 3. Routing. Every page has its own HTML file (written by the client build, with the title,
+//    description and link-preview tags of that page), so crawlers that do not run JavaScript read
+//    the right tags. Order: headers on every response, real files, the API, the pages, and last a
+//    real 404 for any other address (a single-page app would answer 200 with the home page).
+//    Private pages carry X-Robots-Tag, which keeps them out of search results while the
+//    crawlers of chat apps can still read their generic preview.
+const NO_INDEX_HEADERS = { 'X-Robots-Tag': 'noindex, nofollow' };
+const ONE_YEAR_CACHE = { 'Cache-Control': 'public, max-age=31536000, immutable' };
+const ONE_DAY_CACHE = { 'Cache-Control': 'public, max-age=86400' };
+// A missing file must never be cached, not even under /assets, whose route asks for a year.
+const NOT_FOUND_HEADERS = { ...NO_INDEX_HEADERS, 'Cache-Control': 'no-store' };
+
+const PUBLIC_PAGES = [
+  { src: '/', dest: '/index.html' },
+  { src: '/workbench/?', dest: '/workbench.html' },
+  { src: '/privacy/?', dest: '/privacy.html' },
+];
+
+const PRIVATE_PAGES = [
+  { src: '/history/?', dest: '/history.html', headers: NO_INDEX_HEADERS },
+  { src: '/analyses/[^/]+/?', dest: '/analysis.html', headers: NO_INDEX_HEADERS },
+  { src: '/shared/[^/]+/?', dest: '/shared.html', headers: NO_INDEX_HEADERS },
+];
+
 writeFileSync(
   resolve(out, 'config.json'),
   JSON.stringify(
@@ -87,9 +109,18 @@ writeFileSync(
       version: 3,
       routes: [
         { src: '/(.*)', headers: SECURITY_HEADERS, continue: true },
+        // File names in /assets contain a hash of their content: they never change.
+        { src: '/assets/(.*)', headers: ONE_YEAR_CACHE, continue: true },
+        {
+          src: '/(og-image\\.jpg|apple-touch-icon\\.png|icon-192\\.png|icon-512\\.png|favicon\\.svg)',
+          headers: ONE_DAY_CACHE,
+          continue: true,
+        },
         { handle: 'filesystem' },
         { src: '/api/(.*)', dest: '/api' },
-        { src: '/(.*)', dest: '/index.html' },
+        ...PUBLIC_PAGES,
+        ...PRIVATE_PAGES,
+        { src: '/(.*)', status: 404, dest: '/404.html', headers: NOT_FOUND_HEADERS },
       ],
     },
     null,
