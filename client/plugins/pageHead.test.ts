@@ -110,6 +110,19 @@ describe('renderPageHead', () => {
   });
 });
 
+describe('page descriptions', () => {
+  // Link previews on a phone cut the description at about 125 characters.
+  const MAX_DESCRIPTION_LENGTH = 125;
+
+  it.each(['en', 'it'] as const)('stay short enough to read in full (%s)', (language) => {
+    for (const [pageKey, meta] of Object.entries(PAGE_META_TEXT[language])) {
+      expect(meta.description.length, `${language} ${pageKey}`).toBeLessThanOrEqual(
+        MAX_DESCRIPTION_LENGTH,
+      );
+    }
+  });
+});
+
 describe('fillTemplate', () => {
   it('replaces the placeholder and keeps the rest of the page', () => {
     const html = `<head>${PAGE_HEAD_PLACEHOLDER}<link rel="icon" href="/a.svg" /></head>`;
