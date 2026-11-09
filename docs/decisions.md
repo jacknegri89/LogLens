@@ -2,6 +2,11 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-09 — Anteprime Vercel e TLS del database
+
+- **Anteprime di Vercel solo front-end.** Con l'integrazione Neon le variabili `DATABASE_*` sono attive sia in Production sia in Preview, quindi una Preview con API funzionante scriverebbe sui dati reali. Oggi la sua API non parte (manca `VISITOR_SALT`, e il server rifiuta una configurazione debole): è un blocco sicuro, e si tiene. Per avere anteprime con API serve un database Neon separato e vuoto per Preview, con le sue variabili e un sale proprio. Scartato: branch Neon automatici (ogni branch copia i dati di produzione, log dei visitatori compresi).
+- **`sslmode=require` lasciato com'è.** `pg` 8 lo tratta come `verify-full` (il certificato è verificato) ma stampa un avviso perché `pg` 9 lo indebolirà. La correzione indicata da Neon è `sslmode=verify-full` nella stringa di connessione, che l'integrazione gestisce: per ora si accetta l'avviso. Scartato: nasconderlo o usare `rejectUnauthorized: false`.
+
 ## 2026-11-09 — Anteprime social e pubblicazione
 
 - **Un HTML per pagina, generato in build, senza SSR.** Un crawler che non esegue JavaScript legge solo l'HTML che riceve; con una sola `index.html` tutte le pagine avrebbero avuto i tag della home. Il plugin `client/plugins/socialPages.ts` scrive `workbench.html`, `privacy.html`, `shared.html` ecc. a partire da `pageMeta.ts` (la stessa tabella che imposta il titolo della scheda) e Vercel indirizza ogni percorso al suo file. Scartato: migrare a Next.js (costo sproporzionato per sette pagine) e un servizio di prerendering.
