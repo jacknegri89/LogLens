@@ -20,10 +20,7 @@ const { createAnalysis } = vi.hoisted(() => ({
 // The database is out of scope here: the repository only records what it is asked to save.
 vi.mock('../repositories/analysisRepository', () => ({
   deleteAnalysesOlderThan: vi.fn().mockResolvedValue(0),
-  deleteExpiredAttempts: vi.fn().mockResolvedValue(0),
-  recordAttempt: vi.fn().mockResolvedValue('attempt-1'),
-  removeAttempt: vi.fn().mockResolvedValue(undefined),
-  countAttemptsInLastHour: vi.fn().mockResolvedValue(1),
+  tryReserveAttempt: vi.fn().mockResolvedValue('allowed'),
   createAnalysis,
   createShareToken: vi.fn(),
   deleteAnalysesByOwner: vi.fn(),

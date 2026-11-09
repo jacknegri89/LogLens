@@ -2,6 +2,9 @@ import { getAIProvider } from '../ai';
 import type { AIProvider, AnalyzeInput } from '../ai/AIProvider';
 import { limitsFromEnv } from '../ai/aiBudget';
 import { buildIncidentReports } from '../ai/incidentReport';
+import { checkLegacyFields } from '../ai/legacyFields';
+import type { ValidationContext } from '../ai/evidenceValidator';
+import { incidentText } from '../content/localized';
 import { renderIncidentsMarkdown } from '../ai/incidentMarkdown';
 import { raiseSeverity, SEVERITY_ORDER } from '../ai/ruleMatching';
 import { runEngine } from '../ai/runEngine';
@@ -174,13 +177,14 @@ export async function analyzeLogWith(
 
   const { incidentAssessments, ...modelReport } = run.report;
   const assessments = assessmentsFor(run.run.aiUsed, incidentAssessments);
+  const validationContext: ValidationContext = {
+    eventsById: new Map(analysis.log.events.map((event) => [event.eventId, event])),
+    rawLog,
+  };
   const built = buildIncidentReports({
     analysis,
     language,
-    context: {
-      eventsById: new Map(analysis.log.events.map((event) => [event.eventId, event])),
-      rawLog,
-    },
+    context: validationContext,
     assessments,
   });
 
@@ -196,8 +200,28 @@ export async function analyzeLogWith(
   const coverage = coverageOf(analysis);
   const injections = findInjectionAttempts(analysis.log.events);
 
+  // The title, causes, steps and issue text written by a model are checked against the log too.
+  let checkedModelReport = modelReport;
+  let validation = built.validation;
+  if (run.run.aiUsed) {
+    const text = incidentText(language);
+    const fallbackTitle = built.incidents[0]?.title ?? text.neutralTitle;
+    const legacy = checkLegacyFields(
+      modelReport,
+      built.incidents,
+      validationContext,
+      text,
+      fallbackTitle,
+    );
+    checkedModelReport = legacy.report;
+    validation = {
+      checked: built.validation.checked + legacy.checked,
+      issues: [...built.validation.issues, ...legacy.issues],
+    };
+  }
+
   const withCorrelation = addCorrelation(
-    modelReport,
+    checkedModelReport,
     parsed.excerpt,
     parsed.severityHint,
     language,
@@ -219,7 +243,7 @@ export async function analyzeLogWith(
     incidents: built.incidents,
     engine,
     coverage,
-    validation: built.validation,
+    validation,
     promptInjection: injections,
   };
 

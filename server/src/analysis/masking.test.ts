@@ -67,3 +67,25 @@ describe('prompt injection', () => {
     expect(attempts[0].quote).not.toContain('abc12345');
   });
 });
+
+describe('a credential written inside a sentence', () => {
+  it('hides a value that looks like a token after the word that names it', () => {
+    const result = maskSecrets('The token tok_FAKE_0123456789abcdef is the first failure');
+    expect(result.text).toBe('The token [REDACTED] is the first failure');
+    expect(result.masked).toBe(1);
+  });
+
+  it('leaves ordinary words alone and does not count them', () => {
+    const result = maskSecrets(
+      'token expired for the session; password required; secret rotation done',
+    );
+    expect(result.text).toBe(
+      'token expired for the session; password required; secret rotation done',
+    );
+    expect(result.masked).toBe(0);
+  });
+
+  it('leaves a long word without digits alone', () => {
+    expect(maskSecrets('the secret internationalization-service restarted').masked).toBe(0);
+  });
+});

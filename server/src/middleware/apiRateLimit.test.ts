@@ -74,4 +74,23 @@ describe('createApiRateLimiter', () => {
 
     expect(next).toHaveBeenCalledTimes(50);
   });
+
+  it('stays bounded when a flood of addresses arrives within one minute, keeping the newest', () => {
+    const limiter = createApiRateLimiter(1, () => 1000);
+    const next = vi.fn();
+    limiter(requestFrom('first'), makeResponse().response, next);
+
+    for (let index = 0; index < 10_001; index += 1) {
+      limiter(requestFrom(`flood-${index}`), makeResponse().response, vi.fn());
+    }
+
+    // The newest address is still counted: it already made one request, so a second is refused.
+    expect(() => limiter(requestFrom('flood-10000'), makeResponse().response, vi.fn())).toThrow(
+      /Too many requests/,
+    );
+    // The oldest was dropped to make room: this is the price of a bounded memory.
+    const again = vi.fn();
+    limiter(requestFrom('first'), makeResponse().response, again);
+    expect(again).toHaveBeenCalledOnce();
+  });
 });

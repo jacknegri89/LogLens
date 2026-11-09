@@ -5,13 +5,15 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 import { createApp } from '../app';
 
-const { CRON_SECRET, deleteAnalysesOlderThan } = vi.hoisted(() => ({
+const { CRON_SECRET, deleteAnalysesOlderThan, deleteExpiredAttempts } = vi.hoisted(() => ({
   CRON_SECRET: 'cron-secret-0123456789',
   deleteAnalysesOlderThan: vi.fn<(days: number) => Promise<number>>(),
+  deleteExpiredAttempts: vi.fn<() => Promise<number>>(),
 }));
 
 vi.mock('../repositories/analysisRepository', () => ({
   deleteAnalysesOlderThan: (days: number) => deleteAnalysesOlderThan(days),
+  deleteExpiredAttempts: () => deleteExpiredAttempts(),
 }));
 
 vi.mock('../config/env', async (importOriginal) => {
@@ -45,6 +47,7 @@ describe('GET /api/cron/retention', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     deleteAnalysesOlderThan.mockResolvedValue(2);
+    deleteExpiredAttempts.mockResolvedValue(0);
   });
 
   it('refuses a call without the secret and deletes nothing', async () => {
@@ -71,5 +74,12 @@ describe('GET /api/cron/retention', () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ deleted: 2 });
     expect(deleteAnalysesOlderThan).toHaveBeenCalledWith(90);
+    expect(deleteExpiredAttempts).toHaveBeenCalledOnce();
+  });
+
+  it('does not touch the attempts of the hourly limit for a call without the secret', async () => {
+    await fetch(`${baseUrl}/api/cron/retention`);
+
+    expect(deleteExpiredAttempts).not.toHaveBeenCalled();
   });
 });

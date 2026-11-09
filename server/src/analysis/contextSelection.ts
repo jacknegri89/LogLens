@@ -60,7 +60,10 @@ export const DEFAULT_SELECTION_OPTIONS: SelectionOptions = {
 
 /** What the selection cut or skipped, with the reason, so a report can state its own limits. */
 export type CoverageLimitCode =
-  'records-not-acquired' | 'cut-by-budget' | 'identifier-cap' | 'change-cap';
+  | 'records-not-acquired'
+  | 'cut-by-budget'
+  | 'identifier-cap'
+  | 'change-cap';
 
 export interface CoverageLimit {
   code: CoverageLimitCode;
@@ -355,13 +358,15 @@ export function selectContext(
   const keptSet = new Set(kept);
   const routine = countRoutine(classes, keptSet);
   const limits = buildLimits(log.notAcquiredRecords, cut, identifiers.capHit, changeCap);
-  const selected = kept.map((index): SelectedEvent => ({
-    event: events[index],
-    index,
-    reasons: book.reasonsOf(index),
-    anomaly: classes[index].anomaly,
-    significant: classes[index].significant,
-  }));
+  const selected = kept.map(
+    (index): SelectedEvent => ({
+      event: events[index],
+      index,
+      reasons: book.reasonsOf(index),
+      anomaly: classes[index].anomaly,
+      significant: classes[index].significant,
+    }),
+  );
   const notSelected = events.length - kept.length - routine.total - cut;
 
   return {

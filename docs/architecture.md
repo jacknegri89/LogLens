@@ -96,8 +96,13 @@ log gives the same incidents, at no cost and with no network call.
 6. **Model input** (`ai/structuredContext.ts`, `ai/prompt.ts`). The model gets a JSON document of
    events (ids, original lines, identifiers, time basis), links with certainty and uncertainty,
    groups and the incidents with a **candidate** root cause that it must verify. It returns an
-   assessment for each incident id; it never creates incidents. Secrets are masked first
-   (`analysis/masking.ts`); request, trace and order ids stay.
+   assessment for each incident id; it never creates incidents. Every piece of text from the log
+   is masked first (`analysis/masking.ts`) whichever field it sits in; session ids become stable
+   pseudonyms (`session-1`) and request, trace and order ids stay. The size limit
+   (`AI_CONTEXT_MAX_CHARS`) applies to the whole JSON document: the largest number of events that
+   fits is sent, incident failures and supposed causes first, and each incident says how many of its
+   failures were left out. The providers mask the input once more right before the request
+   (`ai/maskInput.ts`).
 7. **Evidence Validator** (`ai/evidenceValidator.ts`, `ai/incidentReport.ts`). The model's
    assessment is merged only after checks: cited event ids must exist and their lines and quotes are
    rebuilt from the log; sentences naming an order, amount, time or event that is not in the log
@@ -121,7 +126,34 @@ boundary; nothing the log or the model says is ever executed.
   on `POST /api/analyses`, and once a day from Vercel Cron (`GET /api/cron/retention`, which
   needs the `CRON_SECRET`).
 - Analysis attempts, which hold a salted hash of the visitor's address, are deleted after one
-  hour, when they stop counting towards the limits.
+  hour, when they stop counting towards the limits: by the transaction that records a new attempt
+  and by the daily job.
+- A report stored in the database is read through `analysis/storedReport.ts`: a damaged or old
+  row gives a smaller report, never an error.
+
+## Sharing a report
+
+`GET /api/shared/:token` returns the report of the link with every string passed through
+`analysis/sanitizeReport.ts` (secrets masked, e-mail addresses hidden) at every depth: incidents,
+evidence quotes, titles, the Markdown. The cleaning runs when the link is opened, so reports saved
+before it existed are cleaned too. The raw log, the owner and the address hash are never selected.
+The response is sent with `Cache-Control: no-store`, `X-Robots-Tag: noindex` and
+`Referrer-Policy: no-referrer`, and the analytics event of the page has the token removed.
+
+## Hourly limits
+
+`tryReserveAttempt` (in `analysisRepository.ts`) checks the per-client and the global limit and
+records the attempt in one transaction that first takes a PostgreSQL advisory lock. Requests that
+arrive together queue on the lock, so exactly the allowed number passes and a refused attempt is
+never written. The per-minute limit (`middleware/apiRateLimit.ts`) stays in each instance's memory,
+with a hard cap on the addresses it remembers.
+
+## Where the analysis runs
+
+Every analysis, in every mode, runs on the server (`POST /api/analyses`). The browser itself only
+does the **Anonymize** replacement before sending and the Workbench views. A third party sees data
+only when `AI_PROVIDER` is `openai` or `hybrid` (OpenAI receives the masked structured context) or
+when `OLLAMA_BASE_URL` points to another machine.
 
 ## Key design decisions
 
@@ -138,7 +170,9 @@ boundary; nothing the log or the model says is ever executed.
   `ollama` implementations selected with `AI_PROVIDER`. The rest of the app never imports a
   vendor SDK directly.
 - **No accounts.** A random visitor id, kept in the browser, keeps each history separate. It is
-  not a login, so the hash of the network address and hourly limits protect the shared quota.
+  not a login: it works like a session cookie, so whoever holds it can read and delete that
+  history, and ids too regular to be random are refused. The hash of the network address and the
+  hourly limits protect the shared quota.
 - **Privacy by default.** No cookies, hashed addresses, retention limits and a strict
   Content-Security-Policy. See [`decisions.md`](./decisions.md).
 

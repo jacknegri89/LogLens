@@ -2,6 +2,15 @@
 
 Ogni voce: data, decisione, motivo, alternative scartate.
 
+## 2026-11-08 — Audit di sicurezza e affidabilità
+
+- **Report condiviso:** la pulizia avviene alla lettura, non al salvataggio. Il report del proprietario cita le righe com'è, così i numeri di riga funzionano; chi apre il link riceve solo testo mascherato. Motivo: vale anche per i report già salvati e non cambia i dati. Scartato: pulire alla scrittura (i vecchi report resterebbero esposti) e una migrazione del database.
+- **Pseudonimi per le sessioni:** un id di sessione è una credenziale; al modello arriva `session-N`, stabile, così le relazioni tra eventi restano. Gli id di richiesta, traccia e ordine restano in chiaro: senza di essi il modello non segue una storia. Scartato: mascherare tutti gli identificatori.
+- **Certezza della causa radice:** un modello può abbassarla sempre; può alzarla solo con prove che il motore stesso riconosce (un legame causale dagli eventi citati ai guasti dell'incidente). Esistere non è causare. "Confermata" resta del solo motore. Scartato: impedire ogni promozione (il modello deve poter migliorare una conclusione quando le prove ci sono).
+- **Limite orario:** una transazione PostgreSQL con lock consultivo, non Redis: nessun servizio in più e il database c'è già. Il prezzo è che le prenotazioni fanno la coda per pochi millisecondi. Non provato su un PostgreSQL vero in questo ambiente.
+- **Visitatore senza account:** `X-Visitor-Id` resta un identificatore come un cookie di sessione, con un controllo contro id banali. Documentato che non protegge log sensibili. Scartato: login (non serve a una demo), hash dell'id nel database (renderebbe illeggibili le righe esistenti).
+- **Produzione:** il server si rifiuta di partire con una configurazione debole invece di avvisare, per le variabili che non si possono correggere dopo (sale, provider). Per quelle correggibili (proxy, cron, CORS) solo avvisi.
+
 ## 2026-11-08 — Motore di analisi con prove e causa radice
 
 - **Decisione:** l'analisi legge ogni evento (parser universale), sceglie il contesto invece di scartare, correla solo con prove e costruisce incidenti con una causa radice che ha uno stato (confermata, probabile, ipotesi non verificata, informazioni insufficienti). Un incidente complesso va al modello anche se una regola corrisponde; il modello giudica gli incidenti ricevuti, non li crea. Un validatore deterministico controlla ogni affermazione sul log.

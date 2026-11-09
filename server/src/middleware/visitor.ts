@@ -13,17 +13,27 @@ export interface Visitor {
 }
 
 const VISITOR_ID_PATTERN = /^[A-Za-z0-9-]{16,64}$/;
+/**
+ * A UUID has 15 or more different characters. An id with fewer is not random ("aaaaaaaaaaaaaaaa",
+ * "1234512345123451") and anybody could guess it, so it is refused.
+ */
+const MIN_DISTINCT_CHARACTERS = 10;
 
 /**
- * The client sends a random id stored in its own browser. It is not a login:
- * it only keeps each visitor's history separate from everyone else's.
- * An invalid or missing id becomes an empty owner.
+ * The client sends a random id stored in its own browser (a UUID). It is not a login: whoever
+ * holds the id can read and delete that history, exactly like a session cookie, and anybody who
+ * learns it (a shared computer, a leaked browser profile) can do the same. It keeps each visitor's
+ * history separate from everyone else's, which is all a demo without accounts needs; it is not a
+ * protection for sensitive logs. A missing, malformed or guessable id becomes an empty owner.
  */
 export function readVisitorId(header: string | undefined): string {
-  if (header !== undefined && VISITOR_ID_PATTERN.test(header)) {
-    return header;
+  if (header === undefined || !VISITOR_ID_PATTERN.test(header)) {
+    return '';
   }
-  return '';
+  if (new Set(header).size < MIN_DISTINCT_CHARACTERS) {
+    return '';
+  }
+  return header;
 }
 
 /** The network address is stored only as a salted hash, never in clear. */

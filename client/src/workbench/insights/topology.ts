@@ -2,7 +2,13 @@ import type { AnalysisRecord, TimelineEntry } from '../../lib/types';
 import type { ParsedLine } from '../types';
 
 export type TopologyKind =
-  'loadBalancer' | 'api' | 'service' | 'database' | 'cache' | 'queue' | 'external';
+  | 'loadBalancer'
+  | 'api'
+  | 'service'
+  | 'database'
+  | 'cache'
+  | 'queue'
+  | 'external';
 export type TopologyRole = 'origin' | 'affected' | 'healthy' | 'unknown';
 
 export interface TopologyNode {

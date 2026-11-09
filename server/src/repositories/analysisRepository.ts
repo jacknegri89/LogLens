@@ -1,5 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
+import { sanitizeDeep, sanitizeText } from '../analysis/sanitizeReport';
+import { parseStoredReport } from '../analysis/storedReport';
 import { prisma } from '../db/prisma';
 import type { Analysis } from '../generated/prisma/client';
 import type { AnalysisReport, Severity } from '../types/report';
@@ -35,7 +37,7 @@ export interface AnalysisRecord extends Omit<Analysis, 'report' | 'owner' | 'cli
 /** Turn a raw DB row into our richer record (parse the JSON `report`). */
 function toRecord(row: Analysis): AnalysisRecord {
   const { owner: _owner, clientHash: _clientHash, ...visible } = row;
-  return { ...visible, report: JSON.parse(row.report) as AnalysisReport };
+  return { ...visible, report: parseStoredReport(row.report) };
 }
 
 export async function createAnalysis(input: CreateAnalysisInput): Promise<AnalysisRecord> {
@@ -183,20 +185,24 @@ export async function getSharedAnalysis(shareToken: string): Promise<SharedAnaly
   if (!row) {
     return null;
   }
-  const report = JSON.parse(row.report) as AnalysisReport;
   return {
     id: row.id,
     createdAt: row.createdAt,
-    title: row.title,
+    title: sanitizeText(row.title),
     severity: row.severity as Severity,
-    category: row.category,
-    report: toSharedReport(report),
+    category: sanitizeText(row.category),
+    report: toSharedReport(parseStoredReport(row.report)),
   };
 }
 
-/** Keeps the parts of the report that a reader needs, without the raw log. */
+/**
+ * What a reader of the shared link may see: the whole report (incidents with their causes and
+ * certainty, coverage, validation, findings, timeline) with every secret and e-mail address hidden,
+ * and never the raw log. The cleaning happens when the link is opened, so reports saved before this
+ * existed are cleaned too.
+ */
 export function toSharedReport(report: AnalysisReport): AnalysisReport {
-  return {
+  const visible: AnalysisReport = {
     keyLines: report.keyLines,
     causes: report.causes,
     debugSteps: report.debugSteps,
@@ -205,41 +211,82 @@ export function toSharedReport(report: AnalysisReport): AnalysisReport {
     findings: report.findings,
     overview: report.overview,
     timeline: report.timeline,
+    incidents: report.incidents,
+    engine: report.engine,
+    coverage: report.coverage,
+    validation: report.validation,
+    promptInjection: report.promptInjection,
   };
+  return sanitizeDeep(visible);
 }
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const ONE_DAY_MS = 24 * ONE_HOUR_MS;
 
-/** Saves one attempt before the AI runs. Returns its id, so a refused attempt can be removed. */
-export async function recordAttempt(clientHash: string): Promise<string> {
-  const attempt = await prisma.analysisAttempt.create({ data: { clientHash } });
-  return attempt.id;
+/** Which limit, if any, stopped an attempt. */
+export type AttemptDecision = 'allowed' | 'client-limit' | 'global-limit';
+
+export interface AttemptLimits {
+  /** Attempts one client may make per hour; 0 turns the limit off. */
+  perClientPerHour: number;
+  /** Attempts everybody together may make per hour; 0 turns the limit off. */
+  globalPerHour: number;
 }
 
-export async function removeAttempt(id: string): Promise<void> {
-  await prisma.analysisAttempt.delete({ where: { id } });
+/** The key of the advisory lock that makes reservations take turns (any fixed number will do). */
+const ATTEMPT_LOCK_KEY = 727_001;
+const TRANSACTION_MAX_WAIT_MS = 5000;
+const TRANSACTION_TIMEOUT_MS = 10_000;
+
+/**
+ * Decides whether a client may start an analysis and, if so, saves the attempt: all in ONE
+ * transaction that first takes a PostgreSQL advisory lock. Requests that arrive together queue up
+ * on the lock, so each one counts the attempts of the ones before it and no more: exactly the
+ * allowed number gets through, and a refused attempt is never written (so it can never be counted
+ * against anybody else). The lock is released when the transaction ends, and works through a
+ * transaction-mode pooler such as the one in front of Neon.
+ * Attempts older than the window are removed here too, so the hashed addresses do not pile up.
+ */
+export function tryReserveAttempt(
+  clientHash: string,
+  limits: AttemptLimits,
+): Promise<AttemptDecision> {
+  return prisma.$transaction(
+    async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(${ATTEMPT_LOCK_KEY})`;
+      const since = new Date(Date.now() - ONE_HOUR_MS);
+      await transaction.analysisAttempt.deleteMany({ where: { createdAt: { lt: since } } });
+      if (limits.perClientPerHour > 0) {
+        const used = await transaction.analysisAttempt.count({
+          where: { clientHash, createdAt: { gte: since } },
+        });
+        if (used >= limits.perClientPerHour) {
+          return 'client-limit';
+        }
+      }
+      if (limits.globalPerHour > 0) {
+        const used = await transaction.analysisAttempt.count({
+          where: { createdAt: { gte: since } },
+        });
+        if (used >= limits.globalPerHour) {
+          return 'global-limit';
+        }
+      }
+      await transaction.analysisAttempt.create({ data: { clientHash } });
+      return 'allowed';
+    },
+    { maxWait: TRANSACTION_MAX_WAIT_MS, timeout: TRANSACTION_TIMEOUT_MS },
+  );
 }
 
 /**
- * Removes attempts older than the limit window. They no longer count towards any limit, so
- * keeping their hashed addresses would only extend how long the data is stored.
+ * Removes attempts older than the limit window. They no longer count towards any limit, so keeping
+ * their hashed addresses would only extend how long they are stored. The daily job calls this, so
+ * the hashes go even when nobody is using the demo.
  */
 export async function deleteExpiredAttempts(): Promise<number> {
   const result = await prisma.analysisAttempt.deleteMany({
     where: { createdAt: { lt: new Date(Date.now() - ONE_HOUR_MS) } },
   });
   return result.count;
-}
-
-/** Attempts in the last hour by one client, or by everyone when no hash is given. */
-export function countAttemptsInLastHour(clientHash?: string): Promise<number> {
-  const since = new Date(Date.now() - ONE_HOUR_MS);
-  const where: { createdAt: { gte: Date }; clientHash?: string } = { createdAt: { gte: since } };
-  if (clientHash) {
-    where.clientHash = clientHash;
-  }
-  return prisma.analysisAttempt.count({
-    where,
-  });
 }

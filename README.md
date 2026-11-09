@@ -61,7 +61,7 @@ LogLens turns a wall of log text into an answer you can act on.
 **Keep and share**
 
 - Each analysis is saved in a history that only its owner can see, and kept for 90 days. A copy stays in the browser, so the history still opens when the server is down.
-- Share a report with a secret, read-only link. The original log is never included, and the link can be revoked at any time.
+- Share a report with a secret, read-only link. The original log is never included, secrets and e-mail addresses in the report text are masked when the link is opened, and the link can be revoked at any time.
 - Mark a report useful or not useful.
 
 **Workbench**: a set of tools that work on a log without leaving your browser.
@@ -120,7 +120,7 @@ flowchart LR
 3. **Correlate.** Events are linked only by evidence: a shared identifier, a changed value that later failures report, a dependency the log names. Time alone is never a link. Each link has a certainty and the reasons it might be wrong.
 4. **Incidents and root cause.** Linked failures form incidents; each gets hypotheses, checked against the evidence and against what contradicts them.
 5. **Engine.** Simple incidents go to the **rules engine**. A **complex** incident goes to the model even when a rule matches; the model judges the incidents it is given (it never creates them), within a call, cost and time budget. If the model is unavailable the rules answer and the report says why.
-6. **Evidence Validator.** Every event id, line, quote, order, amount and time in the report is checked against the log; unsupported claims are removed, certainty is capped by the links, risky commands get a warning. Secrets are masked before any text goes to an external provider.
+6. **Evidence Validator.** Every event id, line, quote, order, amount and time in the report is checked against the log; unsupported claims are removed, risky commands get a warning. A model can lower the certainty of a root cause freely, but it can raise it only when it cites events of that incident that the correlation ties to its failures: citing events that merely exist proves nothing. The title, causes, steps and issue text a model writes are checked the same way, and shown as hypotheses when no incident has a supported cause. Secrets are masked before any text goes to an external provider.
 7. The report is validated with Zod, saved with Prisma and returned.
 
 The prompt, its four phases and its protection against prompt injection are described in [`docs/prompts.md`](./docs/prompts.md). The full design is in [`docs/architecture.md`](./docs/architecture.md). The analysis engine is measured against 15 realistic logs with known answers, with no paid API: see [`docs/benchmarks.md`](./docs/benchmarks.md) (`npm run benchmark` in `server/`).
@@ -166,29 +166,30 @@ Try it with the logs in [`examples/`](./examples/): a Node.js unhandled exceptio
 
 Everything is configured with environment variables, validated at startup (a wrong value stops the server with a clear message). Locally they live in `server/.env`; on Vercel, in the project settings. Secrets never go in the code or in git.
 
-| Variable                                                               | Default                   | What it does                                                                                 |
-| ---------------------------------------------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                                                         | (required)                | Pooled PostgreSQL connection, used by the app                                                |
-| `DIRECT_URL`                                                           | (required for migrations) | Direct connection, used by the Prisma CLI                                                    |
-| `AI_PROVIDER`                                                          | `mock`                    | `mock`, `rules`, `hybrid`, `openai` or `ollama`                                              |
-| `OPENAI_API_KEY`                                                       |                           | Needed for `openai` and `hybrid`                                                             |
-| `OPENAI_MODEL`                                                         | `gpt-4o-mini`             | The OpenAI model                                                                             |
-| `OLLAMA_BASE_URL`                                                      | `http://localhost:11434`  | Where Ollama listens                                                                         |
-| `OLLAMA_MODEL`                                                         | `llama3.2`                | The Ollama model                                                                             |
-| `RATE_LIMIT_PER_HOUR`                                                  | `5`                       | Analysis attempts per address per hour, failed ones included (`0` = no limit)                |
-| `GLOBAL_LIMIT_PER_HOUR`                                                | `100`                     | Analysis attempts for everyone per hour (`0` = no limit)                                     |
-| `API_RATE_LIMIT_PER_MINUTE`                                            | `120`                     | Requests per minute from one address to the whole API, counted per instance (`0` = no limit) |
-| `TRUST_PROXY`                                                          | `false`                   | `true` behind a proxy such as Vercel, so limits count real visitors                          |
-| `VISITOR_SALT`                                                         | `loglens`                 | A long random text that salts the hash of visitor addresses. **Change it in production**     |
-| `CRON_SECRET`                                                          |                           | 16+ characters; Vercel Cron sends it to clean up analyses older than 90 days                 |
-| `CORS_ORIGIN`                                                          | `*`                       | Allowed origin. In production leave it empty: client and API share one domain                |
-| `ANALYSIS_MAX_SELECTED_EVENTS`                                         | `1500`                    | Most events kept for the analysis; more and the report says it is partial                    |
-| `AI_CONTEXT_MAX_CHARS`                                                 | `24000`                   | Most characters of log context sent to a model                                               |
-| `AI_CONTEXT_MAX_EVENTS`                                                | `250`                     | Most events sent to a model                                                                  |
-| `AI_MAX_CALLS_PER_ANALYSIS`                                            | `1`                       | Model calls per analysis (`0` = never call a model)                                          |
-| `AI_MAX_COST_USD_PER_ANALYSIS`                                         | `0.05`                    | Estimated cost above which the model is not called (the rules answer instead)                |
-| `AI_INPUT_USD_PER_MILLION_TOKENS` / `AI_OUTPUT_USD_PER_MILLION_TOKENS` | `0.15` / `0.6`            | Prices used for that estimate: set them for your model                                       |
-| `AI_TIMEOUT_MS`                                                        | `40000`                   | How long a model call may take before the rules answer instead                               |
+| Variable                                                               | Default                   | What it does                                                                                                                            |
+| ---------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                         | (required)                | Pooled PostgreSQL connection, used by the app                                                                                           |
+| `DIRECT_URL`                                                           | (required for migrations) | Direct connection, used by the Prisma CLI                                                                                               |
+| `AI_PROVIDER`                                                          | `mock`                    | `mock`, `rules`, `hybrid`, `openai` or `ollama`. **Production refuses to start without it, and refuses `mock`**                         |
+| `ALLOW_MOCK_PROVIDER`                                                  | `false`                   | `true` lets production use `mock` on purpose (canned text, not an analysis)                                                             |
+| `OPENAI_API_KEY`                                                       |                           | Needed for `openai` and `hybrid`                                                                                                        |
+| `OPENAI_MODEL`                                                         | `gpt-4o-mini`             | The OpenAI model                                                                                                                        |
+| `OLLAMA_BASE_URL`                                                      | `http://localhost:11434`  | Where Ollama listens                                                                                                                    |
+| `OLLAMA_MODEL`                                                         | `llama3.2`                | The Ollama model                                                                                                                        |
+| `RATE_LIMIT_PER_HOUR`                                                  | `5`                       | Analysis attempts per address per hour, failed ones included (`0` = no limit)                                                           |
+| `GLOBAL_LIMIT_PER_HOUR`                                                | `100`                     | Analysis attempts for everyone per hour (`0` = no limit)                                                                                |
+| `API_RATE_LIMIT_PER_MINUTE`                                            | `120`                     | Requests per minute from one address to the whole API, counted per instance (`0` = no limit)                                            |
+| `TRUST_PROXY`                                                          | `false`                   | `true` behind a proxy such as Vercel, so limits count real visitors                                                                     |
+| `VISITOR_SALT`                                                         | `loglens`                 | A random text (16+ characters) that salts the hash of visitor addresses. **Production refuses the default and weak values**             |
+| `CRON_SECRET`                                                          |                           | 16+ characters; Vercel Cron sends it to clean up analyses older than 90 days                                                            |
+| `CORS_ORIGIN`                                                          | `*`                       | Allowed origin, written as `https://app.example.com`. In production leave it empty or `*`: the API then answers same-site requests only |
+| `ANALYSIS_MAX_SELECTED_EVENTS`                                         | `1500`                    | Most events kept for the analysis; more and the report says it is partial                                                               |
+| `AI_CONTEXT_MAX_CHARS`                                                 | `24000`                   | Most characters of log context sent to a model                                                                                          |
+| `AI_CONTEXT_MAX_EVENTS`                                                | `250`                     | Most events sent to a model                                                                                                             |
+| `AI_MAX_CALLS_PER_ANALYSIS`                                            | `1`                       | Model calls per analysis (`0` = never call a model)                                                                                     |
+| `AI_MAX_COST_USD_PER_ANALYSIS`                                         | `0.05`                    | Estimated cost above which the model is not called (the rules answer instead)                                                           |
+| `AI_INPUT_USD_PER_MILLION_TOKENS` / `AI_OUTPUT_USD_PER_MILLION_TOKENS` | `0.15` / `0.6`            | Prices used for that estimate: set them for your model                                                                                  |
+| `AI_TIMEOUT_MS`                                                        | `40000`                   | How long a model call may take before the rules answer instead                                                                          |
 
 ## API
 
@@ -235,13 +236,14 @@ LogLens/
 npm run format:check                 # Prettier, from the repository root
 npm run typecheck --prefix server
 npm run typecheck --prefix client
-npm run lint --prefix client
-npm test --prefix server             # unit tests
+npm run lint                         # client and server
+npm audit --audit-level=moderate     # also in server/ and client/
+npm test --prefix server             # unit, API and regression tests, benchmarks
 npm test --prefix client             # unit tests
 npm run test:e2e --prefix client     # Playwright, phone viewport
 ```
 
-The same checks, plus both builds, run on every push in [GitHub Actions](./.github/workflows/ci.yml). Dependencies are audited with `npm audit` and kept at zero known vulnerabilities.
+The same checks, plus the builds (including the Vercel bundle), run on every push in [GitHub Actions](./.github/workflows/ci.yml). Dependencies are audited with `npm audit` and kept at zero known vulnerabilities.
 
 ## Deploy on Vercel
 
@@ -260,13 +262,14 @@ If you run your own instance, update the contact, the database region and the pr
 ## Security and privacy
 
 - **No cookies.** The browser's local storage keeps only your choices (language, anonymize, theme), a random visitor id and a local copy of your history. The [privacy page](https://loglens-demo.vercel.app/privacy) lists what is handled, why and for how long.
+- **Where your log goes.** The analysis always runs on the LogLens server, in every mode: pressing Analyze sends the log there and stores it with the report (the server is the one you deploy, with a database you choose). Only the **Anonymize** switch and the Workbench views work in your browser alone. Beyond the server, a log reaches a third party only when you choose `openai` or `hybrid` (OpenAI) or point `OLLAMA_BASE_URL` at another machine.
 - **Anonymize before sending.** One switch replaces IP addresses, e-mails and secrets in your browser, before anything leaves it.
 - **Data limits.** Analyses are deleted after 90 days, or earlier by you. Network addresses are stored only as salted hashes, and the attempts that use them are removed after an hour.
-- **Share links** carry an unguessable token, never reach the logs, are sent with `Referrer-Policy: no-referrer`, are not indexed, and can be revoked.
-- **Abuse limits.** Per-address and global hourly limits on analyses, and a per-minute limit on the whole API.
+- **Share links** carry an unguessable token, never reach the logs, are sent with `Referrer-Policy: no-referrer`, are not cached or indexed, and can be revoked. The shared report has every secret and e-mail address masked, at every level of the report, each time the link is opened.
+- **Abuse limits.** Per-address and global hourly limits on analyses, checked and recorded in one locked database transaction so requests that arrive together cannot pass the last free place, and a per-minute limit on the whole API.
 - **Hardened responses.** A strict Content-Security-Policy, `X-Frame-Options`, `nosniff`, HSTS and a locked-down Permissions-Policy on every response.
 - **Model output is untrusted.** It is validated, checked against the log it came from, stripped of links and HTML, and the prompt uses a random delimiter against prompt injection.
-- **The log is untrusted too.** A line that tries to give orders to the analyser is reported and not obeyed. Tokens, passwords, keys and cookies are masked before anything goes to an external model; request, trace and order ids are kept. In `rules` and `ollama` mode no log leaves your machine.
+- **The log is untrusted too.** A line that tries to give orders to the analyser is reported and not obeyed. What a model receives is a structured summary of the events (message, level, time, service and identifiers), not the raw file. Tokens, passwords, keys, cookies and connection strings are masked in it, session ids are replaced by stable pseudonyms (`session-1`), and the masking runs once more right before the request leaves. Request, trace and order ids are kept, because a model cannot follow a story without them. In `rules` mode, and in `ollama` mode with a local model, no log leaves your machine.
 - **Cleanup endpoint.** `GET /api/cron/retention` refuses any call without the `CRON_SECRET`, compared in constant time.
 
 Even so, do not paste real secrets into a public instance.
@@ -277,6 +280,9 @@ Even so, do not paste real secrets into a public instance.
 - Reports with incidents no longer show the earlier summary and findings list; the evidence board is drawn from the incidents. Older reports keep their original view.
 - The model path has been tested only with stand-in providers. `npm run benchmark:live -- --yes` runs it with your own key (a few cents).
 - The **Fix** and **Ask** tabs of the Workbench show "not available yet". Their code is in the repository but unreachable until it is reviewed.
+- `X-Visitor-Id` is not a login. It works like a session cookie: whoever holds the id can read and delete that history, and a guessable id is refused. It keeps histories apart in a demo without accounts; it does not protect sensitive logs.
+- A database error answers `503`, not `500`, and the server log never contains the data of a failed query.
+- The hourly-limit transaction is tested against a stand-in database that interleaves requests; it has not been run against a real PostgreSQL yet.
 - The per-minute API limit is counted in each server instance's memory: it stops bursts, but it is not a global quota. The hourly analysis limits are in the database and are shared.
 - The daily cleanup runs on Vercel's schedule; analyses past 90 days are also removed on the next history read or new analysis.
 

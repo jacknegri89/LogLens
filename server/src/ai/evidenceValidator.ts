@@ -146,24 +146,66 @@ export function sanitizeClaims(text: string, context: ValidationContext): Saniti
 }
 
 /**
- * A claim of "confirmed" needs a cause the engine itself confirmed; the model may ask for more
- * certainty than the links allow, and does not get it. Any claim above "insufficient" needs at
- * least one valid piece of evidence.
+ * How well the log ties the events a model cites to the failures of the incident, from the weakest
+ * tie to the strongest:
+ * - `none`: no cited event belongs to the incident. Citing an event that exists proves nothing.
+ * - `related`: a cited event belongs to the incident, but no link of the correlation engine says it
+ *   may have caused a failure.
+ * - `possible` / `probable` / `confirmed`: the strongest causal link, from a cited event to a
+ *   failure of the incident, with the certainty the engine gave it.
  */
-export function capCertainty(
-  claimed: RootCauseStatus,
-  engine: RootCauseStatus,
-  validEvidenceCount: number,
-): { status: RootCauseStatus; downgraded: boolean } {
-  let ceiling: RootCauseStatus = 'probable';
-  if (engine === 'confirmed') {
-    ceiling = 'confirmed';
+export type CausalSupport = 'none' | 'related' | 'possible' | 'probable' | 'confirmed';
+
+export interface CertaintyInput {
+  /** What the model says. */
+  claimed: RootCauseStatus;
+  /** What the deterministic engine concluded for the same incident. */
+  engine: RootCauseStatus;
+  /** Cited events that exist in the log (an invented id does not count). */
+  validEvidenceCount: number;
+  support: CausalSupport;
+  /** Things that speak against the cause: the engine's contradictions and the model's own notes. */
+  contradictions: number;
+}
+
+/** The highest status that a tie of this strength can justify when it is stronger than the engine's. */
+const STATUS_ALLOWED_BY_SUPPORT: Record<CausalSupport, RootCauseStatus> = {
+  none: 'insufficient',
+  related: 'unverified',
+  possible: 'unverified',
+  probable: 'probable',
+  confirmed: 'probable',
+};
+
+/**
+ * The status a report may show for a root cause, given what the model claims.
+ * - The model may always be MORE cautious than the engine.
+ * - It may go above the engine only as far as the log supports: a cited event has to belong to the
+ *   incident and be tied to its failures by a causal link, and the higher the link's certainty the
+ *   higher the status. An event that merely exists, or belongs to another incident, justifies
+ *   nothing.
+ * - Something that speaks against the cause keeps the promotion at "unverified".
+ * - "confirmed" is never reached by a promotion: the engine must have confirmed it.
+ * - Any claim above "insufficient" needs at least one real event behind it.
+ */
+export function capCertainty(input: CertaintyInput): {
+  status: RootCauseStatus;
+  downgraded: boolean;
+} {
+  const { claimed, engine } = input;
+  let ceiling = engine;
+  let allowedBySupport = STATUS_ALLOWED_BY_SUPPORT[input.support];
+  if (input.contradictions > 0 && STATUS_RANK[allowedBySupport] > STATUS_RANK.unverified) {
+    allowedBySupport = 'unverified';
+  }
+  if (STATUS_RANK[allowedBySupport] > STATUS_RANK[ceiling]) {
+    ceiling = allowedBySupport;
   }
   let status = claimed;
   if (STATUS_RANK[claimed] > STATUS_RANK[ceiling]) {
     status = ceiling;
   }
-  if (status !== 'insufficient' && validEvidenceCount === 0) {
+  if (status !== 'insufficient' && input.validEvidenceCount === 0) {
     status = 'insufficient';
     if (STATUS_RANK[engine] > 0) {
       status = engine;

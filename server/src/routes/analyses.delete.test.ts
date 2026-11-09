@@ -13,10 +13,7 @@ const { deleteAnalysisById } = vi.hoisted(() => ({
 
 vi.mock('../repositories/analysisRepository', () => ({
   deleteAnalysesOlderThan: vi.fn().mockResolvedValue(0),
-  deleteExpiredAttempts: vi.fn().mockResolvedValue(0),
-  recordAttempt: vi.fn(),
-  removeAttempt: vi.fn(),
-  countAttemptsInLastHour: vi.fn(),
+  tryReserveAttempt: vi.fn().mockResolvedValue('allowed'),
   createAnalysis: vi.fn(),
   createShareToken: vi.fn(),
   deleteAnalysesByOwner: vi.fn(),

@@ -43,11 +43,13 @@ function extractAddresses(line: string): Entity[] {
   const ipv4 = [...line.matchAll(IPV4)]
     .filter((match) => isUsableIpv4(match[1]))
     .map((match): Entity => ({ kind: 'address', key: match[1], shown: match[0] }));
-  const ipv6 = [...line.matchAll(IPV6)].map((match): Entity => ({
-    kind: 'address',
-    key: match[1].toLowerCase(),
-    shown: match[1],
-  }));
+  const ipv6 = [...line.matchAll(IPV6)].map(
+    (match): Entity => ({
+      kind: 'address',
+      key: match[1].toLowerCase(),
+      shown: match[1],
+    }),
+  );
   return [...ipv4, ...ipv6];
 }
 
