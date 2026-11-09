@@ -6,7 +6,7 @@ export const PAGE_META_TEXT = defineText({
     home: {
       title: 'LogLens - find the root cause in your logs',
       description:
-        'Paste a log or stack trace. LogLens groups the failures into incidents, links the events that led to them and writes a GitHub issue you can paste.',
+        'Paste a log or stack trace. LogLens groups failures into incidents, links their causes and drafts the GitHub issue.',
     },
     workbench: {
       title: 'Workbench - LogLens',
@@ -28,7 +28,7 @@ export const PAGE_META_TEXT = defineText({
     shared: {
       title: 'Shared report - LogLens',
       description:
-        'A read-only LogLens report: the incidents found in a log, the evidence and the probable root cause, shared with a private link.',
+        'A read-only LogLens report: incidents, evidence and the probable root cause of a log, shared with a private link.',
     },
     notFound: {
       title: 'Page not found - LogLens',
@@ -39,12 +39,12 @@ export const PAGE_META_TEXT = defineText({
     home: {
       title: 'LogLens - trova la causa radice nei tuoi log',
       description:
-        'Incolla un log o uno stack trace. LogLens raggruppa i guasti in incidenti, collega gli eventi che li hanno causati e scrive una issue GitHub da incollare.',
+        'Incolla un log o uno stack trace. LogLens raggruppa i guasti in incidenti, ne collega le cause e scrive la issue GitHub.',
     },
     workbench: {
       title: 'Workbench - LogLens',
       description:
-        'Cerca, raggruppa e ispeziona un log nel tuo browser: query, tracce, un laboratorio di regex, controlli di sicurezza ed esportazioni.',
+        'Cerca, raggruppa e ispeziona un log nel browser: query, tracce, laboratorio di regex, controlli di sicurezza, esportazioni.',
     },
     history: {
       title: 'Cronologia - LogLens',
@@ -61,7 +61,7 @@ export const PAGE_META_TEXT = defineText({
     shared: {
       title: 'Report condiviso - LogLens',
       description:
-        'Un report LogLens in sola lettura: gli incidenti trovati in un log, le prove e la probabile causa radice, condiviso con un link privato.',
+        'Un report LogLens in sola lettura: incidenti, prove e probabile causa radice di un log, condiviso con un link privato.',
     },
     notFound: {
       title: 'Pagina non trovata - LogLens',
