@@ -87,6 +87,8 @@ cpSync(resolve(root, 'client/dist'), resolve(out, 'static'), { recursive: true }
 const NO_INDEX_HEADERS = { 'X-Robots-Tag': 'noindex, nofollow' };
 const ONE_YEAR_CACHE = { 'Cache-Control': 'public, max-age=31536000, immutable' };
 const ONE_DAY_CACHE = { 'Cache-Control': 'public, max-age=86400' };
+// A missing file must never be cached, not even under /assets, whose route asks for a year.
+const NOT_FOUND_HEADERS = { ...NO_INDEX_HEADERS, 'Cache-Control': 'no-store' };
 
 const PUBLIC_PAGES = [
   { src: '/', dest: '/index.html' },
@@ -118,7 +120,7 @@ writeFileSync(
         { src: '/api/(.*)', dest: '/api' },
         ...PUBLIC_PAGES,
         ...PRIVATE_PAGES,
-        { src: '/(.*)', status: 404, dest: '/404.html', headers: NO_INDEX_HEADERS },
+        { src: '/(.*)', status: 404, dest: '/404.html', headers: NOT_FOUND_HEADERS },
       ],
     },
     null,
