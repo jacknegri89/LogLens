@@ -1,14 +1,16 @@
 import { defineText } from '../i18n/defineText';
 
 /**
- * Text of the privacy and cookie page. Items in square brackets are placeholders the owner
- * must fill in before publishing (contact details, hosting region).
+ * Text of the privacy and cookie page. It describes what the public instance really does: when
+ * the behaviour of the app changes (what is sent to a provider, what is stored, for how long),
+ * this text and the date in `updated` change with it. The legal wording was not written by a
+ * lawyer and should be reviewed by one.
  */
 export const PRIVACY_TEXT = defineText({
   en: {
     footerLink: 'Privacy and cookies',
     title: 'Privacy and cookies',
-    updated: 'Last updated: 4 November 2026',
+    updated: 'Last updated: 9 November 2026',
     intro:
       'LogLens is a free tool to read logs. This page explains which data it handles, why, where it goes and how long it stays.',
     sections: [
@@ -24,7 +26,7 @@ export const PRIVACY_TEXT = defineText({
           'Log text. When you press Analyze, the log you paste or upload is sent to the server and saved with its report, so that you can find it in your history. A log can contain personal data (names, e-mail addresses, IP addresses, tokens). Turn on Anonymize before sending to replace them in your browser first.',
           'A random visitor id. Your browser keeps a random identifier, which the server uses to show you only your own history. It is not linked to your name or to an account, because there are no accounts.',
           'Your network address, in hashed form. The server does not keep the address itself. It keeps a salted hash of it, used to count analysis attempts per visitor against the usage limits.',
-          'Your feedback and share links. If you mark a report as useful or not useful, that answer is saved. If you create a share link, the report it points to is readable by anyone who has the link, until you revoke it.',
+          'Your feedback and share links. If you mark a report as useful or not useful, that answer is saved. If you create a share link, the report it points to is readable by anyone who has the link, until you revoke it. A shared report never includes the original log, and secrets and e-mail addresses in its text are hidden each time it is opened; the lines it quotes can still contain other personal data, such as IP addresses.',
         ],
       },
       {
@@ -40,7 +42,8 @@ export const PRIVACY_TEXT = defineText({
         body: [
           'Vercel, which hosts the site and runs the aggregated analytics. Vercel is based in the United States.',
           'Neon, which hosts the database where analyses and attempt counts are saved. The database is hosted by AWS in the US East 1 region (N. Virginia, United States).',
-          'OpenAI, only when the operator enables an OpenAI-based AI provider. In that case, a structured summary of the events of the log (message, level, time, service and identifiers) is sent to OpenAI, which is based in the United States. Passwords, tokens, keys and similar secrets are hidden first, and session identifiers are replaced by pseudonyms.',
+          'OpenAI, for the analysis of complex logs. LogLens first reads every log with its own rules, on its own server. When a log is complex or the rules cannot settle it, a structured summary of its events (message, level, time, service, identifiers and the key-value fields of each line) is sent to OpenAI, which is based in the United States; the raw file is not sent. Passwords, tokens, keys and similar secrets are hidden first, and session identifiers are replaced by pseudonyms. Other personal data, such as e-mail addresses or IP addresses, is not removed in this step: turn on Anonymize before sending to replace it first.',
+          'No other service receives your data. The fonts and scripts of the site are served by the site itself, so opening a page does not make your browser contact any other third party.',
           'Transfers outside the European Economic Area are covered by the data processing addenda of these providers, which include the European Commission’s standard contractual clauses.',
         ],
       },
@@ -48,7 +51,7 @@ export const PRIVACY_TEXT = defineText({
         heading: 'How long we keep it',
         body: [
           'Analyses, with their logs and reports, become eligible for deletion after 90 days. Cleanup runs on the next scheduled daily job or qualifying request; a failed job can delay deletion. You can delete them earlier from your history, and revoking a share link stops it from working at once.',
-          'Analysis attempts stop counting after one hour. Their hashed addresses are deleted when a later analysis triggers cleanup.',
+          'Analysis attempts stop counting after one hour. Their hashed addresses are deleted at the next analysis attempt or by the daily cleanup job, whichever comes first.',
           'The copy of your history saved in your browser stays there until you clear it, from the history page or from the browser settings.',
         ],
       },
@@ -79,7 +82,7 @@ export const PRIVACY_TEXT = defineText({
   it: {
     footerLink: 'Privacy e cookie',
     title: 'Privacy e cookie',
-    updated: 'Ultimo aggiornamento: 4 novembre 2026',
+    updated: 'Ultimo aggiornamento: 9 novembre 2026',
     intro:
       'LogLens è uno strumento gratuito per leggere i log. Questa pagina spiega quali dati tratta, perché, dove vanno e per quanto tempo restano.',
     sections: [
@@ -95,7 +98,7 @@ export const PRIVACY_TEXT = defineText({
           'Il testo del log. Quando premi Analizza, il log che incolli o carichi viene inviato al server e salvato insieme al suo report, così lo ritrovi nella cronologia. Un log può contenere dati personali (nomi, e-mail, indirizzi IP, token). Attiva Anonimizza prima dell’invio per sostituirli già nel tuo browser.',
           'Un identificativo casuale del visitatore. Il browser conserva un identificativo casuale, che il server usa per mostrarti solo la tua cronologia. Non è collegato a un nome né a un account, perché gli account non esistono.',
           'Il tuo indirizzo di rete, in forma di hash. Il server non conserva l’indirizzo. Conserva un hash con sale, usato per contare i tentativi di analisi di ciascun visitatore rispetto ai limiti di utilizzo.',
-          'Il tuo feedback e i link di condivisione. Se segni un report come utile o non utile, la risposta viene salvata. Se crei un link di condivisione, il report è leggibile da chiunque abbia il link, finché non lo revochi.',
+          'Il tuo feedback e i link di condivisione. Se segni un report come utile o non utile, la risposta viene salvata. Se crei un link di condivisione, il report è leggibile da chiunque abbia il link, finché non lo revochi. Un report condiviso non include mai il log originale, e i segreti e gli indirizzi e-mail nel suo testo vengono nascosti a ogni apertura; le righe che cita possono comunque contenere altri dati personali, come indirizzi IP.',
         ],
       },
       {
@@ -111,7 +114,8 @@ export const PRIVACY_TEXT = defineText({
         body: [
           'Vercel, che ospita il sito ed effettua le statistiche aggregate. Vercel ha sede negli Stati Uniti.',
           'Neon, che ospita il database in cui vengono salvate le analisi e i conteggi dei tentativi. Il database è ospitato da AWS nella regione US East 1 (Virginia del Nord, Stati Uniti).',
-          'OpenAI, solo quando il gestore del sito attiva un fornitore di AI basato su OpenAI. In quel caso viene inviato a OpenAI, che ha sede negli Stati Uniti, un riepilogo strutturato degli eventi del log (messaggio, livello, orario, servizio e identificatori). Password, token, chiavi e segreti simili vengono prima nascosti e gli identificatori di sessione sono sostituiti da pseudonimi.',
+          'OpenAI, per l’analisi dei log complessi. LogLens legge prima ogni log con le proprie regole, sul proprio server. Quando un log è complesso o le regole non bastano, a OpenAI, che ha sede negli Stati Uniti, viene inviato un riepilogo strutturato dei suoi eventi (messaggio, livello, orario, servizio, identificatori e i campi chiave-valore di ogni riga); il file grezzo non viene inviato. Password, token, chiavi e segreti simili vengono prima nascosti e gli identificatori di sessione sono sostituiti da pseudonimi. Gli altri dati personali, come indirizzi e-mail o IP, non vengono rimossi in questo passaggio: attiva Anonimizza prima dell’invio per sostituirli già prima.',
+          'Nessun altro servizio riceve i tuoi dati. I font e gli script del sito sono serviti dal sito stesso, quindi aprire una pagina non fa contattare al tuo browser altri soggetti terzi.',
           'I trasferimenti fuori dallo Spazio economico europeo sono coperti dagli addendum sul trattamento dei dati di questi fornitori, che includono le clausole contrattuali tipo della Commissione europea.',
         ],
       },
@@ -119,7 +123,7 @@ export const PRIVACY_TEXT = defineText({
         heading: 'Per quanto tempo li conserviamo',
         body: [
           'Le analisi, con log e report, diventano eliminabili dopo 90 giorni. La pulizia avviene alla successiva esecuzione giornaliera o richiesta che la attiva; un errore può ritardarla. Puoi cancellarle prima dalla cronologia, e revocare un link di condivisione lo rende subito inaccessibile.',
-          'I tentativi di analisi non contano più dopo un’ora. Gli hash degli indirizzi vengono cancellati quando una successiva analisi avvia la pulizia.',
+          'I tentativi di analisi non contano più dopo un’ora. Gli hash degli indirizzi vengono cancellati al successivo tentativo di analisi o dalla pulizia giornaliera, a seconda di quale arriva prima.',
           'La copia della cronologia salvata nel browser resta lì finché non la cancelli dalla pagina della cronologia o dalle impostazioni del browser.',
         ],
       },
