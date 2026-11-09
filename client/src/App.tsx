@@ -42,10 +42,13 @@ export function App() {
   );
 }
 
-/** Pages load on demand; nothing is shown while their code arrives. */
+/**
+ * Pages load on demand. While their code arrives an empty block holds the room of the page, so the
+ * footer does not jump up and then down again when the page appears (that shift was 0.17 CLS).
+ */
 function Suspended({ page: Page }: { page: ComponentType }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="min-h-[70dvh]" aria-hidden="true" />}>
       <Page />
     </Suspense>
   );
