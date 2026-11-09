@@ -3,11 +3,9 @@ import { Route, Routes } from 'react-router-dom';
 
 import { Layout } from './components/Layout';
 import { NotFound } from './components/NotFound';
+import { AnalyzePage } from './pages/AnalyzePage';
 import { WorkbenchProvider } from './workbench/core/WorkbenchProvider';
 
-const AnalyzePage = lazy(() =>
-  import('./pages/AnalyzePage').then((m) => ({ default: m.AnalyzePage })),
-);
 const HistoryPage = lazy(() =>
   import('./pages/HistoryPage').then((m) => ({ default: m.HistoryPage })),
 );
@@ -29,7 +27,7 @@ export function App() {
     <WorkbenchProvider>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<Suspended page={AnalyzePage} />} />
+          <Route path="/" element={<AnalyzePage />} />
           <Route path="/workbench" element={<Suspended page={WorkbenchPage} />} />
           <Route path="/history" element={<Suspended page={HistoryPage} />} />
           <Route path="/analyses/:id" element={<Suspended page={AnalysisDetailPage} />} />
@@ -43,7 +41,8 @@ export function App() {
 }
 
 /**
- * Pages load on demand. While their code arrives an empty block holds the room of the page, so the
+ * Every page except the home page (the landing page, bundled with the app so it shows at once)
+ * loads on demand. While its code arrives an empty block holds the room of the page, so the
  * footer does not jump up and then down again when the page appears (that shift was 0.17 CLS).
  */
 function Suspended({ page: Page }: { page: ComponentType }) {
