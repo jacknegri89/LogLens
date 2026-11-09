@@ -1,0 +1,21 @@
+{
+  "name": "LogLens",
+  "short_name": "LogLens",
+  "description": "Find the root cause in your logs and stack traces.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0f2a24",
+  "background_color": "#0f2a24",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

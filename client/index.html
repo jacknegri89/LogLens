@@ -2,23 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LogLens - AI log analysis</title>
     <meta name="theme-color" content="#0f2a24" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="LogLens" />
-    <meta property="og:title" content="LogLens - AI log analysis" />
-    <meta
-      property="og:description"
-      content="Paste a log or stack trace and get the failing lines, severity, probable causes and a ready-to-paste GitHub issue."
-    />
-    <meta property="og:url" content="https://loglens-demo.vercel.app/" />
-    <meta name="twitter:card" content="summary" />
-    <meta
-      name="description"
-      content="Paste a log or stack trace and get the failing lines, severity, probable causes and a ready-to-paste GitHub issue."
-    />
+    <!--page-head-->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -28,6 +18,7 @@
     <meta name="google-site-verification" content="ibT3EAjqxYgr5q7LIRyvW1twlqwuN5mXAtrGTPpS_WQ" />
   </head>
   <body>
+    <noscript>LogLens needs JavaScript to run in your browser.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
