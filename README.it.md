@@ -12,7 +12,7 @@ problema, spiega le cause probabili e prepara la issue GitHub, pronta da copiare
 [**Demo online**](https://loglens-demo.vercel.app) ·
 [English](./README.md) ·
 [Architettura](./docs/architecture.md) ·
-[Changelog](./docs/changelog.md)
+[Benchmark](./docs/benchmarks.md)
 
 [![CI](https://github.com/jacknegri89/LogLens/actions/workflows/ci.yml/badge.svg)](https://github.com/jacknegri89/LogLens/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
@@ -30,12 +30,15 @@ problema, spiega le cause probabili e prepara la issue GitHub, pronta da copiare
 ## Indice
 
 - [Cosa fa](#cosa-fa)
+- [Perché è tecnicamente interessante](#perché-è-tecnicamente-interessante)
 - [Come si presenta](#come-si-presenta)
 - [Come funziona](#come-funziona)
+- [Costruito con](#costruito-con)
 - [Avvio rapido](#avvio-rapido)
 - [Configurazione](#configurazione)
 - [API](#api)
 - [Struttura del progetto](#struttura-del-progetto)
+- [Test e benchmark](#test-e-benchmark)
 - [Controlli di qualità](#controlli-di-qualità)
 - [Pubblicazione su Vercel](#pubblicazione-su-vercel)
 - [Sicurezza e privacy](#sicurezza-e-privacy)
@@ -61,7 +64,7 @@ LogLens trasforma un muro di testo di log in una risposta su cui puoi agire.
 **Conserva e condividi**
 
 - Ogni analisi finisce in una cronologia che solo il suo proprietario può vedere, e resta per 90 giorni. Una copia resta nel browser, così la cronologia si apre anche se il server è spento.
-- Condividi un report con un link segreto in sola lettura. Il log originale non è mai incluso, segreti e indirizzi e-mail nel testo del report sono mascherati ogni volta che il link viene aperto, e il link si può revocare in ogni momento.
+- Condividi un report con un link segreto in sola lettura. Il log originale non è mai incluso, segreti e indirizzi e-mail nel testo del report sono mascherati ogni volta che il link viene aperto, e il link si può revocare in ogni momento. Un link condiviso mostra la stessa immagine e lo stesso titolo di anteprima generici del sito: nulla del report compare nell'anteprima.
 - Segna un report come utile o non utile.
 
 **Workbench**: strumenti che lavorano su un log senza uscire dal tuo browser.
@@ -72,6 +75,14 @@ LogLens trasforma un muro di testo di log in una risposta su cui puoi agire.
 - **Sicurezza**: un controllo dei pattern sospetti e uno strumento che nasconde i dati sensibili.
 - **Metriche**: punteggio di rischio, flame graph e mappa dei servizi coinvolti.
 - **Esporta** come issue GitHub, messaggio Slack, evento PagerDuty, post-mortem o JSON, più i permalink. Una palette di comandi (`Ctrl K`) raggiunge tutto.
+
+## Perché è tecnicamente interessante
+
+- **Prove, non supposizioni.** Gli eventi si collegano solo per qualcosa che il log mostra: un identificatore condiviso, un valore cambiato che i guasti successivi riportano, una dipendenza che il log nomina. Il solo orario non è mai un legame, e una causa radice è _confermata_ solo quando lo mostra il log stesso.
+- **Il modello è un testimone, non il giudice.** Ciò che scrive un'AI viene verificato sul log originale. Può abbassare liberamente la certezza di una causa radice, ma può alzarla solo citando eventi che la correlazione lega ai guasti.
+- **Utile anche senza AI.** Un motore a regole funziona offline senza chiavi. Il modello è facoltativo, limitato per chiamate, dimensione, costo e tempo, e ogni report dice quale motore lo ha scritto.
+- **Misurato, non dichiarato.** 15 scenari di benchmark con risposte note, 59 campioni di formati di log e una serie di test su log ambigui girano nella CI: la build fallisce se il motore peggiora.
+- **Privacy e sicurezza come vincoli di progetto.** I segreti vengono mascherati prima di ogni chiamata esterna, i report condivisi sono ripuliti a ogni apertura e i limiti orari sono una transazione con lock, provata su un PostgreSQL vero.
 
 ## Come si presenta
 
@@ -94,7 +105,7 @@ LogLens trasforma un muro di testo di log in una risposta su cui puoi agire.
   </tr>
 </table>
 
-> Le schermate arrivano dalla demo online, che usa `AI_PROVIDER=hybrid`: rispondono prima le regole integrate, e OpenAI interviene solo sui log che nessuna regola copre.
+> Le schermate arrivano da un'esecuzione locale di questo repository con il motore a regole integrato (`AI_PROVIDER=rules`): per i report mostrati non è stata usata alcuna AI. La demo online usa `hybrid`, dove OpenAI interviene solo su ciò che nessuna regola copre.
 
 ## Come funziona
 
@@ -124,6 +135,17 @@ flowchart LR
 7. Il report è validato con Zod, salvato con Prisma e restituito.
 
 Il prompt, le sue quattro fasi e la difesa dal prompt injection sono descritti in [`docs/prompts.md`](./docs/prompts.md). Il progetto completo è in [`docs/architecture.md`](./docs/architecture.md). Il motore di analisi è misurato su 15 log realistici con risposte note, senza API a pagamento: vedi [`docs/benchmarks.md`](./docs/benchmarks.md) (`npm run benchmark` in `server/`).
+
+## Costruito con
+
+| Livello  | Tecnologia                                                                             |
+| -------- | -------------------------------------------------------------------------------------- |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS 4, React Router; font serviti dall'app stessa |
+| Backend  | Node.js 20+, Express 5, TypeScript, Zod                                                |
+| Dati     | PostgreSQL (Neon), Prisma 7                                                            |
+| Analisi  | Un motore a regole proprio; OpenAI e Ollama come provider facoltativi                  |
+| Qualità  | Vitest, Playwright, ESLint, Prettier, `npm audit`, GitHub Actions                      |
+| Hosting  | Vercel: il client statico e una funzione serverless per l'API, con un cron giornaliero |
 
 ## Avvio rapido
 
@@ -215,6 +237,8 @@ LogLens/
 │   ├── src/pages/        # analisi, cronologia, report, link condiviso, privacy
 │   ├── src/content/      # tutti i testi visibili, in inglese e italiano
 │   ├── src/workbench/    # il Workbench, una cartella per ogni scheda
+│   ├── plugins/          # passo di build: un file HTML per pagina, con i suoi tag per l'anteprima
+│   ├── brand/            # sorgente dell'immagine per l'anteprima social (`npm run brand:render`)
 │   └── e2e/              # test end-to-end con Playwright
 ├── server/               # Node.js + Express + TypeScript
 │   ├── src/routes/       # le rotte /api
@@ -224,11 +248,25 @@ LogLens/
 │   ├── benchmarks/       # log realistici con risposte note, metriche, `npm run benchmark`
 │   ├── src/services/     # limiti, conservazione, salvataggio delle analisi
 │   └── prisma/           # schema e dati di esempio
-├── docs/                 # architettura, prompt, decisioni, stato, changelog
+├── docs/                 # architettura, prompt, decisioni, benchmark, screenshot
 ├── examples/             # log di esempio da provare
 ├── vercel.json           # comando di build e cron giornaliero
 └── .github/workflows/    # CI
 ```
+
+## Test e benchmark
+
+| Controllo                                      | Risultato                                                                                                                              |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Test del server (Vitest)                       | 955 superati, di cui 5 su un PostgreSQL vero (richiedono `TEST_DATABASE_URL`, vedi sotto)                                              |
+| Test del client (Vitest)                       | 1.369 superati                                                                                                                         |
+| Test end-to-end (Playwright, schermo telefono) | 10 superati                                                                                                                            |
+| Benchmark del motore, 15 scenari               | Parsing, copertura degli eventi, precisione e richiamo degli incidenti, causa radice e validità delle prove al 100%; falsi positivi 0% |
+| Controllo dipendenze (`npm audit`)             | 0 vulnerabilità note in radice, server e client                                                                                        |
+
+I benchmark usano il motore deterministico, quindi sono ripetibili e gratuiti; gli scenari e ciò che
+ciascuno verifica sono in [`docs/benchmarks.md`](./docs/benchmarks.md). Il percorso con il modello non
+è stato misurato con una chiave vera (vedi [Stato e limiti](#stato-e-limiti)).
 
 ## Controlli di qualità
 
@@ -239,6 +277,8 @@ npm run typecheck --prefix client
 npm run lint                         # client e server
 npm audit --audit-level=moderate     # anche in server/ e client/
 npm test --prefix server             # test unitari, delle API e di regressione, benchmark
+#   con TEST_DATABASE_URL=<un PostgreSQL locale con le tabelle già create (`prisma db push`)>
+#   esegue anche i test dei limiti orari su un database vero; senza, vengono saltati
 npm test --prefix client             # test unitari
 npm run test:e2e --prefix client     # Playwright, schermo da telefono
 ```
@@ -282,11 +322,12 @@ Anche così, non incollare segreti veri in un'istanza pubblica.
 - Le schede **Correzione** e **Chiedi** del Workbench mostrano "non ancora disponibile". Il loro codice è nel repository ma irraggiungibile finché non viene rivisto.
 - `X-Visitor-Id` non è un login. Funziona come un cookie di sessione: chi possiede l'id può leggere e cancellare quella cronologia, e un id indovinabile viene rifiutato. Tiene separate le cronologie in una demo senza account; non protegge log sensibili.
 - Un errore del database risponde `503`, non `500`, e il log del server non contiene mai i dati di una query fallita.
-- La transazione del limite orario è provata con un database finto che alterna le richieste; non è ancora stata eseguita su un PostgreSQL vero.
+- La transazione del limite orario è provata su un PostgreSQL vero con connessioni concorrenti (nella CI, e in locale con `TEST_DATABASE_URL`); senza il lock, 10 richieste simultanee superano un limite globale di 4.
+- Anche le anteprime di Vercel partono solo se le loro variabili d'ambiente sono valide: imposta `AI_PROVIDER` e un `VISITOR_SALT` robusto anche per l'ambiente Preview, altrimenti la loro API risponde 500.
 - Il limite di richieste al minuto è contato nella memoria di ogni istanza del server: ferma le raffiche, ma non è una quota globale. I limiti orari sulle analisi sono nel database e sono condivisi.
 - La pulizia giornaliera segue la pianificazione di Vercel; le analisi oltre i 90 giorni vengono rimosse anche alla successiva lettura della cronologia o a una nuova analisi.
 
-Vedi [`docs/stato.md`](./docs/stato.md) per lo stato attuale e [`docs/decisions.md`](./docs/decisions.md) per il perché delle scelte.
+Vedi [`docs/decisions.md`](./docs/decisions.md) per il perché delle scelte.
 
 ## Documentazione
 
@@ -295,9 +336,7 @@ Vedi [`docs/stato.md`](./docs/stato.md) per lo stato attuale e [`docs/decisions.
 | [`docs/architecture.md`](./docs/architecture.md) | Il flusso, i componenti e le scelte di progetto |
 | [`docs/prompts.md`](./docs/prompts.md)           | Il prompt, le sue fasi e il contratto JSON      |
 | [`docs/decisions.md`](./docs/decisions.md)       | Le decisioni, con motivo e alternative          |
-| [`docs/changelog.md`](./docs/changelog.md)       | Cosa è cambiato e quando                        |
-| [`docs/stato.md`](./docs/stato.md)               | Stato attuale e cosa resta                      |
-| [`docs/checklist.md`](./docs/checklist.md)       | Gli ultimi controlli di fine task, PASS o FAIL  |
+| [`docs/benchmarks.md`](./docs/benchmarks.md)     | Gli scenari di benchmark e come eseguirli       |
 | [`server/README.it.md`](./server/README.it.md)   | Il backend: script, struttura e dettagli API    |
 
 Segnalazioni e pull request sono benvenute. Esegui prima i [controlli di qualità](#controlli-di-qualità).

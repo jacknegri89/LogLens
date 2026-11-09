@@ -30,7 +30,7 @@
   --color-felt-deep: #0a1e19;
   --color-pen-deep: #8f2416;
 
-  --font-sans: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Courier Prime', 'Courier New', ui-monospace, monospace;
 }
 
