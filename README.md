@@ -259,7 +259,7 @@ LogLens/
 | Check                                         | Result                                                                                                                |
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Server tests (Vitest)                         | 955 passing, including 5 against a real PostgreSQL (they need `TEST_DATABASE_URL`, see below)                         |
-| Client tests (Vitest)                         | 1,369 passing                                                                                                         |
+| Client tests (Vitest)                         | 1,371 passing                                                                                                         |
 | End-to-end tests (Playwright, phone viewport) | 10 passing                                                                                                            |
 | Engine benchmarks, 15 scenarios               | Parsing, event coverage, incident precision and recall, root cause and evidence validity all 100%; false positives 0% |
 | Dependency audit (`npm audit`)                | 0 known vulnerabilities in the root, server and client                                                                |

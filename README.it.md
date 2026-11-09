@@ -259,7 +259,7 @@ LogLens/
 | Controllo                                      | Risultato                                                                                                                              |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | Test del server (Vitest)                       | 955 superati, di cui 5 su un PostgreSQL vero (richiedono `TEST_DATABASE_URL`, vedi sotto)                                              |
-| Test del client (Vitest)                       | 1.369 superati                                                                                                                         |
+| Test del client (Vitest)                       | 1.371 superati                                                                                                                         |
 | Test end-to-end (Playwright, schermo telefono) | 10 superati                                                                                                                            |
 | Benchmark del motore, 15 scenari               | Parsing, copertura degli eventi, precisione e richiamo degli incidenti, causa radice e validità delle prove al 100%; falsi positivi 0% |
 | Controllo dipendenze (`npm audit`)             | 0 vulnerabilità note in radice, server e client                                                                                        |
