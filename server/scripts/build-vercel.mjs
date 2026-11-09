@@ -14,14 +14,14 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(functionDir, { recursive: true });
 
 // Headers sent with every response. The content security policy allows only what the app
-// loads: its own scripts, its own API and the Google Fonts stylesheet and files. Inline styles
-// are allowed because React sets some layout values as style attributes.
+// loads: its own scripts, fonts and API. Inline styles are allowed because React sets some layout
+// values as style attributes.
 const SECURITY_HEADERS = {
   'Content-Security-Policy': [
     "default-src 'self'",
     "script-src 'self'",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: blob:",
     "connect-src 'self'",
     "worker-src 'self' blob:",

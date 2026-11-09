@@ -1,3 +1,6 @@
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource/courier-prime/400.css';
+import '@fontsource/courier-prime/700.css';
 import { Analytics } from '@vercel/analytics/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
