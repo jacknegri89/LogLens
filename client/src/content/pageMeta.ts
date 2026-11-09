@@ -4,9 +4,9 @@ import { defineText } from '../i18n/defineText';
 export const PAGE_META_TEXT = defineText({
   en: {
     home: {
-      title: 'LogLens - AI log analysis',
+      title: 'LogLens - find the root cause in your logs',
       description:
-        'Paste a log or stack trace and get the failing lines, severity, probable causes and a ready-to-paste GitHub issue.',
+        'Paste a log or stack trace. LogLens groups the failures into incidents, links the events that led to them and writes a GitHub issue you can paste.',
     },
     workbench: {
       title: 'Workbench - LogLens',
@@ -27,7 +27,8 @@ export const PAGE_META_TEXT = defineText({
     },
     shared: {
       title: 'Shared report - LogLens',
-      description: 'A read-only copy of a LogLens report, shared with a secret link.',
+      description:
+        'A read-only LogLens report: the incidents found in a log, the evidence and the probable root cause, shared with a private link.',
     },
     notFound: {
       title: 'Page not found - LogLens',
@@ -36,9 +37,9 @@ export const PAGE_META_TEXT = defineText({
   },
   it: {
     home: {
-      title: 'LogLens - analisi dei log con AI',
+      title: 'LogLens - trova la causa radice nei tuoi log',
       description:
-        'Incolla un log o uno stack trace e ottieni le righe che falliscono, la gravità, le cause probabili e una issue GitHub pronta da copiare.',
+        'Incolla un log o uno stack trace. LogLens raggruppa i guasti in incidenti, collega gli eventi che li hanno causati e scrive una issue GitHub da incollare.',
     },
     workbench: {
       title: 'Workbench - LogLens',
@@ -59,7 +60,8 @@ export const PAGE_META_TEXT = defineText({
     },
     shared: {
       title: 'Report condiviso - LogLens',
-      description: 'Una copia in sola lettura di un report LogLens, condivisa con un link segreto.',
+      description:
+        'Un report LogLens in sola lettura: gli incidenti trovati in un log, le prove e la probabile causa radice, condiviso con un link privato.',
     },
     notFound: {
       title: 'Pagina non trovata - LogLens',
