@@ -140,12 +140,31 @@ before it existed are cleaned too. The raw log, the owner and the address hash a
 The response is sent with `Cache-Control: no-store`, `X-Robots-Tag: noindex` and
 `Referrer-Policy: no-referrer`, and the analytics event of the page has the token removed.
 
+## Page HTML and link previews
+
+The client is a single-page app, but a crawler that does not run JavaScript (the ones of chat apps
+and search engines) reads only the HTML it receives. So every page has its own HTML file, written
+when the client is built: `plugins/socialPages.ts` fills `index.html` and writes `workbench.html`,
+`privacy.html`, `history.html`, `analysis.html`, `shared.html` and `404.html`, each with its own
+title, description, canonical address and Open Graph / Twitter tags
+(`plugins/pageHead.ts`, from `content/pageMeta.ts`). `server/scripts/build-vercel.mjs` routes each
+address to its file, answers unknown addresses with a real 404 and sends `X-Robots-Tag` on the
+private pages. The preview image is `client/public/og-image.jpg` (1200 × 630), drawn from
+`client/brand/og-image.html` by `npm run brand:render` in `client/`.
+
+The private pages (history, one analysis, a shared report, 404) are `noindex` and have no
+canonical address or `og:url`: the address of a shared report holds its token, which must not be
+copied into metadata. A shared link therefore shows the same generic preview as any other page and
+reveals nothing about the report.
+
 ## Hourly limits
 
 `tryReserveAttempt` (in `analysisRepository.ts`) checks the per-client and the global limit and
 records the attempt in one transaction that first takes a PostgreSQL advisory lock. Requests that
 arrive together queue on the lock, so exactly the allowed number passes and a refused attempt is
-never written. The per-minute limit (`middleware/apiRateLimit.ts`) stays in each instance's memory,
+never written. `attemptReservation.integration.test.ts` runs it against a real PostgreSQL with
+concurrent connections (a service container in CI, any local database through
+`TEST_DATABASE_URL`). The per-minute limit (`middleware/apiRateLimit.ts`) stays in each instance's memory,
 with a hard cap on the addresses it remembers.
 
 ## Where the analysis runs
@@ -184,6 +203,8 @@ LogLens/
 │   ├── src/pages/        # analyze, history, report, shared link, privacy
 │   ├── src/content/      # every visible text, in English and Italian
 │   ├── src/workbench/    # the Workbench, one folder per tab
+│   ├── plugins/          # build step: one HTML file per page with its own link-preview tags
+│   ├── brand/            # source of the social preview image (npm run brand:render)
 │   └── e2e/              # Playwright end-to-end tests
 ├── server/               # Express + TypeScript
 │   ├── src/routes/       # the /api routes
@@ -193,7 +214,7 @@ LogLens/
 │   ├── benchmarks/       # scenarios with known answers and the evaluator
 │   ├── src/services/     # limits, retention, saving analyses
 │   └── prisma/           # schema.prisma and seed
-├── docs/                 # architecture, prompts, decisions, status, changelog, screenshots
+├── docs/                 # architecture, prompts, decisions, benchmarks, screenshots
 ├── examples/             # sample logs to try the app with
 ├── vercel.json           # build command and the daily cron
 └── .github/workflows/    # CI

@@ -90,7 +90,9 @@ describe.skipIf(!testDatabaseUrl)('tryReserveAttempt on a real PostgreSQL', () =
   it('forgets attempts older than one hour and frees their place', async () => {
     const limits = { perClientPerHour: 1, globalPerHour: 0 };
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
-    await prisma.analysisAttempt.create({ data: { clientHash: 'client-a', createdAt: twoHoursAgo } });
+    await prisma.analysisAttempt.create({
+      data: { clientHash: 'client-a', createdAt: twoHoursAgo },
+    });
 
     const decision = await tryReserveAttempt('client-a', limits);
 
