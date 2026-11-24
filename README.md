@@ -31,7 +31,6 @@ explains the probable causes and drafts the GitHub issue, ready to copy.
 
 - [What it does](#what-it-does)
 - [Why it is technically interesting](#why-it-is-technically-interesting)
-- [See it](#see-it)
 - [How it works](#how-it-works)
 - [Built with](#built-with)
 - [Quick start](#quick-start)
@@ -83,29 +82,6 @@ LogLens turns a wall of log text into an answer you can act on.
 - **Useful without AI.** A rules engine works offline with no key. The model is optional, limited in calls, size, cost and time, and every report says which engine wrote it.
 - **Measured, not claimed.** 15 benchmark scenarios with known answers, 59 log-format samples and a set of ambiguous-log tests run in CI: the build fails if the engine gets worse.
 - **Privacy and security as design constraints.** Secrets are masked before any external call, shared reports are cleaned each time they are opened, and the hourly limits are a locked database transaction tested against a real PostgreSQL.
-
-## See it
-
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/report.jpg" alt="A report: the failure written on an index card with a SEVERITY HIGH stamp, then the evidence board" /></td>
-    <td width="50%"><img src="docs/screenshots/workbench.jpg" alt="The Workbench Explorer: a loaded log with a query bar and a list of parsed lines" /></td>
-  </tr>
-  <tr>
-    <td align="center"><sub><b>The report</b>: what failed, how serious it is, and the evidence behind it.</sub></td>
-    <td align="center"><sub><b>The Workbench</b>: search, group and inspect a log in the browser.</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/history.jpg" alt="The history page: a drawer of saved analyses" /></td>
-    <td width="50%" align="center"><img src="docs/screenshots/mobile.jpg" alt="The home page on a phone" width="260" /></td>
-  </tr>
-  <tr>
-    <td align="center"><sub><b>History</b>: every analysis of the last 90 days, only yours.</sub></td>
-    <td align="center"><sub><b>On a phone</b>: the same pages, laid out for a small screen.</sub></td>
-  </tr>
-</table>
-
-> Screenshots come from a local run of this repository with the built-in rules engine (`AI_PROVIDER=rules`): no AI was used for the reports shown. The live demo runs `hybrid`, where OpenAI only handles what no rule covers.
 
 ## How it works
 
