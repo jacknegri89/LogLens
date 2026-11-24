@@ -56,6 +56,9 @@
     "vitest": "^4.1.12"
   },
   "overrides": {
+    "@prisma/config": {
+      "effect": "3.22.1"
+    },
     "esbuild": "$esbuild",
     "brace-expansion": "5.0.12",
     "minimatch": "11.0.4"
